@@ -1,0 +1,70 @@
+<div class="mpfn-subtitle">Selecciona la especialidad</div>
+
+<p class="mpfn-descripcion">
+  Por favor, seleccione la especialidad que corresponda al delito que desea denunciar.
+</p>
+
+<div class="mx-auto mt-4" style="min-height: 40vh;">
+  <form [formGroup]="form">
+    <div class="grid">
+      <div *ngFor="let item of tiposDelito" class="col-12 md:col-6 lg:col-4 p-2">
+        <div class="border-1 border-round border-card p-3 h-full cursor-pointer bg-white"
+          (click)="seleccionarDelito(item.id)">
+
+          <div class="grid">
+            <!-- Fila 1: radio + título -->
+            <div class="col-12 flex align-items-center gap-2">
+              <p-radioButton [inputId]="item.id" name="tipoDelitoSeleccionado" [value]="item.id"
+                formControlName="tipoDelitoSeleccionado" (click)="$event.stopPropagation()" />
+
+              <label [for]="item.id" class="font-bold text-lg cursor-pointer">
+                {{ item.titulo }}
+              </label>
+            </div>
+
+            <!-- Fila 2: descripción -->
+            <div class="col-12 text-justify text-sm text-color-secondary mb-2">
+              {{ item.descripcion }}
+            </div>
+
+            <!-- Fila 3: link delitos -->
+            <div class="col-12">
+              <a #delitosBtn (click)="mostrarDelitos($event, delitosPanel)" class="color-link text-sm cursor-pointer">
+                <i class="pi pi-info-circle mr-2"></i> Ver más delitos
+              </a>
+
+              <p-overlayPanel #delitosPanel [showCloseIcon]="false" [dismissable]="true">
+                <div class="delitos-overlay">
+                  <strong>Otros delitos:</strong>
+                  <ul class="delitos-lista">
+                    <li *ngFor="let delito of item.otrosDelitos" class="mb-1">
+                      {{ delito }}
+                    </li>
+                  </ul>
+                </div>
+              </p-overlayPanel>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="flex justify-content-between mt-8 mb-5">
+  <!-- Botón izquierdo -->
+  <p-button (onClick)="askToCancelComplaint()" [label]="'Cancelar denuncia'"
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+  </p-button>
+
+  <!-- Botones derechos -->
+  <div class="ml-auto flex gap-3">
+    <p-button styleClass="p-button-lg bg-secondary font-semibold btn-adjust" (onClick)="nextStep()"
+      [disabled]="form.invalid">
+      <span>Continuar</span>
+      <fn-icon [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
+    </p-button>
+  </div>
+</div>
+
+<p-toast />

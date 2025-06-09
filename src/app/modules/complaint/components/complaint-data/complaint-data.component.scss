@@ -1,0 +1,24 @@
+.p-accordion-content {
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
+}
+
+:host::ng-deep {
+    .p-accordion-header {
+        .p-accordion-header-link {
+            background: transparent !important;
+            border-bottom: none !important;
+            padding-top: 30px;
+            outline: none;
+
+        }
+    }
+
+    .p-accordion-content {
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+        background: transparent !important;
+    }
+}

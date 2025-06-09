@@ -1,0 +1,156 @@
+<div class="mpfn-subtitle">Datos de verificación</div>
+
+<p-progressBar *ngIf='validating' mode="indeterminate" styleClass="my-2" [style]="{'height': '6px'}" />
+
+<p class="mpfn-descripcion">
+  Por favor complete los datos solicitados.
+</p>
+
+<app-alert [dataAlert]="verificationMessage[0]" [cosable]="false"/>
+
+<form [formGroup]="personDataForm" class="mx-auto plr-15-10 mt-5 mpfn-formulario">
+
+  <fn-input-wrapper label="Perfil">
+    <p-dropdown [options]="tmpProfiles" (onChange)="selectProfile($event.value)" optionLabel="nombre" optionValue="id"
+      placeholder="Seleccione perfil" formControlName="profile" emptyMessage="Datos no encontrados"
+      [ngClass]="{'ng-invalid ng-dirty': errorMsg('profile')}" />
+
+    <small error *ngIf="errorMsg('profile')" class="p-error block">
+      {{errorMsg('profile')}}
+    </small>
+  </fn-input-wrapper>
+
+  <app-alert *ngIf="showProfileMessage" [dataAlert]="profileMessage[0]" [cosable]="false" class="ajustar-alerta"/>
+
+  <fn-input label="Celular" class="mpfn-input mpfn-count mpfn-input-icon" [ico]="obtenerIcono('iSmartPhone')" placeholder="000 000 000"
+    [counter]="9" [maxlength]="9" formControlName="cellPhone" validarInput [validarMaxLength]="9"
+    [validarTipoEntrada]="'numero'" />
+
+  <form *ngIf="currentProfile === SLUG_PROFILE.PNP" [formGroup]="PNPDataForm" class="mpfn-formulario">
+    <fn-input-wrapper label="Dependencia policial" class="mpfn-input">
+      <p-dropdown [options]="policeDepartmentList" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
+        [filter]="true" filterBy="nombre" formControlName="policeUnit" emptyMessage="Datos no encontrados"
+        [filter]="true" [showClear]="true" filterBy="nombre" filterPlaceholder="Buscar dependencia policial"
+        resetFilterOnHide="true" emptyFilterMessage='No se encontraron resultados'
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('policeUnit')}" />
+
+      <small error *ngIf="errorMsg('policeUnit')" class="p-error block">
+        {{errorMsg('policeUnit')}}
+      </small>
+    </fn-input-wrapper>
+
+    <fn-input class="mpfn-input" label="Anexo de la comisaría (opcional)" placeholder="Anexo" formControlName="anexo" validarInput
+      [validarMaxLength]="10" [validarTipoEntrada]="'numero'" />
+  </form>
+
+  <form *ngIf="currentProfile === SLUG_PROFILE.PJ" [formGroup]="PJDataForm" class="mpfn-formulario">
+    <fn-input-wrapper label="Distrito judicial" class="mpfn-input">
+      <p-dropdown [options]="judicialDistrictList" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
+        [filter]="true" filterBy="nombre" formControlName="judicialDistrict" emptyMessage="Datos no encontrados"
+        [showClear]="true" filterPlaceholder="Buscar distrito judicial" resetFilterOnHide="true"
+        emptyFilterMessage='No se encontraron resultados'
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('judicialDistrict')}" />
+
+      <small error *ngIf="errorMsg('judicialDistrict')" class="p-error block">
+        {{errorMsg('judicialDistrict')}}
+      </small>
+    </fn-input-wrapper>
+
+    <fn-input-wrapper label="Especialidad" class="mpfn-input">
+      <p-dropdown [options]="especialidadjudList" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
+        [filter]="true" filterBy="nombre" formControlName="specialtyjud" emptyMessage="Datos no encontrados"
+        [showClear]="true" filterPlaceholder="Buscar especialidad" resetFilterOnHide="true"
+        emptyFilterMessage='No se encontraron resultados'
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('specialtyjud')}" />
+
+      <small error *ngIf="errorMsg('specialtyjud')" class="p-error block">
+        {{errorMsg('specialtyjud')}}
+      </small>
+    </fn-input-wrapper>
+
+    <fn-input-wrapper label="Órgano jurisdiccional" class="mpfn-input">
+      <p-dropdown [options]="judicialBodiesList" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
+        [filter]="true" filterBy="nombre" formControlName="judicialBodies" emptyMessage="Datos no encontrados"
+        [showClear]="true" filterPlaceholder="Buscar órgano jurisdiccional" resetFilterOnHide="true"
+        emptyFilterMessage='No se encontraron resultados'
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('judicialBodies')}" />
+
+      <small error *ngIf="errorMsg('judicialBodies')" class="p-error block">
+        {{errorMsg('judicialBodies')}}
+      </small>
+    </fn-input-wrapper>
+
+    <fn-input-wrapper label="Dependencia judicial" class="mpfn-input">
+      <p-dropdown [options]="judicialDependenciesList" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
+        [filter]="true" filterBy="nombre" formControlName="judicialUnit" emptyMessage="Datos no encontrados"
+        [showClear]="true" filterPlaceholder="Buscar dependencia judicial" resetFilterOnHide="true"
+        emptyFilterMessage='No se encontraron resultados'
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('judicialUnit')}" />
+
+      <small error *ngIf="errorMsg('judicialUnit')" class="p-error block">
+        {{errorMsg('judicialUnit')}}
+      </small>
+    </fn-input-wrapper>
+
+  </form>
+
+  <div class="mpfn-ouuter-inner">
+    <fn-input class="mpfn-input mpfn-input-icon" label="Correo electrónico {{varInstitucional}}" [ico]="obtenerIcono('iMail')"
+      placeholder="ejemplo@gmail.com" formControlName="email" [checking]="true" (keypress)="noQuotes($event)"
+      validarInput [validarMaxLength]="100" [validarRegex]="'^[a-zA-Z0-9@._-]*$'" />
+
+    <p-button class="mpfn-ouuter-relative" styleClass="p-button bg-secondary font-semibold btn-adjust btn-email"
+      [class.mpfn-boton-deshabilitado]="!emailValidation"
+      label="Enviar código" [disabled]="!emailValidation" (onClick)="modalConfirmation()" />
+  </div>
+
+  <div class="mpfn-formulario">
+    <div class="mpfn-label-icon mt-3">
+      <label for="" class="block text-sm font-semibold ng-star-inserted">Confirmar código de verificación</label>
+      <i class="pi pi-question-circle help-icon"
+        pTooltip="Le enviaremos un código de verificación para confirmar que su correo electrónico es correcto. Tendrá un tiempo limitado de uso. Si no lo recibe, revise que haya ingresado bien su correo electrónico."
+        tooltipPosition="right">
+      </i>
+    </div>
+
+    <fn-input class="mpfn-input mpfn-count" placeholder="Ingrese el código enviado a su correo" formControlName="codeVerification" [checking]="true"
+      [counter]="6" [disabled]="!validSend" validarInput [validarMaxLength]="SLUG_MAX_LENGTH.CODEVERIFICATION"
+      [validarTipoEntrada]="'numero'" [ngClass]="{'ng-invalid ng-dirty': validatingCode}" styleClass="w-full" />
+
+    <small error *ngIf="validatingCode" class="p-error block">
+      {{validatingCodeCaducado}}
+    </small>
+  </div>
+
+  <div class="mpfn-formulario mpfn-checkbox">
+    <p-checkbox inputId="autorizoMP" name="confirmData" formControlName="confirmData" [value]="1" />
+    <label for="autorizoMP" class="mx-2 cursor-pointer">
+      Autorizo expresamente al Ministerio Público - Fiscalía de la Nación a ser notificado/a al correo electrónico
+      consignado.
+    </label>
+  </div>
+</form>
+
+<div class="flex justify-content-between mt-8 mb-5">
+  <p-button (onClick)="askToCancelComplaint()" [label]="'Cancelar denuncia'"
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton">
+  </p-button>
+
+  <div class="ml-auto flex gap-3">
+    <!-- <p-button (onClick)="backVerification()" styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton">
+      <fn-icon [ico]="obtenerIcono('iArrowLeft')" class="mr-2" />
+      <span>Regresar</span>
+    </p-button> -->
+
+    <p-button (onClick)="nextStep()"
+      [styleClass]=" !formsValidation ? 'mpfn-boton-bloqueado mpfn-boton' : 'p-button-lg bg-secondary text-white font-semibold btn-adjust' "
+      [loading]="validating" [disabled]="!formsValidation">
+      <span>Continuar</span>
+
+      <fn-icon *ngIf="!validating" [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
+      <i *ngIf="validating" class="pi pi-spin ml-5"> </i>
+    </p-button>
+  </div>
+</div>
+
+<p-toast />

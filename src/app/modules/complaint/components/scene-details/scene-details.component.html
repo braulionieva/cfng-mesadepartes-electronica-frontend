@@ -1,0 +1,58 @@
+<form [formGroup]="form" class="mpfn-formulario">
+
+  <div class="mt-4"></div>
+
+  <fn-input-wrapper label="Especialidad seleccionada" class="mpfn-input">
+    <p-dropdown (onChange)="cambiarEspecialidad($event)" [options]="specialtyList" optionLabel="nombre"
+      optionValue="codigo" placeholder="Seleccionar" [filter]="true" filterBy="nombre" formControlName="specialty"
+      emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('specialty')}" />
+
+    <small error *ngIf="errorMsg('specialty')" class="p-error block">
+      Debe seleccionar una especialidad.
+    </small>
+  </fn-input-wrapper>
+
+  <div class="flex align-items-center justify-content-between color-black2 mb-1 mt-4">
+    <p class="mb-1 mpfn-text mt-1">Describe lo que sucedió de la forma más detallada posible.</p>
+  </div>
+
+  <app-alert [dataAlert]="messages[1]" [cosable]="false" class="mb-0"/>
+
+  <textarea rows="5"
+            pInputTextarea
+            formControlName="report"
+            class="w-full text-justify"
+            [autoResize]="false"
+            [ngClass]="{'ng-invalid ng-dirty': errorMsg('report')}"
+            placeholder="Ingrese la descripción de los hechos de la forma más detallada posible."
+            (input)="onReportInput($event)"
+            (paste)="onReportPaste($event)">
+    </textarea>
+
+  <small class="mpfn-counter" [ngClass]="{ 'p-error': counterReportChar < 100 || counterReportChar > 4000 }">
+    {{ counterReportChar }}/4000 máximo de caracteres
+  </small>
+
+  <small *ngIf="mostrarErrorReport" [ngClass]="{ 'hidden': counterReportChar > 100 || counterReportChar < 1 }"
+    class="p-error block margin-error-hecho">
+    Por favor, ingrese un mayor detalle sobre los hechos sucedidos.
+  </small>
+
+  <div class="mt-4 mb-2">
+    <app-alert [dataAlert]="messages[0]" [cosable]="false" />
+  </div>
+
+  <fn-input-wrapper label="Seleccione el delito" class="mpfn-input mpfn-last">
+    <p-dropdown (onChange)="cambiarDelito($event)" [options]="crimeList" optionLabel="noDelitoSubgenericoEspecifico"
+      [filter]="true" filterBy="noDelitoSubgenericoEspecifico" optionValue="idDelitoSubgenericoEspecifico"
+      placeholder="Seleccionar" formControlName="crime" emptyMessage="Datos no encontrados" emptyFilterMessage="Datos no encontrados"
+      [ngClass]="{'ng-invalid ng-dirty': errorMsg('crime')}" />
+
+    <small error *ngIf="errorMsg('crime')" class="p-error block">
+      Debe seleccionar un delito.
+    </small>
+  </fn-input-wrapper>
+
+  <fn-input style="display: none;" formControlName="especialidad" />
+  <fn-input style="display: none;" formControlName="delito" />
+</form>

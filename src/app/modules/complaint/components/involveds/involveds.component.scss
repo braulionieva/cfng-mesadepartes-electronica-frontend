@@ -1,0 +1,56 @@
+@import url('https://unpkg.com/leaflet@1.9.3/dist/leaflet.css');
+@import url('https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css');
+
+.float-right{
+  float: right;
+}
+
+.btn-adicionales{
+  margin-left: -15px;
+}
+
+.btn-margin-right{
+  margin-right: auto;
+}
+
+.w-input-ruc{
+  width: 103% !important;
+}
+
+.p-text-denunciante{
+  margin-top: -2%;
+}
+
+.mpfn-register-additional-data {
+  font-family: var(--mpfn-font-roboto-bold);
+  font-size: 16px !important;
+}
+
+.mpfn-origen {
+  margin-top: -34px;
+}
+
+.mpfn-menor {
+  margin-top: -25px;
+  margin-bottom: 25px;
+}
+
+.user-added {
+  width: calc(100% - 30px);
+}
+
+.user-option {
+  width: 20px;
+}
+
+.mpfn-numero-ruc {
+  width: calc(100% - 60px) !important;
+  &.mpfn-count {
+    margin-bottom: 10px !important;
+  }
+}
+
+.mpfn-search-ruc {
+  margin-bottom: -5px !important;
+  width: 60px;
+}

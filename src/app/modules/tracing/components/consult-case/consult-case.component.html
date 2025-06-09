@@ -1,0 +1,186 @@
+<div class="text-xl font-semibold mt-6 color-black2">Consultar el estado de su caso:</div>
+
+<p>Ingrese el número de caso de su denuncia para consultar su estado.</p>
+
+<app-alert [dataAlert]="messages[0]" [cosable]="false" />
+
+<div class="align-center color-black2 mb-5">
+  <label for="" class="block mt-5 mb-1">Número de caso</label>
+  <form [formGroup]="numberCaseForm" class="grid">
+    <fn-input formControlName="dependence" styleClass="p-3" class="col-12 md:col-2" placeholder="000000000" validarInput
+      [validarMaxLength]="11" [validarTipoEntrada]="'numero'" /><a class="pt-4">-</a>
+
+    <fn-input formControlName="year" styleClass="p-3" class="col-6 md:col-2" placeholder="0000" validarInput
+      [validarMaxLength]="4" [validarTipoEntrada]="'numero'" /><a class="pt-4">-</a>
+
+    <fn-input formControlName="counter" styleClass="p-3" class="col-6 md:col-2" placeholder="0000" validarInput
+      [validarMaxLength]="4" [validarTipoEntrada]="'numero'" /><a class="pt-4">-</a>
+
+    <fn-input formControlName="number" styleClass="p-3" class="col-6 md:col-1" placeholder="0" validarInput
+      [validarMaxLength]="11" [validarTipoEntrada]="'numero'" [disabled]="true" />
+
+    <div class="col-12 text-center  md:col-4 md:text-left">
+      <p-button (onClick)="consultCase()" [disabled]="numberCaseForm.invalid" [loading]="searchCase.loading"
+        [styleClass]=" numberCaseForm.invalid ? 'p-button-lg bg-gray text-white font-semibold btn-adjust' : 'p-button-lg bg-secondary text-white font-semibold btn-adjust' ">
+        <fn-icon *ngIf="!searchCase.loading" [ico]="obtenerIcono('iSearch')" class="mr-2" height="1.3rem" />
+        <span>Buscar</span>
+      </p-button>
+
+      <p-button (onClick)="clearSearcherCase()" *ngIf="numberCaseForm.valid" label="Limpiar"
+        styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust ml-2">
+      </p-button>
+    </div>
+  </form>
+</div>
+<div *ngIf="!searchCase.data" class="mb-5">
+  <ng-container *ngIf="searchCaseError">
+    <div class="mt-6 text-center text-red-600">
+      <fn-icon [ico]="obtenerIcono('iAlertHexagonal')" height="3rem"/>
+    </div>
+    <p class="text-red-600 font-semibold text-center">Número de caso no encontrado</p>
+    <p class="text-center">Estimado(a) usuario(a) el número de caso ingresado, <strong>no</strong> ha sido encontrado.
+    </p>
+  </ng-container>
+  <ng-container *ngIf="searchSujetoCaseError">
+    <div class="mt-6 text-center text-red-600">
+      <fn-icon [ico]="obtenerIcono('iAlertHexagonal')" height="3rem"/>
+    </div>
+    <p class="text-red-600 font-semibold text-center">Usted no se encuentra vinculado al caso</p>
+    <p class="text-center">Agradecemos su interés y participación. Sin embargo, actualmente usted no está vinculado como
+      una parte procesal del caso.
+  </ng-container>
+  <ng-container *ngIf="searchCaseArchived">
+    <div class="mt-6 text-center text-red-600">
+      <fn-icon [ico]="obtenerIcono('iAlertHexagonal')" height="3rem"/>
+    </div>
+    <p class="text-red-600 font-semibold text-center">Número de caso archivado</p>
+    <p class="text-center">Estimado(a) usuario el número de caso ingresado, <strong>cuenta con registro de
+        acto</strong>.
+  </ng-container>
+
+  <div class="logo-container">
+    <img class="logo logo_mpfn h-6rem mt-5 select-none " src="assets/images/nro-caso.png"
+      alt="Ejemplo de número de caso de una denuncia">
+    <img class="logo logo_mpfn h-7rem mt-3 ml-1 md:ml-2" src="assets/images/nro-caso-cargo.png"
+      alt="Ejemplo de número de caso de una denuncia en el cargo">
+  </div>
+
+</div>
+
+<app-alert *ngIf="!searchCase.data" [dataAlert]="messagesMain[0]" [cosable]="false" [showButton]="true" />
+
+<div *ngIf="searchCase.data&&isTrackingProcess">
+  <div class="text-center mt-3">
+
+    <p-button (onClick)="generatePDF()" styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust ml-3">
+      <fn-icon [ico]="obtenerIcono('iFile')" height="1.5rem" />
+      <span class="ml-1">Generar PDF</span>
+    </p-button>
+  </div>
+
+
+  <div class="mx-auto mt-5 p-3 pl-5 border-1 surface-border" style="max-width: 672px;">
+    <div class="text-xl font-semibold">
+      Nro. de caso: <span class="text-primary-400">{{ case.codigoCaso }}</span>
+    </div>
+  </div>
+  <div class="mx-auto mt-0 pl-5 pb-3 border-1 surface-border" style="max-width: 672px;">
+    <p class="text-primary font-semibold text-lg">Datos de la denuncia</p>
+    <div class="grid grid-nogutter">
+      <div class="col-4">Distrito Fiscal</div>
+      <div class="col-8">:{{ case.distritoFiscalAnterior }}</div>
+    </div>
+    <div class="m-3">
+    </div>
+    <div class="grid grid-nogutter">
+      <div class="col-4">Fiscalía origen</div>
+      <div class="col-8">:{{case.fiscaliaAnterior|| '-'}}</div>
+    </div>
+    <div class="m-3">
+    </div>
+
+    <div class="grid grid-nogutter">
+      <div class="col-4">Despacho</div>
+      <div class="col-8">:{{case.despachoAnterior || '-'}}</div>
+    </div>
+    <div class="m-3">
+    </div>
+
+    <div class="grid grid-nogutter">
+      <div class="col-4">Fecha de ingreso</div>
+      <div class="col-8">:{{formatDateString(case.fechaCreacionDenuncia)}}</div>
+    </div>
+    <div class="m-3">
+    </div>
+
+    <div class="grid grid-nogutter">
+      <div class="col-4">Delito(s)</div>
+      <div class="col-8">:{{case.delitosDenuncia || '-'}}</div>
+    </div>
+  </div>
+  <div class="mx-auto mt-5 pl-5 pb-3 border-1 surface-border" style="max-width: 672px;">
+    <p class="mt-4 text-primary font-semibold text-lg">Situación actual</p>
+    <div class="grid grid-nogutter">
+      <div class="col-4">Distrito Fiscal</div>
+      <div class="col-8">:{{case.distritoFiscal}}</div>
+    </div>
+    <div class="m-3">
+    </div>
+    <div class="grid grid-nogutter">
+      <div class="col-4">Fiscalía actual</div>
+      <div class="col-8">:{{case.fiscalia}}</div>
+    </div>
+    <div class="m-3">
+    </div>
+    <div class="grid grid-nogutter">
+      <div class="col-4">Despacho</div>
+      <div class="col-8">:{{case.despacho || '-'}}</div>
+    </div>
+    <div class="m-3">
+    </div>
+    <div class="grid grid-nogutter">
+      <div class="col-4">Dirección</div>
+      <div class="col-8">:{{case.residenciaFiscal || '-'}}</div>
+    </div>
+    <div class="m-3">
+    </div>
+    <div class="grid grid-nogutter">
+      <div class="col-4">Delito(s)</div>
+      <div class="col-8">:{{case.delitosSujeto|| '-'}}</div>
+    </div>
+  </div>
+  <div class="mx-auto mt-0 pl-5 pb-3 border-1 surface-border bg-gray-200" style="max-width: 672px;">
+    <p class="mt-4 text-primary font-semibold text-lg">Último Trámite</p>
+    <div>
+      <p-steps [model]="stepEtapa" [readonly]="true" [activeIndex]="activeIndex" class="etapa" styleClass="mt-5"
+        (activeIndexChange)="onActiveIndexChange($event)" />
+    </div>
+    <div class="m-2">
+    </div>
+
+    <div class="grid grid-nogutter">
+      <div class="col-4">Acto procesal</div>
+      <div class="col-8">:{{case.actoProcesal || '-'}}</div>
+    </div>
+    <div class="m-2">
+    </div>
+    <div class="grid grid-nogutter">
+      <div class="col-4">Nombre del trámite</div>
+      <div class="col-8">:{{case.tramite || '-'}}</div>
+    </div>
+    <div class="m-2">
+    </div>
+
+    <div class="grid grid-nogutter">
+      <div class="col-4">Fecha del trámite</div>
+      <div class="col-8">:{{formatDateString(case.fechaUltimaAsignacion) || '-'}}</div>
+    </div>
+  </div>
+</div>
+
+<div class="flex justify-content-between mt-8 mb-5">
+  <p-button (onClick)="cancelTracking()" styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+    <fn-icon [ico]="obtenerIcono('iArrowLeft')" class="mr-2" height="1.3rem" />
+    <span>Regresar</span>
+  </p-button>
+</div>

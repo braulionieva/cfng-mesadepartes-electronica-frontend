@@ -1,0 +1,36 @@
+<div class="bg-gray-8 mt-1">
+    <div class="flex justify-content-end">
+        <p-button (onClick)="ref.close()" styleClass="p-button-text">
+            <img class=" h-10px select-none" src="assets/images/close.svg" alt="Cerrar">
+        </p-button>
+    </div>
+
+    <div class="text-2xl nfont-semibold text-primary mb-4 ml-4">Tenga en cuenta lo siguiente</div>
+    <div class="flex justify-content-center font-bold text-2xl text-primary mt-1 mb-1 ">
+        TÉRMINOS Y CONDICIONES
+    </div>
+
+    <div class="p-4 ml-4 mr-4">
+        <div class="bg-white p-d-border scroll-outer" style="min-height: 200px; max-height: 400px;">
+            <div id="scrollDiv" class="scroll-inner color-black2 ml-3 mr-3"
+                style="max-height: 400px; overflow-y: auto; text-align: justify;" [innerHTML]="condiciones"
+                (scroll)="onScroll($event)">
+            </div>
+        </div>
+
+        <div class="flex md:flex-row justify-content-between align-items-center mt-5">
+            <p-button (onClick)="ref.close()" label="NO ACEPTO" [disabled]="loading"
+                styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+            </p-button>
+
+            <p-button (onClick)="continueProcessing()"
+                [styleClass]=" !isScrollEnd ? 'p-button-lg bg-gray text-white font-semibold btn-adjust' : 'p-button-lg bg-secondary text-white font-semibold btn-adjust' "
+                [disabled]="!isScrollEnd">
+                <span>ACEPTO</span>
+                <fn-icon [ico]="iArrowRight" class="ml-5" />
+            </p-button>
+        </div>
+    </div>
+
+
+</div>

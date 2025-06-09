@@ -1,0 +1,288 @@
+/***********************************************/
+/*  Archivo de clases personalizadas para CFE  */
+/***********************************************/
+
+// Titulos
+
+.cfe-titulo-1{
+    font-size: 24px;
+    color: var(--mpfn-primary);
+    margin: 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.cfe-titulo-2{
+    @extend .cfe-titulo-1;
+    font-size: 22px;
+}
+
+.cfe-titulo-3{
+    @extend .cfe-titulo-1;
+    font-size: 20px;
+}
+
+// Subtitulos
+
+.cfe-subtitulo-1{
+    font-size: 18px;
+    font-family: var(--mpfn-font-bold);
+    color: var(--mpfn-primary);
+    margin: 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.cfe-subtitulo-2{
+    @extend .cfe-titulo-1;
+    font-size: 16px;
+}
+
+// Botones
+
+.cfe-boton{
+    outline: none;
+    font-family: var(--mpfn-font-semi-bold);
+    transition: 300ms all ease;
+    cursor: pointer;
+}
+
+.cfe-boton-primary{
+    @extend .cfe-boton;
+    color: var(--mpfn-white);
+    background-color: var(--mpfn-secondary);
+    border: 1px solid var(--mpfn-secondary);
+    &:hover{
+        background-color: var(--mpfn-yellow-hover) !important;
+        border: 1px solid var(--mpfn-yellow-hover) !important;
+    }
+}
+
+.cfe-boton-secondary{
+    @extend .cfe-boton;
+    color: var(--mpfn-primary);
+    background-color: var(--mpfn-gray7);
+    border: 1px solid var(--mpfn-gray6);
+    &:hover{
+        background: var(--mpfn-gray-hover) !important;
+        color: var(--mpfn-primary) !important;
+        border-color: var(--mpfn-gray2) !important ;
+    }
+}
+
+.cfe-boton-tertiary{
+    @extend .cfe-boton;
+    color: var(--mpfn-white);
+    background-color: var(--mpfn-green-dark);
+    border: 1px solid var(--mpfn-green-dark);
+    &:hover{
+        background-color: var(--mpfn-green-hover) !important;
+        border: 1px solid var(--mpfn-green-hover) !important;
+    }
+}
+
+.cfe-boton-outline{
+    @extend .cfe-boton;
+    color: var(--mpfn-black);
+    background-color: var(--mpfn-white);
+    border: 1px solid var(--mpfn-gray2);
+    &:hover{
+        background: var(--mpfn-gray3);
+        border-color: var(--mpfn-gray2);
+    }
+}
+
+.cfe-boton-lg{
+    padding: 14.5px 15px !important;
+    border-radius: 6px;
+    min-width: 150px;
+    font-size: 20px;
+}
+
+.cfe-boton-m{
+    padding: 10.5px 12.5px !important;
+    border-radius: 6px;
+    min-width: 125px;
+    font-size: 18px;
+}
+
+.cfe-boton-sm{
+    padding: 6.5px 8.5px !important;
+    border-radius: 6px;
+    min-width: 100px;
+}
+
+// Semaforos
+
+.dentro-del-plazo{
+    background: var(--mpfn-semaforo-verde) !important;
+}
+
+.plazo-por-vencer{
+    background: var(--mpfn-semaforo-amarillo) !important;
+}
+
+.plazo-vencido{
+    background: var(--mpfn-semaforo-rojo) !important;
+}
+
+// Badges
+
+.badge{
+    font-family: var(--mpfn-font-semi-bold);
+    color: var(--white);
+    font-size: 0.85em;
+    padding: 4px 10px;
+    border-radius: 5px;
+    display: inline-block;
+    align-items: center;
+    text-align: center;
+}
+
+$badge-colores-fondo: (
+    "origen": var(--mpfn-origen-pastel),
+    "despacho": var(--mpfn-despacho-pastel),
+    "turno": var(--mpfn-turno-pastel),
+    "derivado": var(--mpfn-derivado-pastel),
+    "mpe": var(--mpfn-mpe-pastel),
+    "mup": var(--mpfn-mup-pastel),
+    "reasignado": var(--mpfn-reasignado-pastel),
+);
+
+$badge-colores-letras: (
+    "origen": var(--mpfn-origen),
+    "despacho": var(--mpfn-despacho),
+    "turno": var(--mpfn-turno),
+    "derivado": var(--mpfn-derivado),
+    "mpe": var(--mpfn-mpe),
+    "mup": var(--mpfn-mup),
+    "reasignado":var(--mpfn-reasignado),
+);
+
+@mixin crear-badge ( $tipo ){
+    .badge-#{ $tipo } {
+        background-color: map-get($badge-colores-fondo, $tipo);
+        color: map-get($badge-colores-letras, $tipo);
+    }
+}
+
+@each $tipo, $valor in $badge-colores-letras {
+    @include crear-badge ($tipo);
+}
+
+// Checkbox (Configuración global)
+
+.p-checkbox{
+    .p-checkbox-box{
+        &.p-highlight{
+            border-color: var(--mpfn-lightblue);
+            background: var(--mpfn-lightblue);
+            &:hover{
+                border-color: var(--mpfn-lightblue-dark) !important;
+                background: var(--mpfn-lightblue-dark) !important;
+            }
+        }
+    }
+}
+
+// Calendar input
+
+.cfe-calendar{
+    .p-calendar-w-btn{
+        width: 100%;
+        .p-inputtext{
+            border-right: none;
+            &:focus{
+                box-shadow: none;
+                border-color: var(--mpfn-gray10);
+            }
+        }
+    }
+    .p-button-icon-only{
+        background: var(--mpfn-white);
+        border-top: 1px solid var(--mpfn-gray10);
+        border-bottom: 1px solid var(--mpfn-gray10);
+        border-right: 1px solid var(--mpfn-gray10);
+        border-left: none;
+        width: 54px;
+        &:hover{
+            background: var(--mpfn-white);
+            border-top: 1px solid var(--mpfn-gray10);
+            border-bottom: 1px solid var(--mpfn-gray10);
+            border-right: 1px solid var(--mpfn-gray10);
+            border-left: none;
+            cursor: text;
+        }
+        &:focus{
+            box-shadow: none !important;
+        }
+    }
+    &.h-56{
+        display: flex;
+        height: 54px !important;
+    }
+}
+
+.cfe-calendar-icon{
+    width: 24px;
+    height: 28px;
+    /*background-image: url('../../icons/calendar.svg') !important;*/
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+// Caso
+
+.cfe-caso{
+    margin-left: 5px;
+    span{
+        color: var(--mpfn-secondary) !important;
+    }
+}
+
+// Tabs View
+
+.cfe-tabs-view{
+    .p-tabview-nav{
+        display: none;
+    }
+}
+
+.cfe-tabs-view-anidado{
+    .p-tabview-nav{
+        display: flex !important;
+    }
+}
+
+// Tablas
+
+.p-datatable.p-datatable-hoverable-rows .p-datatable-tbody > tr:not(.p-highlight){
+    transition: 300ms background ease;
+}
+.p-datatable.p-datatable-hoverable-rows .p-datatable-tbody > tr{
+    &:not(.p-highlight):hover {
+        background: #f7eed43d !important;
+    }
+}
+
+.p-selectable-row{
+    background-color: #e0e0e03d !important;
+}
+
+.p-paginator{
+    .p-paginator-pages{
+        .p-paginator-page{
+            &.p-highlight{
+                background: var(--mpfn-gray3);
+                border-color: var(--mpfn-gray3);
+                color: var(--primary-color);
+            }
+        }
+    }
+}
+
+.unread{
+    background-color: var(--mpfn-white) !important;
+}
+

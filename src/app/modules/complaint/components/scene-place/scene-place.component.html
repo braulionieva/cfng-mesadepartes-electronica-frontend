@@ -1,0 +1,98 @@
+<form [formGroup]="form" class="grid mpfn-formulario mt-3">
+  <div class="field col-12 md:col-6 mpfn-input-separation">
+    <div class="mpfn-label-icon">
+      <label for="" class="block text-sm font-semibold ng-star-inserted">Fecha del hecho</label>
+      <i class="pi pi-question-circle help-icon"
+        pTooltip="Fecha del hecho, se refiere al día en que sucedió el incidente o situación que quiere registrar en su denuncia."
+        tooltipPosition="right"></i>
+    </div>
+
+    <p-calendar dateFormat="dd/mm/yy" formControlName="sceneDate" placeholder="dd/mm/aaaa" [maxDate]="maxDate"
+      styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': errorMsg('sceneDate')}" (onSelect)="limpiarHora()"
+      (onInput)="validarFecha($event)" dateMask />
+
+    <small error *ngIf="errorMsg('sceneDate')" class="p-error block">
+      {{ errorMsg('sceneDate') }}
+    </small>
+  </div>
+
+  <div class="field col-12 md:col-6 mpfn-input-separation">
+    <div class="mpfn-label-icon">
+      <label for="" class="block text-sm font-semibold ng-star-inserted">Hora aproximada del hecho (opcional)</label>
+      <i class="pi pi-question-circle help-icon"
+        pTooltip="Hora del hecho, se refiere a la hora aproximada en que sucedió el incidente o situación que quiere registrar en su denuncia."
+        tooltipPosition="right"></i>
+    </div>
+
+    <p-calendar formControlName="sceneHour" [timeOnly]="true" [hourFormat]="'12'" placeholder="00:00"
+      [ngClass]="{'ng-invalid ng-dirty': errorMsg('sceneHour')}" styleClass="w-full"
+      (onSelect)="alCambiarHoraHecho()" />
+    <small error *ngIf="errorMsg('sceneHour')" class="p-error block">
+      {{errorMsg('sceneHour')}}
+    </small>
+  </div>
+
+  <label for="" class="mpfn-text map-label mt-2">
+    Bríndanos los datos de la dirección donde ocurrió el hecho. Esto nos servirá como referencia para ubicar el lugar exacto.
+  </label>
+
+  <fn-input-wrapper label="Departamento" class="col-12 md:col-6 mpfn-input-separation">
+    <p-dropdown [options]="departments" (ngModelChange)="changeDepartment($event)" optionLabel="nombre" [filter]="true"
+      filterBy="nombre" optionValue="codigo" placeholder="Seleccionar" formControlName="department"
+      emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('department')}" />
+    <small error *ngIf="errorMsg('department')" class="p-error block">
+      {{errorMsg('department')}}
+    </small>
+  </fn-input-wrapper>
+
+  <fn-input-wrapper label="Provincia" class="col-12 md:col-6 mpfn-input-separation">
+    <p-dropdown [options]="provinces" (ngModelChange)="changeProvince($event)" optionLabel="nombre" optionValue="codigo"
+      [filter]="true" filterBy="nombre" placeholder="Seleccionar" formControlName="province"
+      emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('province')}" />
+
+    <small error *ngIf="errorMsg('province')" class="p-error block">
+      {{errorMsg('province')}}
+    </small>
+  </fn-input-wrapper>
+
+  <fn-input-wrapper label="Distrito" class="col-12 md:col-6 mpfn-input-separation">
+    <p-dropdown [options]="districts" (ngModelChange)="changeDistrict($event)" optionLabel="nombre" optionValue="codigo"
+      [filter]="true" filterBy="nombre" placeholder="Seleccionar" formControlName="district"
+      emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('district')}" />
+
+    <small error *ngIf="errorMsg('district')" class="p-error block">
+      {{errorMsg('district')}}
+    </small>
+  </fn-input-wrapper>
+
+  <fn-input-wrapper label="Sede referencial" class="col-12 md:col-6 mpfn-input-separation">
+    <p-dropdown [options]="sedesGrupoAleatorio" optionLabel="deSedeGeo" optionValue="idGrupoAleatorio"
+                [disabled]="isDisabledSedesGrupoAleatorio" [filter]="true" filterBy="deSedeGeo" placeholder="Seleccionar" formControlName="sedeGrupoAleatorio"
+                emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('sedeGrupoAleatorio')}" />
+
+    <small error *ngIf="errorMsg('sedeGrupoAleatorio')" class="p-error block">
+      {{errorMsg('sedeGrupoAleatorio')}}
+    </small>
+  </fn-input-wrapper>
+
+  <app-alert [dataAlert]="messages[0]" [cosable]="false" />
+
+  <fn-input-wrapper label="Tipo de via" class="col-3 md:col-3 mpfn-input-separation">
+    <p-dropdown [options]="tiposVias" optionLabel="nombre" optionValue="id"
+                [filter]="true" filterBy="nombre" placeholder="Seleccionar" formControlName="tipoVia"
+                emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('tipoVia')}" />
+
+    <small error *ngIf="errorMsg('tipoVia')" class="p-error block">
+      {{errorMsg('tipoVia')}}
+    </small>
+  </fn-input-wrapper>
+
+  <fn-input class="col-9 md:col-9 mpfn-input-separation" label="Dirección" placeholder="Ej.: Av. Pedro Silva 123" formControlName="address"
+    validarInput [validarMaxLength]="200" maxlength="200" />
+
+  <div class="col-12">
+    <div id="map" style="z-index: 1;"></div>
+  </div>
+
+  <p-toast />
+</form>

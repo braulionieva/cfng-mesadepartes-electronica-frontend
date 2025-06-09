@@ -1,0 +1,77 @@
+<div 
+    *ngIf="hidden"
+    class="alerta"
+    [ngClass]="{'bg-green-alert': dataAlert.severity == 'success',
+                'bg-yellow-ligth-alert mt-3': dataAlert.severity == 'warn',
+                'bg-red-alert': dataAlert.severity == 'error'}"
+    [class.padding-adjust]="dataAlert.custom"
+    >
+
+    <div 
+        class="alerta__contenido" 
+        [class.contenido__no_error]="dataAlert.severity !== 'error' || dataAlert.custom"
+        [class.contenido__error]="dataAlert.severity === 'error' && !dataAlert.custom"
+    >
+        <span class="alerta__icono">
+            <fn-icon 
+                *ngIf="dataAlert.severity == 'error'"
+                [ico]="obtenerIcono('iInfoCircle')"
+                class="color-red"
+                height="1.2rem"
+            />
+            <fn-icon 
+                *ngIf="dataAlert.severity == 'warn'" 
+                [ico]="obtenerIcono('iInfoCircle')" 
+                class="color-yellow"
+                height="1.2rem"
+            />
+            <fn-icon 
+                *ngIf="dataAlert.severity == 'success'" 
+                [ico]="obtenerIcono('iCheckCircle')" 
+                class="color-green"
+                height="1.2rem"
+            />
+        </span>
+        <div class="flex justify-content-between w-full">
+            <span *ngIf="dataAlert.severity != 'error'" class="ml-1 mt-1 lh-1-5 mr-3">
+                <span *ngIf="dataAlert.isVerification" class="color-green text-bold">Verificación realizada: </span>
+                <span class="color-black2"> {{ dataAlert.detail }} </span>
+                <span class="color-black2 text-bold"> {{ dataAlert.detail1 }} </span>
+            </span>
+            <span *ngIf="dataAlert.severity == 'error' && !dataAlert.custom" class="ml-1 mt-1 color-black lh-1-5">
+                Si el hecho que pretende denunciar
+                <span class="font-semibold">ocurrió en las últimas horas y existe flagrancia </span>(se tiene un
+                detenido)
+                <span class="font-semibold">por favor acérquese a presentar su denuncia inmediatamente </span>
+                a la comisaría más cercana o a la fiscalía de turno.
+            </span>
+            <span *ngIf="dataAlert.severity == 'error' && dataAlert.custom" class="ml-1 mt-1 color-black lh-1-5">
+                {{ dataAlert.detail }}
+            </span>
+        </div>
+        <div 
+            *ngIf="cosable" 
+            class="cerrar_alerta" 
+        >
+            <button 
+                type="button" 
+                (click)="cerrar()"
+            >
+                <i class="pi pi-times"></i>
+            </button>
+        </div>
+        <div 
+            *ngIf="showButton" 
+            class="w-400 text-right"
+        >
+            <span class="alert-icon">
+                <button class="p-button-lg bg-secondary font-semibold nfont-semibold btn-adjust btn-presentar cursor">
+                    <span 
+                        (click)="goMain()"
+                        onKeyPress=""
+                    >Presentar denuncia</span>
+                </button>
+            </span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,100 @@
+<div class="flex flex-column">
+  <div class="flex flex-column md:flex-row justify-content-center md:gap-6">
+    <div class="w-full w-30rem">
+      <div class="surface-100 pt-4 text-2xl nfont-bold text-primary">Biometría facial</div>
+    </div>
+    <div class="w-full md:w-28rem"></div>
+  </div>
+
+  <div class="flex flex-column md:flex-row justify-content-center gap-6">
+    <!-- Columna izquierda -->
+    <div class="w-full md:w-30rem surface-100 p-4 border-round box-shadow">
+      <form [formGroup]="verificationForm" class="border-card p-3 bg-biometria">
+        <fn-input
+          label="Ingresa tu número de DNI"
+          placeholder="DNI"
+          [counter]="8"
+          [checking]="true"
+          formControlName="dni"
+          validarInput
+          [validarMaxLength]="8"
+          [validarTipoEntrada]="'numero'"
+          [styleClass]="ERRORDNI ? 'p-filled' : ''">
+        </fn-input>
+
+        <div class="my-2">
+          <div class="flex align-items-center gap-3 mb-3">
+            <img [src]="captchaImg" alt="captcha" class="captcha-img" />
+            <i class="pi pi-refresh cursor-pointer text-xl" (click)="reloadCaptcha()" title="Actualizar captcha"></i>
+          </div>
+
+          <fn-input
+            class="captcha-input"
+            label="Código captcha"
+            placeholder=""
+            formControlName="captcha"
+            [styleClass]="'p-filled'"
+          ></fn-input>
+        </div>
+
+        <p-button
+          [disabled]="!verificationForm.valid || isLoading"
+          (onClick)="validateIdentity()"
+          [loading]="isLoading"
+          styleClass="p-ripple p-element p-button-lg bg-secondary font-semibold btn-adjust p-button p-component text-white w-full">
+          <ng-template pTemplate="content">
+            <div class="flex align-items-center justify-content-center w-full">
+              <i class="pi pi-spin pi-spinner mr-2" *ngIf="isLoading"></i>
+              <span>Validación biofacial</span>
+            </div>
+          </ng-template>
+        </p-button>
+      </form>
+
+      <div class="flex flex-row bg-red-100 text-xs p-2 mt-4">
+        <div class="text-red-700">
+          <i class="pi pi-info-circle mr-2"></i>
+        </div>
+        <div class="text-gray-800 text-xs">
+          Antes de empezar debes <b>descargar en tu teléfono celular la aplicación ID Perú.</b>
+        </div>
+      </div>
+        <div class="flex flex-row mt-4">
+            <p-button (onClick)="askToCancelComplaint()" [label]="cancelLabel"
+                      styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+            </p-button>
+        </div>
+    </div>
+
+    <div class="separador">
+      <span class="texto-o">ó</span>
+    </div>
+
+    <!-- Columna derecha -->
+    <div class="w-full md:w-28rem">
+      <p class="text-center mb-3 text-black2 font-medium">También puedes acceder con:</p>
+
+      <div class="flex flex-column gap-3">
+        <p-button label="DNI Electrónico" styleClass="p-ripple p-element p-button-lg bg-primary font-semibold btn-adjust p-button p-component text-white w-full" />
+      </div>
+
+      <div class="mt-5 text-sm text-black2">
+        <b>Requisitos del sistema:</b>
+        <ul class="pl-3 mt-2 list-disc m-3">
+          <li>Navegador recomendado: <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Microsoft_Edge_logo_%282019%29.svg" alt="Microsoft Edge" width="20" class="mr-1" />Microsoft Edge</li>
+          <li>Java 8 JRE 32 bits</li>
+          <li>Software ReFirma PDF</li>
+          <li class="mt-2">Para ingresar con su DNIe, instalar lo siguiente:
+            <ul class="pl-4 list-disc mt-1">
+              <li>Driver del DNIe</li>
+              <li>ClickOnce</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-toast />
+<app-pre-footer [esIdPeru]="true"></app-pre-footer>

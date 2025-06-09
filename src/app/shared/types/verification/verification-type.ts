@@ -1,0 +1,1 @@
+export type VerificationType = 'fechaEmision' | 'digitoVerificacion' | 'nombrePadre' | 'nombreMadre' | 'ubigeoNacimiento';

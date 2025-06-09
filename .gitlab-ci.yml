@@ -1,0 +1,78 @@
+stages:
+    - sonarDev
+    - deployDev
+    - deployQa
+
+sonarDev:
+    only:
+        refs:
+            - development
+    stage: sonarDev
+    image: trion/ng-cli
+    script:
+        - npm install -g sonarqube-scanner
+        - >
+            sonar-scanner
+            -Dsonar.projectKey=dev:frontend:cfngMesadepartesElectronica
+            -Dsonar.organization=cfe
+            -Dsonar.host.url=http://172.16.111.130/sonarcfe
+            -Dsonar.login=squ_5ff2b187c6be3064d098f37858e4b8808e46f3f0
+            -Dsonar.typescript.lcov.reportPaths=coverage/lcov/lcov.info
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.sources=src/app
+            -Dsonar.exclusions=**/node_modules/**,**/bootstrap*/*,**/environments/**,**/*Test.java,**/test/**,**/Test.*
+            -Dsonar.tests=src/app
+            -Dsonar.test.inclusions=**/*.spec.ts
+            -Dsonar.qualitygate.wait=true
+
+deployDev:
+    only:
+        refs:
+            - development
+        variables:
+            - $RELEASE != "produccion"
+    stage: deployDev
+    variables:
+        environment: "dev"
+    before_script:
+        - apk add openssh-client sshpass
+    script:
+        - docker build -f Dockerfile --build-arg environment=$environment -t cfng-mesadepartes-electronica .
+        - docker login -u admin -p QAZwsxedc2020 172.16.111.116:8083
+        - docker tag cfng-mesadepartes-electronica:latest 172.16.111.116:8083/cfng-mesadepartes-electronica:mpfn
+        - docker push 172.16.111.116:8083/cfng-mesadepartes-electronica:mpfn
+        - export SSHPASS=$SSH_PRIVATE_KEY_3
+        - sshpass -e ssh -o StrictHostKeyChecking=no administrator@172.16.57.223 oc login -u developer -p developer https://api.dev.ocp4.cfe.mpfn.gob.pe:6443
+        - sshpass -e ssh -o StrictHostKeyChecking=no administrator@172.16.57.223 oc project development
+        - sshpass -e ssh -o StrictHostKeyChecking=no administrator@172.16.57.223 oc import-image cfng-mesadepartes-electronica:mpfn || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no administrator@172.16.57.223 oc delete deployment cfng-mesadepartes-electronica || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no administrator@172.16.57.223 oc delete service cfng-mesadepartes-electronica || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no administrator@172.16.57.223 oc delete route cfng-mesadepartes-electronica || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no administrator@172.16.57.223 oc new-app --image=172.16.111.116:8083/cfng-mesadepartes-electronica:mpfn --name=cfng-mesadepartes-electronica --insecure-registry=true -l 'app.kubernetes.io/part-of=cfe-frontend,app.openshift.io/runtime=angularjs' || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no administrator@172.16.57.223 oc expose service/cfng-mesadepartes-electronica || true
+
+deployQa:
+    only:
+        refs:
+            - qa
+        variables:
+            - $RELEASE != "produccion"
+    stage: deployQa
+    variables:
+        environment: "qa"
+    before_script:
+        - apk add openssh-client sshpass
+    script:
+        - docker build -f Dockerfile --build-arg environment=$environment -t cfng-mesadepartes-electronica .
+        - docker login -u admin -p QAZwsxedc2020 172.16.111.116:8083
+        - docker tag cfng-mesadepartes-electronica:latest 172.16.111.116:8083/cfng-mesadepartes-electronica:mpfn
+        - docker push 172.16.111.116:8083/cfng-mesadepartes-electronica:mpfn
+        - export SSHPASS=$SSH_PRIVATE_KEY_4
+        - sshpass -e ssh -o StrictHostKeyChecking=no chuamancaja@172.16.111.231 oc login -u developer -p developer https://api.ocp4.cfe.mpfn.gob.pe:6443
+        - sshpass -e ssh -o StrictHostKeyChecking=no chuamancaja@172.16.111.231 oc project qa
+        - sshpass -e ssh -o StrictHostKeyChecking=no chuamancaja@172.16.111.231 oc import-image cfng-mesadepartes-electronica:mpfn || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no chuamancaja@172.16.111.231 oc delete deployment cfng-mesadepartes-electronica || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no chuamancaja@172.16.111.231 oc delete service cfng-mesadepartes-electronica || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no chuamancaja@172.16.111.231 oc delete route cfng-mesadepartes-electronica || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no chuamancaja@172.16.111.231 oc new-app --image=172.16.111.116:8083/cfng-mesadepartes-electronica:mpfn --name=cfng-mesadepartes-electronica --insecure-registry=true -l 'app.kubernetes.io/part-of=cfe-frontend,app.openshift.io/runtime=angularjs' || true
+        - sshpass -e ssh -o StrictHostKeyChecking=no chuamancaja@172.16.111.231 oc expose service/cfng-mesadepartes-electronica || true

@@ -1,0 +1,24 @@
+@use 'responsive' as *;
+@use 'typography' as *;
+
+.contenedor_principal {
+    width: $width-content;
+    margin: 0 auto;
+    margin-top: 50px;
+    .pasos__contenedor {
+        background: var(--mpfn-background);
+        padding: 5px;
+        z-index: 3 !important;
+        top: 0px !important;
+        position: sticky !important;
+        .pagina__titulo {
+            font-size: $title-size;
+            font-family: var(--mpfn-font-semi-bold);
+            margin-bottom: 10px;
+        }
+    }
+    .router__contenedor {
+        width: $width-subcontent;
+        margin: 0 auto;
+    }
+}

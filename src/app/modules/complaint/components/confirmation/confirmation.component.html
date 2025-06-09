@@ -1,0 +1,32 @@
+<div class="mpfn-subtitle">{{ title }}</div>
+
+<p class="mpfn-descripcion">
+  {{ subtitle }}
+</p>
+
+<app-alert [dataAlert]="messages[0]" [cosable]="true" class="mb-4"/>
+
+<div class="mt-4 w-full"></div>
+
+<p-progressBar *ngIf="loading" mode="indeterminate" styleClass="my-2" [style]="{ height: '6px' }" />
+
+<div class="visor-background">
+  <pdf-viewer class="visor-pdf" [src]="urlPdf" [show-all]="true" [show-borders]="true" [fit-to-page]="true"
+    [original-size]="true" [autoresize]="true" [zoom-scale]="'page-width'" />
+</div>
+
+<div class="flex justify-content-between my-4">
+  <p-button (onClick)="askToCancelComplaint()" [label]="'Cancelar denuncia'"
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+  </p-button>
+
+  <div class="ml-auto flex gap-3">
+    <p-button (onClick)="previousStep()" styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+      <fn-icon [ico]="iArrowLeft" class="mr-5" />
+      <span>{{ buttonTxt.cancel }}</span>
+    </p-button>
+
+    <p-button styleClass="p-button-lg bg-secondary font-semibold btn-adjust" [label]="buttonTxt.confirm"
+      [disabled]="loading" (onClick)="nextStep()" />
+  </div>
+</div>

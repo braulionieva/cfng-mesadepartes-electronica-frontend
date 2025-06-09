@@ -1,0 +1,33 @@
+<app-alert 
+  *ngIf="!isRegisteredComplaint" 
+  [dataAlert]="messages[0]" 
+  [cosable]="true" 
+/>
+
+<div class="contenedor_principal">
+
+  <div class="flex justify-content-end align-items-center mt-2">
+    <div *ngIf="false" class="flex align-items-center color-black2">
+      <fn-icon [ico]="obtenerIcono('iClockDots')" height="1.2rem" />
+      Tienes {{ remainingTime | date: 'mm:ss' }} min para realizar tu denuncia
+    </div>
+  </div>
+
+  <div class="pasos__contenedor" style="background: var(--mpfn-background); padding: 5px;">
+
+    <div class="pagina__titulo text-primary" style="margin-top: 25px;">
+      {{ pageTitle }}
+    </div>
+
+    <pasos 
+      *ngIf="!isRegisteredComplaint"
+      [pasos]="steps"
+    />
+
+  </div>
+
+  <div class="router__contenedor">
+    <router-outlet />
+  </div>
+
+</div>

@@ -1,0 +1,15 @@
+@import url('https://unpkg.com/leaflet@1.9.3/dist/leaflet.css');
+@import url('https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css');
+
+.lbl-direccion{
+  margin-left: -8px;
+}
+
+.direccion-titulo {
+  margin-top: 20px;
+  margin-bottom: 15px;
+}
+
+.fix-nacimiento {
+  margin-bottom: -5px;
+}

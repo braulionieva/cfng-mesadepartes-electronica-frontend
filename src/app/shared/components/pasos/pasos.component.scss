@@ -1,0 +1,94 @@
+.pasos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0;
+  position: relative;
+  .paso {
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 3;
+    .circulo {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: var(--mpfn-gray18);
+      color: var(--mpfn-gray16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      z-index: 1;
+      margin-right: 10px;
+      font-family: var(--mpfn-font-roboto-semi-bold);
+    }
+    .etiqueta {
+      font-size: 14px;
+      text-align: center;
+      color: var(--mpfn-gray16);
+      font-family: var(--mpfn-font-roboto-regular);
+      white-space: nowrap;
+      width: fit-content;
+      display: inline-block;
+    }
+    &.activo {
+      padding: 15px 15px;
+      background-color: var(--mpfn-lightblue-background);
+      .circulo {
+        background-color: var(--mpfn-lightblue);
+        color: var(--mpfn-white);
+      }
+      .etiqueta {
+        color: var(--mpfn-cyan);
+        border-radius: 4px;
+        position: relative;
+        font-family: var(--mpfn-font-roboto-semi-bold);
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -32px;
+          left: calc(50% - 15px);
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border-left: 15px solid transparent;
+          border-right: 15px solid transparent;
+          border-top: 15px solid var(--mpfn-lightblue-background);
+          z-index: 3;
+        }
+      }
+    }
+    &.completado {
+      .circulo {
+        background-color: var(--mpfn-white);
+        border: 1px solid var(--mpfn-lightblue);
+        color: var(--mpfn-lightblue);
+        font-size: 14px;
+        i {
+          font-size: 12px;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+  .linea {
+    height: 1px;
+    background-color: var(--mpfn-gray17);
+    flex: 1;
+    margin: 0 0.75rem;
+     &.linea-completada {
+      background-color: var(--mpfn-lightblue);
+    }
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100vw - 16px);
+    height: 0;
+    border-top: 1px solid var(--mpfn-gray17);
+  }
+}

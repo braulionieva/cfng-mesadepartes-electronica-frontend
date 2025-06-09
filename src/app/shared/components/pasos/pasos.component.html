@@ -1,0 +1,24 @@
+<div class="pasos">
+
+    <ng-container *ngFor="let paso of pasos; let i = index">
+        <div 
+            class="paso"
+            [class.activo]="esPasoActivo(paso)"
+            [class.completado]="esPasoCompletado(i)"
+        >
+            <div class="circulo">
+                <ng-container *ngIf="esPasoCompletado(i); else numeroPaso">
+                    <i class="pi pi-check"></i>
+                </ng-container>
+                <ng-template #numeroPaso>{{ i + 1 }}</ng-template>
+            </div>
+            <div class="etiqueta">{{ paso.label }}</div>
+        </div>
+        <div 
+            *ngIf="esUltimoPaso(i)"
+            class="linea"
+            [class.linea-completada]="esPasoCompletado(i)"
+        ></div>
+    </ng-container>
+
+</div>

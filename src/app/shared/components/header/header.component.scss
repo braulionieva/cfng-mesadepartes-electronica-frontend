@@ -1,0 +1,15 @@
+@use 'responsive' as *;
+
+.cabecera {
+  height: $header-height;
+  background-color: var(--institutional-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .cabecera__contenido {
+    width: $width-content;
+    .logo {
+      height: 3.5rem;
+    }
+  }
+}

@@ -1,0 +1,139 @@
+<div class="text-xl font-semibold mt-6">Datos del documento</div>
+
+<p>Por favor complete los datos sobre el documento que desea presentar.</p>
+
+<div class="mx-auto mt-5 p-3 pl-5 border-1 surface-border" style="max-width: 42rem;">
+  <div>
+    <div class="text-xl font-semibold">
+      Nro. de caso: <span class="text-primary-400"> {{codigoCaso}}</span>
+    </div>
+  </div>
+  <div>
+    <p-divider />
+    <div>
+      <p class="text-primary font-semibold text-lg">Anexar documentos</p>
+      <p>Si requiere presentar una solicitud o si cuenta con evidencias que ayuden en la investigación del caso o sirvan
+        de sustento para su denuncia, por favor ingréselos en esta sección.</p>
+    </div>
+    <p-divider />
+    <div>
+      <form [formGroup]="selectedForm">
+        <div class="flex justify-content-between ">
+          <fn-input-wrapper label="Tipo de trámite" class="col-6">
+            <p-dropdown [options]="tipoTramite" optionValue="id" optionLabel="noDescripcion" [filter]="true"
+              filterBy="noDescripcion" (onChange)="selectTipoTramite($event.value)" placeholder="Seleccionar"
+              formControlName="optionTramite" />
+
+          </fn-input-wrapper>
+          <fn-input-wrapper label="Tipo de documento" class="col-6">
+            <p-dropdown [options]="documentTypes" optionLabel="nombre" placeholder="Seleccionar" [filter]="true"
+              filterBy="nombre" formControlName="documentType" emptyMessage="Datos no encontrados"
+              [ngClass]="{'ng-invalid ng-dirty': errorMsg('documentType')}" />
+            <small error *ngIf="errorMsg('documentType')" class="p-error block">
+              {{errorMsg('documentType')}}
+            </small>
+          </fn-input-wrapper>
+        </div>
+        <div class="flex justify-content-between">
+          <fn-input-wrapper *ngIf="showProtection" label="¿Se otorgó medidas de protección?" class="col-6 ">
+            <ng-container *ngFor="let item of protectionOptions">
+              <p-radioButton [inputId]="item.value" [value]="item.value" formControlName="isProtection" />
+              <label [for]="item.value" class="mx-2 cursor-pointer">{{ item.label }}</label>
+            </ng-container>
+          </fn-input-wrapper>
+
+          <fn-input class="w-5p col-6" label="Número del documento" placeholder="Ej: 00001 o S/N"
+            formControlName="showCodigoDocumento" validarInput [validarMaxLength]="5" [validarTipoEntrada]="'numero'"
+            (focusout)="completarSN($event)" />
+        </div>
+      </form>
+    </div>
+    <div *ngIf="isObservedDocument" class="align-center color-black2 mb-3">
+      <label for="" class="block mt-2 mb-1">Número del documento observado</label>
+      <form [formGroup]="numberDocumentForm" class="grid">
+        <fn-input formControlName="prefix" styleClass="p-3 " class="col-3 md:col-2" placeholder="D" [disabled]="true" />
+
+        <fn-input formControlName="number" styleClass="p-3" class="col-16 md:col-4" placeholder="5060513-2023-1"
+          [disabled]="true" />
+
+        <fn-input formControlName="counter" styleClass="p-3" class="col-12 md:col-3" placeholder="Correlativo"
+          validarInput [validarMaxLength]="5" [validarTipoEntrada]="'numero'" (focusout)="completarCeros($event)" />
+      </form>
+    </div>
+    <div *ngIf="isObservedDocument" class="mb-3">
+
+      <div class="observed-container">
+        <img class="logo logo_mpfn h-5rem mt-2 select-none w-200" src="assets/images/nro-documento.png"
+          alt="ejemplo de número de documento">
+
+        <img class="logo logo_mpfn h-5rem mt-2 ml-1 md:ml-6" src="assets/images/nro-documento-cargo.png"
+          alt="ejemplo de número de documento en el cargo">
+      </div>
+    </div>
+
+    <div>
+      <form [formGroup]="attachmentsForm" class="grid">
+
+        <div class="flex align-items-center justify-content-between color-black2">
+          <p class="mb-1">Indique de forma resumida el asunto del documento</p>
+        </div>
+
+
+
+        <textarea rows="10" pInputTextarea formControlName="attachedInformation" class="w-full" [autoResize]="true"
+          (ngModelChange)="anexoWordCount()" [ngClass]="{'ng-invalid ng-dirty': errorMsg('attachedInformation')}"
+          placeholder="Ej.: Adjunto solicitud de..."></textarea>
+        <small class="block text-right mt-1"
+          [ngClass]="{'p-error': SummaryWordsCounter > 1000 ||SummaryWordsCounter < 100}">
+          {{SummaryWordsCounter}}/1000 caracteres
+        </small>
+
+        <div class="col-12">
+          <app-file-upload [files]="files" (filesChange)="onFilesChangedPrincipal($event)"
+            label="Subir documento principal" labelTableArchivos="Documento principal" type="pdf" fileLimit="1"
+            [isAccumulated]="false" [deleteURL]="deleteURL" [url]="url" [maxFileSize]="1024 * 1024 * 30"
+            [perFileLabel]="'Puede subir un documento en formato PDF con un <b>peso máximo de 30 MB.</b>'"
+            [(sumSize)]="sumTotalBytesFiles">
+          </app-file-upload>
+        </div>
+
+        <ng-container *ngIf="flagContarPaginas">
+          <fn-input formControlName="txtNumeroPag" styleClass="p-3" class="col-12 md:col-6" placeholder="0"
+            [disabled]="true" />
+        </ng-container>
+
+
+        <div class="col-12">
+          <div class="flex align-items-center justify-content-between color-black2">
+            <p class="mb-1">Observación adicional sobre los documentos agregados (opcional)</p>
+          </div>
+
+          <textarea rows="10" pInputTextarea formControlName="attachedObservation" class="w-full" [autoResize]="true"
+            (ngModelChange)="observationsWordCount()"
+            placeholder="Escriba alguna indicación o consideración a tener en cuenta con respecto al documento anexado."></textarea>
+          <small class="block text-right mt-1" [ngClass]="{'p-error': ObservationWordsCounter > 1000 }">
+            {{ObservationWordsCounter}}/1000 caracteres
+          </small>
+        </div>
+
+        <div class="col-12">
+          <app-file-upload [files]="filesInvestigacion" (filesChange)="onFilesChangedInvestigacion($event)"
+            label="Subir fuentes de investigación (opcional)" labelTableArchivos="Documentos agregados" type="pdf"
+            fileLimit="5" [isAccumulated]="true" [deleteURL]="deleteURL" [url]="url" [maxFileSize]="1024 * 1024 * 5"
+            [perFileLabel]="'Máximo 5 documentos de <b>5 MB cada uno</b>. Formatos permitidos: .mp4 .avi .webm .mov .jpg .jpeg .png .mp3 .aac .ogg .pdf'"
+            [(sumSize)]="sumTotalBytesFiles">
+          </app-file-upload>
+        </div>
+      </form>
+
+      <div class="flex justify-content-between">
+        <p-button styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust" icon="pi pi-arrow-left"
+          label="Regresar" (onClick)="regresarAppend()" />
+
+        <p-button styleClass="p-button-lg bg-secondary text-white font-semibold btn-adjust pr-4"
+          icon="pi pi-arrow-right" iconPos="right" label="Continuar" [disabled]="!validAttachmentForm"
+          (onClick)="nextStep()" />
+      </div>
+    </div>
+  </div>
+</div>

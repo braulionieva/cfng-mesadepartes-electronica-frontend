@@ -1,0 +1,19 @@
+@charset 'utf-8';
+// mas informacion de arquitectura 5+1
+// https://matthewelsom.com/blog/simple-scss-playbook.html
+
+//Abstracts
+@import "abstracts/__abstracts-dir";
+
+//Base Styles
+@import "base/__base-dir";
+
+//Components
+@import "components/__components-dir";
+
+//Layout
+@import "layouts/__layouts-dir";
+
+//Vendor
+@import "vendor/__vendor-dir";
+

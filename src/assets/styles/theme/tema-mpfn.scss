@@ -1,0 +1,104 @@
+/************************************************************/
+/*  Archivo de variables de colores y tipografias del MPFN  */
+/************************************************************/
+
+:root {
+
+    // Nuevos colores institucionales
+    
+    --mpfn-primary: #0e2e4a;
+    --mpfn-secondary: #f19700;
+
+    --mpfn-lightblue: #3f9fd6;
+    --mpfn-lightblue-dark: #2c95d2;
+    --mpfn-lightblue-background: #d9ecf7;
+    --mpfn-jade: #008087;
+    --mpfn-jade-background: #f1f6f6;
+    --mpfn-blue-gray: #e7eaed;
+
+    --mpfn-blue-focused: #26435C;
+    --mpfn-blue-hover: #27455fb4;
+    --mpfn-black: #333333;
+    --mpfn-black2: #000000; /*AÑADIDO*/
+    --mpfn-gray1: #666666;
+    --mpfn-gray2: #cccccc;
+    --mpfn-gray3: #e0e0e0;
+    --mpfn-gray4: #B7C0C999;
+    --mpfn-gray5: #5F6062;
+    --mpfn-gray6: #CFD5DB;
+    --mpfn-gray7: #E7EAED;
+    --mpfn-gray8: #f8f8f8;
+    --mpfn-gray9: #e0e0e052;
+    --mpfn-gray10: #ced4da;
+    --mpfn-gray11: #f1f1f1;
+    --mpfn-gray12: #e2e2e2;
+    --mpfn-gray13: #e0e0e085; /*AÑADIDO*/
+    --mpfn-gray14: #acacac; /*AÑADIDO*/
+    --mpfn-gray15: #dee2e6; /*AÑADIDO*/
+    --mpfn-gray16: #434343;
+    --mpfn-gray17: #CACACA;
+    --mpfn-gray18: #ECECEC;
+    --mpfn-gray19: #161616;
+    --mpfn-gray20: #B3B3B3;
+    --mpfn-gray21: #696969;
+    --mpfn-gray22: #ADADAD;
+    --mpfn-white: #ffffff;
+    --mpfn-background: #f5f2e0;
+    --mpfn-background-opaque: #dddaca;
+    --mpfn-red: #C1292E;
+    --mpfn-red-alert: #F4D8D8; //#f8d7da; /*AÑADIDO*/
+    --mpfn-red-wine-alert: #ffecee; /*AÑADIDO*/
+    --mpfn-green: #3CC85A;
+    --mpfn-green-background: #D8F4DE; // #3cc85a34;
+    --mpfn-yellow: #F19700;
+    --mpfn-yellow1: #df8d00de; /*AÑADIDO*/
+    --mpfn-yellow3: #F7EED4;//#c07a0023; /*AÑADIDO*/
+    --mpfn-yellow-light: #fcb53a;
+    --mpfn-red-wine: #C83C3C;
+    --mpfn-skyblue-pastel: #ddeef83d;
+    --mpfn-green-dark: #06A77D;
+    --mpfn-cyan: #3F9FD6;
+    
+    --mpfn-yellow-hover: #d98800;
+    --mpfn-gray-hover: #cfd5db;
+    --mpfn-green-hover: #058664;
+    --mpfn-secondary-hover: #eba731; /*AÑADIDO*/
+    
+    // Colores para estados
+  
+    --mpfn-origen-pastel: #cecece;
+    --mpfn-despacho-pastel: #D8F4DE;
+    --mpfn-turno-pastel: #DDEEF8;
+    --mpfn-derivado-pastel: #e6d3ff;
+    --mpfn-mpe-pastel: #F7EED4;
+    --mpfn-mup-pastel: #F4D8D8;
+    --mpfn-reasignado-pastel: #05106c;
+
+    --mpfn-origen: #333333;
+    --mpfn-despacho: #3CC85A;
+    --mpfn-turno: #3F9FD6;
+    --mpfn-derivado: #963CBE;
+    --mpfn-mpe: #D9A927;
+    --mpfn-mup: #C83C3C;
+    --mpfn-reasignado: white;
+
+    // Colores de semaforos
+    
+    --mpfn-semaforo-rojo: #C1292E;
+    --mpfn-semaforo-amarillo: #F19700;
+    --mpfn-semaforo-verde: #3CC85A;
+
+    // Tipografias
+
+    --mpfn-font-black: "Poppins-Black", sans-serif;
+    --mpfn-font-bold: "Poppins-Bold", sans-serif;
+    --mpfn-font-semi-bold: "Poppins-SemiBold", sans-serif;
+    --mpfn-font-medium: "Poppins-Medium", sans-serif;
+    --mpfn-font-regular: "Poppins-Regular", sans-serif;
+    --mpfn-font-light: "Poppins-Light", sans-serif;
+    --mpfn-font-thin: "Poppins-Thin", sans-serif;
+    --mpfn-font-roboto-bold: "Roboto-Bold", sans-serif;
+    --mpfn-font-roboto-semi-bold: "Roboto-SemiBold", sans-serif;
+    --mpfn-font-roboto-regular: "Roboto-Regular", sans-serif;
+
+}

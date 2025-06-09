@@ -1,0 +1,15 @@
+@import url('https://unpkg.com/leaflet@1.9.3/dist/leaflet.css');
+@import url('https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css');
+
+#map {
+  height: 450px;
+}
+
+.map-label{
+  margin-left: 8px;
+  margin-bottom: 4px;
+}
+
+::ng-deep .p-dropdown-filter-icon {
+  display: none !important;
+}

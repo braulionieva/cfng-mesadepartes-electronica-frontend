@@ -1,0 +1,56 @@
+<div class="mt-5">
+  <app-alert *ngIf="!loading" [dataAlert]="messages[0]" [cosable]="false"></app-alert>
+</div>
+
+<div *ngIf="!loading" class="mt-3">
+  <div class="p-2 bg-yellow-ligth-alert mb-3">
+    <div class="alert-content ml-1">
+      <span class="alert-icon">
+        <i class="pi pi-exclamation-circle color-yellow"></i>
+      </span>
+      <span class="ml-1 mt-1 lh-1-5 mr-3">
+        <span class="color-black2"> Por tu seguridad, tienes
+          <span class="text-bold"> {{ remainingTime | date: 'mm:ss' }} min</span> para visualizar el cargo, luego
+          regresaremos a la pantalla principal</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+
+<div class="p-2 text-center" *ngIf="!loading">
+  <p class="ml-8 mr-8">El cargo de ingreso de documento que
+    se presenta {{ loading ? 'será': 'ha sido' }}
+    enviado al correo <b>{{ email | lowercase }}</b>, y también puedes descargarlo aquí:</p>
+</div>
+
+
+<div *ngIf="!loading" class="flex justify-content-center mt-2">
+  <p-button (onClick)="openPdf()" styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+    <span> Descargar cargo de ingreso de documento</span>
+    <span class="pi pi-download ml-3"></span>
+  </p-button>
+
+</div>
+
+<div class="fix-separation"></div>
+
+<p-progressBar *ngIf='procesing&&loading' mode="indeterminate" styleClass="my-2"
+  [style]="{'height': '6px'}"></p-progressBar>
+
+
+<div class="visor-background">
+  <pdf-viewer class="visor-pdf" [src]="urlPdf" [show-all]="true" [show-borders]="true" [fit-to-page]="true"
+    [original-size]="true" [autoresize]="true" [zoom-scale]="'page-width'"></pdf-viewer>
+</div>
+
+<p-toast/>
+
+<div class="flex justify-content-between my-4">
+  <p-button (onClick)="redirect()" label="Anexar otro documento al caso" [disabled]="!registrado"
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+  </p-button>
+
+  <p-button styleClass="p-button-lg bg-secondary font-semibold btn-adjust" label="Finalizar y volver al inicio"
+    [disabled]="!registrado" [loading]="newComplaint" (onClick)="redirect(true)"/>
+</div>

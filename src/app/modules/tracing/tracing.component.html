@@ -1,0 +1,24 @@
+<div class="fn-container plr-12-10">
+  <div *ngIf="!isCompletedProcess" class="steps-container sticky top-0 z-3"
+    style="background: var(--mpfn-background); padding: 5px;">
+    <div class="flex justify-content-center align-items-center text-2xl nfont-semibold text-primary"
+      style="margin-top: 25px;">
+      <img height="40px" src="./assets/images/seguimiento.svg" alt="Caso">
+      <span class="ml-3">{{ pageTitle }}</span>
+    </div>
+
+    <p *ngIf="isValidationStage" class="text-center mb-2 mt-2">
+      Debemos autentificar su identidad para poder comenzar con el seguimiento
+    </p>
+
+    <p *ngIf="!isValidationStage" class="text-center mb-2">
+      Debe pertenecer a un caso para visualizar la información
+    </p>
+
+    <p-steps *ngIf="!isCompletedProcess" [model]="steps" [readonly]="true" styleClass="mt-4" />
+  </div>
+
+  <div class="contenido mt-4">
+    <router-outlet />
+  </div>
+</div>

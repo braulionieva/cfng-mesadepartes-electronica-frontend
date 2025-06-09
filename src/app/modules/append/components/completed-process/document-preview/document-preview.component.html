@@ -1,0 +1,20 @@
+<div class="text-xl font-semibold mt-6">{{ title }}</div>
+<p>{{ subtitle }}</p>
+
+<app-alert [dataAlert]="messages[0]" [cosable]="true">
+</app-alert>
+
+<p-progressBar *ngIf='loading' mode="indeterminate" styleClass="my-2" [style]="{'height': '6px'}"></p-progressBar>
+
+<div class="visor-background">
+  <pdf-viewer class="visor-pdf" [src]="urlPdf" [show-all]="true" [show-borders]="true" [fit-to-page]="true"
+    [original-size]="true" [autoresize]="true" [zoom-scale]="'page-width'"></pdf-viewer>
+</div>
+
+<div class="flex justify-content-between mt-8 mb-5">
+  <p-button icon="pi pi-arrow-left" styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust"
+    [label]="buttonTxt.cancel" (onClick)="previousStep()"/>
+  <p-button [disabled]="loading"
+    [styleClass]="loading ? 'p-button-lg bg-gray text-white font-semibold btn-adjust' : 'p-button-lg bg-secondary text-white font-semibold btn-adjust' "
+    [label]="buttonTxt.confirm" (onClick)="nextStep()"/>
+</div>

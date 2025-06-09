@@ -1,0 +1,169 @@
+<p>{{ componentMessage }}</p>
+
+<p-divider />
+
+<div *ngIf="showAggrievedQuestion">
+  <p class="text-center text-primary font-semibold">{{ questionMessageForAggrieved }}</p>
+  <div class="flex justify-content-center">
+    <p-button styleClass="surface-200 font-semibold text-primary mr-1 px-5" label="No"
+      (onClick)="answerQuestion(false)" />
+    <p-button styleClass="bg-secondary font-semibold ml-1 px-5" label="Sí" (onClick)="answerQuestion(true)" />
+  </div>
+</div>
+
+<ng-container *ngFor="let involved of involveds">
+  <div class="flex justify-content-between align-items-center">
+    <div class="flex align-items-center">
+      <fn-icon [ico]="iUser" class="mr-2" />
+     
+      <span>{{ getName(involved.id) }}</span>
+     
+      <span *ngIf="involved?.validated"
+        class="ml-3 py-1 px-2 border-round-md text-sm bg-green-100 text-green-600 flex align-items-center"
+        [ngStyle]="{'min-width': involved.documentType===SLUG_RUC ? '155px' : 'auto' }">
+        {{ getTagValidated(involved.documentType) }}
+      </span>
+
+      <p-button (onClick)="editInvolved(involved)" styleClass="p-button-text">
+        <fn-icon [ico]="iTrashCan" />
+      </p-button>
+
+      <p-button (onClick)="deleteInvolved(involved.id)" styleClass="p-button-text">
+        <fn-icon [ico]="iTrashCan" />
+      </p-button>
+    </div>
+  </div>
+  <p-divider />
+</ng-container>
+
+<ng-container *ngIf="newInvolved">
+  <div class="grid">
+    <div class="col-12 grid mt-1 mb-2">
+      <ng-container *ngFor="let item of listInvolvedRoles">
+        <div class="col-12 md:col-4">
+          <p-radioButton [inputId]="item.key+type" [value]="item.key" [(ngModel)]="selectedInvolvedRol"
+            (onClick)="changeInvolvedRole($event.value)" />
+          <label [for]="item.key+type" class="ml-2">{{ item.name }}</label>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <ng-container *ngIf="selectedInvolvedRol===SLUG_INVOLVED_ROL.ENTIDAD; else naturalPerson;">
+    <form [formGroup]="EntityDataForm" class="grid">
+      <fn-input-wrapper label="Tipo" class="col-12" [ngClass]="{'md:col-5': isLegalPerson}">
+        <p-dropdown [options]="tmpEntities" optionLabel="name" optionValue="key" placeholder="Seleccionar"
+          [filter]="true" filterBy="name" formControlName="entityType" emptyMessage="Datos no encontrados"
+          [ngClass]="{'ng-invalid ng-dirty': errorMsg('entityType')}" (onChange)="selectType()"
+          [disabled]="searchingRuc || rucFounded" />
+        <small error *ngIf="errorMsg('entityType')" class="p-error block">
+          {{errorMsg('educationalLevel')}}
+        </small>
+      </fn-input-wrapper>
+
+      <ng-container *ngIf="isLegalPerson">
+        <fn-input class="col-10 md:col-6" label="Número de RUC" placeholder="RUC" formControlName="ruc"
+          [checking]="true" [disabled]="searchingRuc || rucFounded" counter="11" validarInput [validarMaxLength]="11"
+          [validarTipoEntrada]="'numero'" />
+
+        <p-button class="col-2 md:col-1 flex align-items-center justify-content-end mt-1"
+          [ngClass]="{'mt-2': !isInvalidNumber, 'mb-3': isInvalidNumber }"
+          [styleClass]="rucFounded ? 'btn-ruc-clear' : 'btn-ruc'" [icon]="!rucFounded ? 'pi pi-search' : 'pi pi-times'"
+          [loading]="searchingRuc" [disabled]="invalidRuc" (onClick)="!rucFounded ? searchRUC() : cleanSearch()" />
+
+        <fn-input class="col-12" label="Razón social" placeholder="Razón social" formControlName="businessName"
+          [checking]="true" [disabled]="true" validarInput [validarMaxLength]="150" />
+
+        <fn-input class="col-12" label="Representante legal" placeholder="Representante legal"
+          formControlName="legalRepresentative" [checking]="true" validarInput [validarMaxLength]="100"
+          [validarTipoEntrada]="'texto'" />
+      </ng-container>
+
+      <ng-container *ngIf="isProcuratorOffice">
+        <fn-input-wrapper label="Procuraduría" class="col-12">
+          <p-dropdown [options]="procuratorList" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
+            [filter]="true" filterBy="nombre" formControlName="procuratorOffice" emptyMessage="Datos no encontrados"
+            (ngModelChange)="onChangeProcuradoriaOrCem()"
+            [ngClass]="{'ng-invalid ng-dirty': errorMsg('procuratorOffice')}" />
+          <small error *ngIf="errorMsg('procuratorOffice')" class="p-error block">
+            {{errorMsg('procuratorOffice')}}
+          </small>
+        </fn-input-wrapper>
+
+        <fn-input *ngIf="otherProcuradoria" class="col-12 md:col-12" label="Nombre de procuradoría"
+          placeholder="Nombre de procuraduría" formControlName="entityName" [checking]="true" validarInput
+          [validarMaxLength]="100" [validarTipoEntrada]="'texto'" />
+
+        <fn-input class="col-12 md:col-3" label="DNI procurador" placeholder="DNI" formControlName="procuratorDNI"
+          [checking]="true" counter="8" validarInput [validarMaxLength]="8" [validarTipoEntrada]="'numero'" />
+
+        <fn-input class="col-12 md:col-9" label="Nombre del procurador" placeholder="Nombre completo"
+          formControlName="procuratorName" [checking]="true" validarInput [validarMaxLength]="60"
+          [validarTipoEntrada]="'texto'" />
+      </ng-container>
+
+      <ng-container *ngIf="isCEM">
+        <fn-input-wrapper label="Centro de emergencia mujer" class="col-12">
+          <p-dropdown [options]="cemList" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
+            [filter]="true" filterBy="nombre" formControlName="cem" emptyMessage="Datos no encontrados"
+            (ngModelChange)="onChangeProcuradoriaOrCem()" [ngClass]="{'ng-invalid ng-dirty': errorMsg('cem')}" />
+          <small error *ngIf="errorMsg('cem')" class="p-error block">
+            {{errorMsg('cem')}}
+          </small>
+        </fn-input-wrapper>
+
+        <fn-input *ngIf="otherCem" class="col-12 md:col-12" label="Nombre de CEM" placeholder="Nombre de CEM"
+          formControlName="entityName" [checking]="true" />
+      </ng-container>
+    </form>
+  </ng-container>
+</ng-container>
+
+<ng-template #naturalPerson>
+  <ng-container *ngIf="selectedInvolvedRol===SLUG_INVOLVED_ROL.CONOCIDO; else unknownInvolved">
+    <form [formGroup]="PNDataForm" class="grid">
+      <fn-input-wrapper label="Tipo de documento" class="col-12 md:col-6">
+        <p-dropdown [options]="getDocumentTypes" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
+          [filter]="true" filterBy="nombre" (ngModelChange)="onChangeDocumentType($event)"
+          formControlName="documentType" emptyMessage="Datos no encontrados"
+          [ngClass]="{'ng-invalid ng-dirty': errorPNMsg('documentType')}" />
+
+        <small error *ngIf="errorPNMsg('documentType')" class="p-error block">
+          {{errorPNMsg('documentType')}}
+        </small>
+      </fn-input-wrapper>
+
+      <fn-input class="col-12 md:col-6" label="Número de documento" placeholder="Nro. Documento"
+        formControlName="documentNumber" [checking]="true" [disabled]="isNoDocument" [checking]="true"
+        [counter]="validLength" validarInput [validarMaxLength]="validLength" [validarTipoEntrada]="'numero'" />
+
+      <fn-input class="col-12 md:col-4" label="Nombre" placeholder="Nombre" formControlName="names" [checking]="true"
+        validarInput [validarMaxLength]="60" [validarTipoEntrada]="'texto'" />
+
+      <fn-input class="col-12 md:col-4" label="Apellido paterno" placeholder="Nombres" formControlName="fatherLastName"
+        [checking]="true" validarInput [validarMaxLength]="40" [validarTipoEntrada]="'texto'" />
+
+      <fn-input class="col-12 md:col-4" label="Apellido materno (Opcional)" placeholder="Nombres"
+        formControlName="motherLastName" [checking]="true" validarInput [validarMaxLength]="40"
+        [validarTipoEntrada]="'texto'" />
+
+      <div class="col-12">
+        <p-button (onClick)="recordExtraData()" label="Registrar datos adicionales"
+          styleClass="p-button-link p-button-active" />
+      </div>
+    </form>
+  </ng-container>
+</ng-template>
+
+<div class="flex justify-content-end">
+  <p-button *ngIf="newInvolved" styleClass="surface-200 font-semibold text-primary" label="Cancelar"
+    (onClick)="cancelEdition()" />
+
+  <p-button *ngIf="availableSaveBtn" class="ml-3" styleClass="bg-secondary font-semibold"
+    label="{{tmpInvolved?.id ? 'Guardar' : 'Agregar'}} {{type}}" [disabled]="disabledBtn" (onClick)="createInvolved()"
+    [loading]="validating" />
+</div>
+
+<ng-template #unknownInvolved />
+
+<p-toast />

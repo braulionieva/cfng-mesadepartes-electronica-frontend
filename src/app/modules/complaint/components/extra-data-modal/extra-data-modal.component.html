@@ -1,0 +1,230 @@
+<form [formGroup]="form" class="grid mpfn-formulario">
+  <p-tabView class="col-12">
+    <p-tabPanel header="Datos personales">
+      <fn-input-wrapper label="Sexo" class="mpfn-input-separation">
+        <ng-container *ngFor="let item of genderOptions">
+          <p-radioButton [inputId]="item.value" [value]="item.value" formControlName="gender" />
+
+          <label [for]="item.value" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <div class="grid mt-3 fix-nacimiento">
+        <fn-input-wrapper label="Fecha de nacimiento" class="col-9">
+          <p-calendar dateFormat="dd/mm/yy" formControlName="bornDate" (ngModelChange)="changeDate($event)"
+            [maxDate]="maxDate" placeholder="dd/mm/aaaa" [ngClass]="{'ng-invalid ng-dirty': errorMsg('bornDate')}"
+            dateMask [disabled]="showDNI" />
+
+          <small error *ngIf="errorMsg('bornDate')" class="p-error block">
+            {{ errorMsg('bornDate') }}
+          </small>
+        </fn-input-wrapper>
+
+        <fn-input class="col-3" label="Edad" placeholder="Edad" formControlName="age" validarInput
+          [validarMaxLength]="2" [validarTipoEntrada]="'numero'" [disabled]="true" />
+      </div>
+
+      <fn-input-wrapper label="Estado civil" class="col-12 mpfn-input-separation">
+        <p-dropdown [options]="maritalStatusList" optionLabel="nombre" optionValue="idEquivalente" [filter]="true"
+          filterBy="nombre" placeholder="Seleccionar" formControlName="maritalStatus"
+          emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('maritalStatus')}" />
+
+        <small error *ngIf="errorMsg('maritalStatus')" class="p-error block">
+          {{ errorMsg('maritalStatus') }}
+        </small>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Grado de instrucción" class="col-12 mpfn-input-separation">
+        <p-dropdown [options]="educationalLevelList" optionLabel="nombre" optionValue="idEquivalente" [filter]="true"
+          filterBy="nombre" placeholder="Seleccionar" formControlName="idEducationalLevel"
+          emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('educationalLevel')}" />
+
+        <small error *ngIf="errorMsg('educationalLevel')" class="p-error block">
+          {{ errorMsg('educationalLevel') }}
+        </small>
+      </fn-input-wrapper>
+
+      <div class="direccion-titulo">
+        <label for="" class="text-bold f-16">Dirección/Domicilio</label>
+      </div>
+      <fn-input-wrapper label="Departamento" class="col-12 mpfn-input-separation">
+        <p-dropdown [options]="departmentsList" optionLabel="nombre" optionValue="codigo" [filter]="true"
+          filterBy="nombre" (ngModelChange)="changeDepartment($event)" placeholder="Seleccionar"
+          formControlName="department" emptyMessage="Datos no encontrados"
+          [ngClass]="{'ng-invalid ng-dirty': errorMsg('department')}" />
+
+        <small error *ngIf="errorMsg('department')" class="p-error block">
+          {{ errorMsg('department') }}
+        </small>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Provincia" class="col-12 mpfn-input-separation">
+        <p-dropdown [options]="provincesList" optionLabel="nombre" optionValue="codigo" [filter]="true"
+          filterBy="nombre" (ngModelChange)="changeProvince($event)" placeholder="Seleccionar"
+          formControlName="province" emptyMessage="Datos no encontrados"
+          [ngClass]="{'ng-invalid ng-dirty': errorMsg('province')}" />
+
+        <small error *ngIf="errorMsg('province')" class="p-error block">
+          {{ errorMsg('province') }}
+        </small>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Distrito" class="col-12 mpfn-input-separation">
+        <p-dropdown [options]="districtList" optionLabel="nombre" optionValue="codigo" placeholder="Seleccionar"
+          [filter]="true" filterBy="nombre" formControlName="district" emptyMessage="Datos no encontrados"
+          [ngClass]="{'ng-invalid ng-dirty': errorMsg('district')}" />
+
+        <small error *ngIf="errorMsg('district')" class="p-error block">
+          {{ errorMsg('district') }}
+        </small>
+      </fn-input-wrapper>
+
+      <fn-input class="col-12 mpfn-input-separation" label="Dirección" placeholder="Ej.: Av. Pedro Silva 123" formControlName="address"
+        (keypress)="noQuotes($event)" [disabled]="showDNI" validarInput [validarMaxLength]="100"
+        [validarTipoEntrada]="'alfaNumerico'" />
+    </p-tabPanel>
+
+    <p-tabPanel header="Datos de contacto">
+      <fn-input [ico]="obtenerIcono('iSmartPhone')" class="col-12 mpfn-input-separation mpfn-inpt-count mpfn-input-icon" label="Teléfono o celular principal"
+        placeholder="Número de teléfono o celular" formControlName="phone" [counter]="20" validarInput
+        [validarMaxLength]="20" [validarRegex]="'^[0-9+/#(). -]*$'" [disabled]="showDenunciante" />
+
+      <fn-input [ico]="obtenerIcono('iMail')" class="col-12 mpfn-input-separation mpfn-input-icon" label="Correo electrónico principal"
+        placeholder="Dirección de correo electrónico" formControlName="email" validarInput [validarMaxLength]="100"
+        [validarRegex]="'^[a-zA-Z0-9@._-]*$'" [disabled]="showDenunciante" />
+
+      <fn-input [ico]="obtenerIcono('iSmartPhone')" class="col-12 mpfn-input-separation mpfn-inpt-count mpfn-input-icon" label="Teléfono o celular secundario"
+        placeholder="Número de teléfono o celular" formControlName="secondaryPhone" [counter]="20" validarInput
+        [validarMaxLength]="20" [validarRegex]="'^[0-9+/#(). -]*$'" />
+
+      <fn-input [ico]="obtenerIcono('iMail')" class="col-12 mpfn-input-separation" label="Correo electrónico secundario"
+        placeholder="Dirección de correo electrónico" formControlName="secondaryEmail" validarInput
+        [validarMaxLength]="100" [validarRegex]="'^[a-zA-Z0-9K@._-]*$'" (keypress)="noQuotes($event)" />
+    </p-tabPanel>
+
+    <p-tabPanel header="Otros datos">
+      <fn-input-wrapper label="Profesión u oficio" class="col-12 mpfn-input-separation">
+        <p-dropdown [options]="ocupationList" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
+          [filter]="true" filterBy="nombre" formControlName="ocupation" emptyMessage="Datos no encontrados"
+          [ngClass]="{'ng-invalid ng-dirty': errorMsg('ocupation')}" />
+        <!-- Mostrar input solo si el valor seleccionado es 68 (OTROS)-->
+
+        <fn-input *ngIf="form.get('ocupation')?.value === 68" class="col-12 mpfn-input-separation"
+          placeholder="Ingrese una profesión u oficio" formControlName="otrosDetalleProfesionOficio" validarInput
+          [validarMaxLength]="100" [validarTipoEntrada]="'alfaNumerico'"></fn-input>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Población afroperuana" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of afroperuvianOptions">
+          <p-radioButton inputId="otafroperuana{{item.value}}" [value]="item.value" formControlName="afroperuvian" />
+
+          <label for="otafroperuana{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Persona con discapacidad" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of disabilityOptions">
+          <p-radioButton inputId="otdiscapacidad{{item.value}}" [value]="item.value" formControlName="disability" />
+
+          <label for="otdiscapacidad{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Persona privada de su libertad" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of privateOptions">
+          <p-radioButton inputId="otlibertad{{item.value}}" [value]="item.value" formControlName="privateLibertad" />
+
+          <label for="otlibertad{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Persona con VIH/SIDA o TBC" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of vihOptions">
+          <p-radioButton inputId="otvih{{item.value}}" [value]="item.value" formControlName="vih" />
+
+          <label for="otvih{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Trabajador/a del hogar" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of workerOptions">
+          <p-radioButton inputId="ottrabajador{{item.value}}" [value]="item.value" formControlName="worker" />
+
+          <label for="ottrabajador{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Persona LGTBIQ+" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of lgtbiqOptions">
+          <p-radioButton inputId="otlgtbiq{{item.value}}" [value]="item.value" formControlName="lgtbiq" />
+
+          <label for="otlgtbiq{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Defensor/a de derechos humanos" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of advocateOptions">
+          <p-radioButton inputId="otdefensor{{item.value}}" [value]="item.value" formControlName="advocate" />
+
+          <label for="otdefensor{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Persona migrante (interna o externa)" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of migrantOptions">
+          <p-radioButton inputId="otmigrante{{item.value}}" [value]="item.value" formControlName="migrant" />
+
+          <label for="otmigrante{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Persona víctima de la violencia entre los años 1980-2000" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of victimOptions">
+          <p-radioButton inputId="otvictima{{item.value}}" [value]="item.value" formControlName="victim" />
+
+          <label for="otvictima{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+
+      <fn-input-wrapper label="Servidor o Funcionario Público" class="mpfn-input-radio-group">
+        <ng-container *ngFor="let item of serverOptions">
+          <p-radioButton inputId="otservidor{{item.value}}" [value]="item.value" formControlName="server" />
+
+          <label for="otservidor{{item.value}}" class="mx-2 cursor-pointer">
+            {{ item.label }}
+          </label>
+        </ng-container>
+      </fn-input-wrapper>
+    </p-tabPanel>
+  </p-tabView>
+</form>
+
+<div class="flex justify-content-between">
+  <p-button (onClick)="cancelEdition()" label="Cancelar"
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+  </p-button>
+
+  <p-button (onClick)="saveData()" [disabled]="!validForm" label="Guardar datos"
+    styleClass="p-button-lg bg-secondary text-white font-semibold btn-adjust">
+  </p-button>
+</div>

@@ -1,0 +1,11 @@
+.footer {
+    width: 100%;
+    background-color: var(--mpfn-gray18);
+    padding: 12px 20px;
+    .footer__copyright {
+        font-family: var(--mpfn-font-roboto-regular);
+        font-size: 12px;
+        text-align: center;
+        color: var(--mpfn-gray16);
+    }
+}

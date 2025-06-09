@@ -1,0 +1,233 @@
+<ng-container *ngIf="isPNPProfile; else PJTemplate">
+  <form [formGroup]="form" class="grid mpfn-formulario">
+    <fn-input class="col-12 md:col-12 mt-4 mpfn-input-separation" label="Efectivo policial" formControlName="datosContacto"
+      placeholder="Datos del contacto" [disabled]="true" [checking]="true" (keypress)="noQuotes($event)" />
+
+    <fn-input class="col-12 md:col-6 mpfn-input-separation" label="N° Carnet de Identificación Policial - CIP" placeholder="N° de CIP"
+      formControlName="codigoCip" [checking]="true" (keypress)="noQuotes($event)" validarInput
+      [validarMaxLength]="8" [validarRegex]="'^[a-zA-Z0-9K/-]*$'" />
+
+    <fn-input class="col-12 md:col-12 mpfn-input-separation" label="Número de informe policial" placeholder="Nro. de informe policial"
+      formControlName="policeReportNumber" [checking]="true" (keypress)="noQuotes($event)" validarInput
+      [validarMaxLength]="50" [validarRegex]="'^[a-zA-Z0-9K/-]*$'" />
+
+    <app-file-upload class="col-12 mpfn-input-separation" label="Subir informe policial" type="pdf" [files]="files" fileLimit="1"
+      [maxFileSize]="1024 * 1024 * 30"
+      [perFileLabel]="'Puede subir un documento en formato PDF con un <b>peso máximo de 30 MB.</b>'"
+      (filesChange)="onFilesChanged($event)" [(sumSize)]="sumTotalBytesFiles" [isAccumulated]="true"
+      [deleteURL]="deleteURL" [url]="url" [classButton]="'bg-secondary w-full'" [labelTableArchivos]="labelTableArchivos" />
+
+    <!-- === DEPARTAMENTO === -->
+    <fn-input-wrapper label="Departamento" class="col-12 md:col-6">
+      <!-- dropdown: selección de departamento -->
+      <p-dropdown
+        [options]="departments"
+        [filter]="true"
+        filterBy="nombre"
+        [placeholder]="'Seleccionar'"
+        optionLabel="nombre"
+        optionValue="codigo"
+        [formControlName]="'department'"
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('department')}"
+        (ngModelChange)="changeDepartment($event, 'policia')"
+        [emptyMessage]="'Datos no encontrados'"
+      ></p-dropdown>
+      <!-- error: departamento -->
+      <small *ngIf="errorMsg('department')" error class="p-error block">
+        {{ errorMsg('department') }}
+      </small>
+    </fn-input-wrapper>
+
+    <!-- === PROVINCIA === -->
+    <fn-input-wrapper label="Provincia" class="col-12 md:col-6">
+      <!-- dropdown: selección de provincia -->
+      <p-dropdown
+        [options]="provinces"
+        [filter]="true"
+        filterBy="nombre"
+        optionLabel="nombre"
+        optionValue="codigo"
+        [placeholder]="'Seleccionar'"
+        [formControlName]="'province'"
+        (ngModelChange)="changeProvince($event)"
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('province')}"
+        [emptyMessage]="'Datos no encontrados'"
+      ></p-dropdown>
+      <!-- error: provincia -->
+      <small *ngIf="errorMsg('province')" error class="p-error block">
+        {{ errorMsg('province') }}
+      </small>
+    </fn-input-wrapper>
+
+    <!-- === DISTRITO === -->
+    <fn-input-wrapper label="Distrito" class="col-12 md:col-6">
+      <!-- dropdown: selección de distrito -->
+      <p-dropdown
+        [options]="districts"
+        [filter]="true"
+        filterBy="nombre"
+        optionLabel="nombre"
+        optionValue="codigo"
+        [placeholder]="'Seleccionar'"
+        [formControlName]="'district'"
+        (ngModelChange)="changeDistrict($event, 'policia')"
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('district')}"
+        [emptyMessage]="'Datos no encontrados'"
+      ></p-dropdown>
+      <!-- error: distrito -->
+      <small *ngIf="errorMsg('district')" error class="p-error block">
+        {{ errorMsg('district') }}
+      </small>
+    </fn-input-wrapper>
+
+
+    <fn-input-wrapper label="Dependencia Policial" class="col-12 md:col-6">
+      <p-dropdown [options]="dependenciasPoliciales" optionLabel="nombre" optionValue="id"
+                  [filter]="true" filterBy="nombre" placeholder="Seleccionar" formControlName="dependenciaPolicial"
+                  emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('dependenciaPolicial')}" />
+
+      <small error *ngIf="errorMsg('dependenciaPolicial')" class="p-error block">
+        {{errorMsg('dependenciaPolicial')}}
+      </small>
+    </fn-input-wrapper>
+
+    <fn-input class="col-6 md:col-6" label="Telefono comisaría (opcional)" placeholder="Anexo"
+              formControlName="anexoComisaria" [checking]="true" (keypress)="noQuotes($event)" validarInput
+              [validarMaxLength]="20" [validarRegex]="'^[0-9+/#(). -]*$'" />
+
+    <fn-input class="col-6 md:col-6" label="N° de Parte Policial" placeholder="Número del Parte Policial"
+              formControlName="numeroPartePolicial" [checking]="true" (keypress)="noQuotes($event)" validarInput
+              [validarMaxLength]="50" [validarRegex]="'^[a-zA-Z0-9K/-]*$'" />
+
+  </form>
+</ng-container>
+
+<ng-template #PJTemplate>
+  <form [formGroup]="form" class="grid mpfn-formulario">
+    <fn-input class="col-12 md:col-12 mt-4 mpfn-input-separation" label="Datos del contacto" formControlName="datosContacto"
+      placeholder="Datos del contacto" [disabled]="true" [checking]="true" (keypress)="noQuotes($event)" />
+
+    <fn-input class="col-12 md:col-12 mpfn-input-separation mpfn-inpt-count " label="Número de expediente" placeholder="Nro. de expediente"
+      formControlName="nroExpediente" [checking]="true" (keypress)="noQuotes($event)" [counter]="30" validarInput
+      [validarMaxLength]="30" [validarRegex]="'^[a-zA-Z0-9K/-]*$'" />
+
+    <ng-container *ngIf="showExpedient">
+      <div class="col-12 mpfn-input-separation">
+        <label for="" class="block text-sm font-semibold">Tipo de riesgo</label>
+
+        <div class="col-12 my-3" style="margin-top: 0.3rem !important">
+          <ng-container *ngFor="let item of riskTypesList">
+            <p-radioButton inputId="pjTipoRiesgo{{item.id}}" [value]="item.id" formControlName="riskType" />
+            <label for="pjTipoRiesgo{{item.id}}" class="mx-2 cursor-pointer" style="margin-right: 1rem !important">
+              {{ item.nombre }}
+            </label>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <label for="" class="block text-sm font-semibold">Tipo de violencia</label>
+        <div class="col-12" style="margin-top: 0.3rem !important">
+          <ng-container *ngFor="let item of violenceTypesList">
+            <p-checkbox name="violenceGroup" inputId="pjTipoVio{{item.id}}" [value]="item.id"
+              formControlName="violenceType" [formControl]="form.controls['violenceType']"></p-checkbox>
+            <label for="pjTipoVio{{item.id}}" class="mx-2 cursor-pointer" style="margin-right: 1rem !important">{{
+              item.nombre }}</label>
+          </ng-container>
+        </div>
+      </div>
+    </ng-container>
+
+    <app-file-upload class="col-12 file-upload-limits" label="Subir expediente" type="pdf" [files]="files" fileLimit="1"
+      [maxFileSize]="1024 * 1024 * 30"
+      [perFileLabel]="'Puede subir un documento en formato PDF con un <b>peso máximo de 30 MB.</b>'"
+      (filesChange)="onFilesChanged($event)" [(sumSize)]="sumTotalBytesFiles" [isAccumulated]="true"
+      [deleteURL]="deleteURL" [url]="url" [labelTableArchivos]="labelTableArchivos"
+      [classButton]="'bg-secondary w-full'" />
+
+    <!-- === DEPARTAMENTO === -->
+    <fn-input-wrapper label="Departamento" class="col-12 md:col-6 mpfn-input-separation">
+      <!-- dropdown: departamento -->
+      <p-dropdown
+        placeholder="Seleccionar"
+        [options]="departments"
+        optionLabel="nombre"
+        [filter]="true"
+        filterBy="nombre"
+        (ngModelChange)="changeDepartment($event, 'juzgado')"
+        optionValue="codigo"
+        emptyMessage="Datos no encontrados"
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('department')}"
+        formControlName="department"
+      ></p-dropdown>
+      <!-- msg: departamento -->
+      <small error *ngIf="errorMsg('department')" class="p-error block">
+        {{ errorMsg('department') }}
+      </small>
+    </fn-input-wrapper>
+
+    <!-- === PROVINCIA === -->
+    <fn-input-wrapper label="Provincia" class="col-12 md:col-6 mpfn-input-separation">
+      <!-- dropdown: provincia -->
+      <p-dropdown
+        [filter]="true"
+        (ngModelChange)="changeProvince($event)"
+        placeholder="Seleccionar"
+        filterBy="nombre"
+        optionLabel="nombre"
+        [options]="provinces"
+        optionValue="codigo"
+        formControlName="province"
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('province')}"
+        emptyMessage="Datos no encontrados"
+      ></p-dropdown>
+      <!-- msg: provincia -->
+      <small error *ngIf="errorMsg('province')" class="p-error block">
+        {{ errorMsg('province') }}
+      </small>
+    </fn-input-wrapper>
+
+    <!-- === DISTRITO === -->
+    <fn-input-wrapper label="Distrito" class="col-12 md:col-6 mpfn-input-separation">
+      <!-- dropdown: distrito -->
+      <p-dropdown
+        optionLabel="nombre"
+        [options]="districts"
+        [filter]="true"
+        optionValue="codigo"
+        (ngModelChange)="changeDistrict($event, 'juzgado')"
+        placeholder="Seleccionar"
+        formControlName="district"
+        filterBy="nombre"
+        emptyMessage="Datos no encontrados"
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('district')}"
+      ></p-dropdown>
+      <!-- msg: distrito -->
+      <small error *ngIf="errorMsg('district')" class="p-error block">
+        {{ errorMsg('district') }}
+      </small>
+    </fn-input-wrapper>
+
+
+    <fn-input-wrapper label="Juzgado" class="col-12 md:col-6 mpfn-input-separation">
+      <p-dropdown [options]="juzgados" optionLabel="descEntidad" optionValue="codEntidad"
+        [disabled]="isDisabledJuzgado" [filter]="true" filterBy="descEntidad" placeholder="Seleccionar" formControlName="juzgado"
+        emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('juzgado')}" />
+
+      <small error *ngIf="errorMsg('juzgado')" class="p-error block">
+        {{errorMsg('juzgado')}}
+      </small>
+    </fn-input-wrapper>
+
+    <div class="field col-12 md:col-6 mpfn-input-separation">
+      <label for="" class="block text-sm font-semibold ng-star-inserted">Fecha de la denuncia</label>
+      <p-calendar dateFormat="dd/mm/yy" formControlName="fechaDenuncia" placeholder="dd/mm/aaaa" [maxDate]="maxDate"
+                  styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': errorMsg('fechaDenuncia')}"
+                  dateMask />
+
+      <small error *ngIf="errorMsg('fechaDenuncia')" class="p-error block">
+        {{ errorMsg('fechaDenuncia') }}
+      </small>
+    </div>
+  </form>
+</ng-template>

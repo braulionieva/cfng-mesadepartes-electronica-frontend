@@ -1,0 +1,30 @@
+@import url('https://unpkg.com/leaflet@1.9.3/dist/leaflet.css');
+@import url('https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css');
+
+.mpfn-origen {
+  margin-top: -34px;
+}
+
+.mpfn-menor {
+  margin-top: -25px;
+  margin-bottom: 25px;
+}
+
+.user-added {
+  width: calc(100% - 30px);
+}
+
+.user-option {
+  width: 20px;
+}
+
+.mpfn-numero-ruc {
+  width: calc(100% - 55px) !important;
+  &.mpfn-count {
+    margin-bottom: 10px !important;
+  }
+}
+
+.mpfn-search-ruc {
+  margin-bottom: -28px !important;
+}

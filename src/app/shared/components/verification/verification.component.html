@@ -1,0 +1,106 @@
+<div class="mpfn-subtitle">Datos de identificación del denunciante</div>
+
+<p class="mpfn-descripcion">
+  Por favor ingrese los siguientes datos para verificar su identidad.
+</p>
+
+<app-alert [dataAlert]="messages[0]" [cosable]="true" class="mb-3"/>
+
+<div class="grid">
+  <div class="col-12 mt-7 {{ classValidationContainer() }}">
+    
+    <form [formGroup]="verificationForm" class="mpfn-formulario">
+
+      <fn-input label="Número de DNI" placeholder="DNI" [counter]="8" [checking]="true" formControlName="dni"
+        validarInput [validarMaxLength]="8" [validarTipoEntrada]="'numero'" [styleClass]="ERRORDNI ? 'p-filled': '' "
+        class="mpfn-input mpfn-count"
+      >
+      </fn-input>
+
+      <fn-input-wrapper label="Fecha de nacimiento" class="mpfn-input mpfn-input-separation">
+        <p-calendar dateFormat="dd/mm/yy" formControlName="bornDate" placeholder="dd/mm/aaaa" onSelected="true"
+          [ngClass]="{'ng-invalid ng-dirty': errorMsg('bornDate')}" [styleClass]="ERRORFECHA? 'p-filled': '' "
+          dateMask />
+
+        <i *ngIf="verificationForm.get('bornDate').valid" class="pi pi-check text-green-500 left-auto"
+          [style]="{'right': '0.75rem'}">
+        </i>
+
+        <small error *ngIf="errorMsg('bornDate')" class="p-error block">
+          {{errorMsg('bornDate')}}
+        </small>
+      </fn-input-wrapper>
+
+    </form>
+
+    <form [formGroup]="dynamicValidationForm" class="mpfn-formulario">
+
+      <div *ngIf="renderingValidation; else validationLoader">
+        <fn-input *ngIf="validations[currentValidationIndex].controlName !=='dniEmitDate'; else dniEmitDate"
+          [label]="validations[currentValidationIndex].label"
+          [placeholder]="validations[currentValidationIndex].placeholder"
+          [checking]="validations[currentValidationIndex].checking" [styleClass]="ERRORDATOS? 'p-filled': '' "
+          [formControlName]="validations[currentValidationIndex].controlName"
+          (input)="validMaxLength(validations[currentValidationIndex].controlName)"
+          validarInput [validarTipoEntrada]="numberValidation ? 'numero' : 'texto'" [validarSoloMayusculas]="true"
+          [validarIgnorarTildes]="true"
+          class="mpfn-input mt-4 mpfn-last"
+        />
+        <ng-template #dniEmitDate>
+          <fn-input-wrapper [label]="validations[currentValidationIndex].label" class="mpfn-input mt-4 mpfn-last">
+            <p-calendar dateFormat="dd/mm/yy" formControlName="dniEmitDate" placeholder="dd/mm/aaaa"
+              [ngClass]="{'ng-invalid ng-dirty': errorMsg('dniEmitDate')}" [styleClass]="ERRORDATOS? 'p-filled': '' "
+              dateMask />
+
+            <i *ngIf="dynamicValidationForm.get('dniEmitDate').valid" class="pi pi-check text-green-500 left-auto"
+              [style]="{'right': '0.75rem'}">
+            </i>
+
+            <small error *ngIf="errorMsg('dniEmitDate')" class="p-error block">
+              {{errorMsg('dniEmitDate')}}
+            </small>
+          </fn-input-wrapper>
+        </ng-template>
+      </div>
+
+      <ng-template #validationLoader>
+        <p-progressBar mode="indeterminate" styleClass="my-6" [style]="{'height': '6px'}" />
+      </ng-template>
+    </form>
+  </div>
+
+  <div *ngIf="showExampleImg" class="col-12 md:col-8"
+    style="	display: flex; align-items: center; justify-content: center;">
+    <div class="container-img-example">
+
+      <div class="item-img-example" *ngFor="let asset of validations[currentValidationIndex].assets">
+        <img [src]="asset.img" class="w-13rem" alt="">
+
+        <span class="text-smx line-height-2 w-15rem" [innerHTML]="sanitizerTexto(asset.caption)"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-toast />
+
+<div class="flex justify-content-between mt-8 mb-5">
+  <p-button (onClick)="askToCancelComplaint()" [label]="cancelLabel"
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton">
+  </p-button>
+
+  <p-button 
+    (onClick)="nextStep()"
+    [styleClass]=" !formsValidation ? 'mpfn-boton-bloqueado mpfn-boton' : 'p-button-lg bg-secondary text-white font-semibold btn-adjust mpfn-boton'"
+    [loading]="validating" 
+    [disabled]="!formsValidation"
+  >
+
+    <span>Continuar</span>
+
+    <fn-icon *ngIf="!validating" [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
+
+    <i *ngIf="validating" class="pi pi-spin ml-5"></i>
+
+  </p-button>
+</div>

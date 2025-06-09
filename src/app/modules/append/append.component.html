@@ -1,0 +1,13 @@
+<div class="fn-container plr-12-6">
+  <div class="steps-container sticky top-0 z-3" style="background: var(--mpfn-background); padding: 5px;">
+    <div class="text-2xl nfont-semibold text-primary" style="margin-top: 25px;">
+      <span>{{ pageTitle }}</span>
+    </div>
+
+    <p-steps *ngIf="!isCompletedProcess" [model]="steps" [readonly]="true" styleClass="mt-3" />
+  </div>
+
+  <div class="contenido mt-4">
+    <router-outlet />
+  </div>
+</div>

@@ -1,0 +1,19 @@
+.gn-badge {
+  text-decoration: line-through;
+  &:before {
+    content: " ";
+    display: inline-block;
+    width: 10px;
+    min-width: 10px;
+    height: 10px;
+    border-radius: 10px;
+    background-color: var(--gray-400);
+  }
+}
+
+.gn-badge--green {
+  text-decoration: none;
+  &:before {
+    background-color: #22c55e;
+  }
+}

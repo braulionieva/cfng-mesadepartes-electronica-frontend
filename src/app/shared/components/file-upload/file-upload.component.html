@@ -1,0 +1,61 @@
+<div class="file-upload-container">
+  <div class="upload-button mb-2">
+    <button pButton type="button" [icon]="isUploading ? '' : 'pi pi-file-arrow-up'"
+      [disabled]="isFileLimitReached() || isUploading" (click)="openFileInput()"
+      class="p-ripple p-element p-button-lg font-bold btn-adjust p-button p-component w-full flex justify-content-center align-items-center"
+      [ngClass]="classButton">
+      <span class="flex align-items-center justify-content-center gap-2">
+        <p-progressSpinner *ngIf="isUploading" class="surface-200 text-primary"
+          [style]="{width: '20px', height: '20px'}" strokeWidth="4" fill="var(--surface-ground)"
+          animationDuration=".5s">
+        </p-progressSpinner>
+        <span class="ml-2">{{ label || 'Seleccionar archivo' }}</span>
+      </span>
+    </button>
+
+    <input #fileInput type="file" style="display: none" [accept]="allowedExtensions[type].join(',')"
+      [multiple]="isAccumulated && (!fileLimit || fileLimit !== '1')" (change)="onFileSelected($event)">
+
+    <small>
+      <p class="file-limits mt-1" [innerHTML]="perFileLabel"></p>
+    </small>
+  </div>
+
+  <div *ngIf="isUploading" class="upload-progress mt-2">
+    <p-progressBar [value]="uploadProgress"></p-progressBar>
+    <p class="mt-1 text-center">Subiendo... {{ uploadProgress }}%</p>
+  </div>
+
+  <div *ngIf="files.length > 0" class="file-list mt-3">
+    <h3>{{labelTableArchivos}}</h3>
+
+    <table class="p-datatable p-component">
+      <caption></caption>
+      <thead>
+        <tr>
+          <th>Documento</th>
+          <th>Tamaño</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let file of files; let i = index">
+          <td>
+            <i class="pi pi-file-pdf" style="margin-right: 0.5rem;"></i>
+            {{ file.nombreOriginal }}
+          </td>
+          <td>{{ formatFileSize(file.tamanyo) }}</td>
+          <td class="text-center">
+            <button pButton type="button" icon="pi pi-trash" class="p-button-text no-style" pTooltip="Eliminar archivo"
+              (click)="removeFile(i)"></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="files.length > 0" class="total-size mt-2">
+    <p class="text-right">Tamaño total: {{ formatFileSize(sumSize) }}</p>
+  </div>
+</div>
