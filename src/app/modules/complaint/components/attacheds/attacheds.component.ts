@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { DividerModule } from 'primeng/divider';
 import { CmpLibModule } from 'ngx-mpfn-dev-cmp-lib';
@@ -9,6 +9,7 @@ import { AnexosAsociados } from '@shared/interfaces/complaint/complaint-registra
 import { ENDPOINTS_MICROSERVICES, LOCALSTORAGE } from '@environments/environment';
 import { CryptService } from '@shared/services/global/crypt.service';
 import { FileUploadComponent } from '@shared/components/file-upload/file-upload.component';
+import { handleTextInput, handleTextPaste } from '@shared/utils/text-limit';
 
 @Component({
   selector: 'complaint-attacheds',
@@ -96,94 +97,20 @@ export class AttachedsComponent implements OnInit {
   /*****************/
   /*  GET METHODS  */
   /*****************/
+
   get counterReportChar(): number {
-    const value = this.form.get('observation')?.value || '';
-    return value.replace(/\s/g, '').length;
+    const value = this.form.get('observation')?.value ?? ''
+    return value.replace(/\s/g, '').length
   }
 
   protected onObservationInput(event: Event): void {
-
-    const textarea = event.target as HTMLTextAreaElement;
-    const textoOriginal = textarea.value;
-
-    const LIMITE = 500;
-    const cantidadNoBlancos = textoOriginal.replace(/\s/g, '').length;
-
-    if (cantidadNoBlancos <= LIMITE) {
-      this.form.get('observation')?.setValue(textoOriginal.trim(), { emitEvent: false });
-      return;
-    }
-
-    let exceso = cantidadNoBlancos - LIMITE;
-    const caracteres = Array.from(textoOriginal);
-
-    for (let i = caracteres.length - 1; i >= 0 && exceso > 0; i--) {
-      if (!/\s/.test(caracteres[i])) {
-        caracteres.splice(i, 1);
-        exceso--;
-      }
-    }
-
-    const textoRecortado = caracteres.join('');
-    textarea.value = textoRecortado;
-
-    this.form.get('observation')?.setValue(textoRecortado.trim(), { emitEvent: false });
-
+    handleTextInput(event, 'observation', this.form, 500)
+    this.saveInfo(true)
   }
 
   protected onObservationPaste(event: ClipboardEvent): void {
-  
-    event.preventDefault();
-  
-    const clipboardData = event.clipboardData;
-    if (!clipboardData) return;
-  
-    const textoPegado = clipboardData.getData('text');
-    const control = this.form.get('observation');
-    if (!control) return;
-  
-    const textoActual = control.value ?? '';
-    const LIMITE = 500;
-  
-    const noBlancosActual = textoActual.replace(/\s/g, '').length;
-  
-    const espacioDisponible = LIMITE - noBlancosActual;
-  
-    if (espacioDisponible <= 0) {
-      return;
-    }
-  
-    let exceso = textoPegado.replace(/\s/g, '').length - espacioDisponible;
-    if (exceso <= 0) {
-      this.insertarTextoEnCursor(textoPegado, control);
-      return;
-    }
-  
-    const caracteres = Array.from(textoPegado);
-    for (let i = caracteres.length - 1; i >= 0 && exceso > 0; i--) {
-      if (!/\s/.test(caracteres[i])) {
-        caracteres.splice(i, 1);
-        exceso--;
-      }
-    }
-    const textoRecortado = caracteres.join('');
-    this.insertarTextoEnCursor(textoRecortado.trim(), control);
-  }
-  
-  private insertarTextoEnCursor(texto: string, control: AbstractControl): void {
-    const textarea = document.querySelector('textarea[formControlName="observation"]') as HTMLTextAreaElement;
-    if (!textarea) return;
-  
-    const start = textarea.selectionStart || 0;
-    const end = textarea.selectionEnd || 0;
-    const valorActual = control.value ?? '';
-  
-    const nuevoValor = valorActual.substring(0, start) + texto + valorActual.substring(end);
-    textarea.value = nuevoValor;
-    control.setValue(nuevoValor.trim(), { emitEvent: false });
-  
-    const nuevaPos = start + texto.length;
-    textarea.selectionStart = textarea.selectionEnd = nuevaPos;
+    handleTextPaste(event, 'observation', this.form, 500)
+    this.saveInfo(true)
   }
 
   /***************/
@@ -211,6 +138,7 @@ export class AttachedsComponent implements OnInit {
       },
     };
     force && (request['force'] = true);
+    console.log("🚀 ~ AttachedsComponent ~ saveInfo ~ request:", request)
     this.formChanged.emit(request);
   }
 

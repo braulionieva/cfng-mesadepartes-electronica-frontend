@@ -1,4 +1,4 @@
-<div class="mpfn-subtitle"> 
+<div class="mpfn-subtitle">
   Datos de la denuncia
 </div>
 
@@ -12,7 +12,8 @@
     <p-accordionTab [iconPos]="endVal" *ngIf="isPNPoPJ" header="Datos generales" tabStyleClass="mb-3"
       [selected]="expanded">
       <complaint-general-data [profileID]="tmpProfile" [recoveredData]="getGeneralData(data)"
-        (formChanged)="onFormChange($event)" (fechaPolicialChanged)="onFechaPolicialChange($event)" />
+        (formChanged)="onFormChange($event)" (fechaPolicialChanged)="onFechaPolicialChange($event)"
+        (filesChanged)="onFilesChanged($event)" />
     </p-accordionTab>
 
     <p-accordionTab *ngIf="isEntity" header="Datos de la entidad" tabStyleClass="mb-3" [selected]="expanded">
@@ -64,10 +65,6 @@
 
   <!-- Botones derechos -->
   <div class="ml-auto flex gap-3">
-    <!-- <p-button (onClick)="backPersonalData()" styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton">
-      <fn-icon [ico]="obtenerIcono('iArrowLeft')" class="mr-2" />
-      <span>Regresar</span>
-    </p-button> -->
 
     <p-button styleClass="p-button-lg bg-secondary font-semibold btn-adjust" [disabled]="!formsValidation"
       [styleClass]=" !formsValidation ? 'mpfn-boton-bloqueado mpfn-boton' : 'p-button-lg bg-secondary font-semibold btn-adjust mpfn-boton'"

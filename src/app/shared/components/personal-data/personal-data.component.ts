@@ -458,18 +458,7 @@ export class PersonalDataComponent implements OnInit, OnDestroy {
 
   registerProfile(accion: ValidateActionType = 'V') {
     const personData = this.personDataForm.getRawValue()
-    const PNPData = this.PNPDataForm ? this.PNPDataForm.getRawValue() : null
     const PJData = this.PJDataForm ? this.PJDataForm.getRawValue() : null
-
-    let objDependenciaPolicial;
-    let objDependenciaJudicial;
-
-    if (PNPData)
-      objDependenciaPolicial = this.policeDepartmentList.filter(x => x.id === PNPData.policeUnit);
-
-    if (PJData)
-      objDependenciaJudicial = this.judicialDependenciesList.filter(x => x.id === PJData.judicialUnit);
-
 
     let esMedidaProteccion: any;
     if (PJData) esMedidaProteccion = PJData.protectiveMeasure ? 1 : 0;

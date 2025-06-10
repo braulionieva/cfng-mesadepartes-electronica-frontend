@@ -16,7 +16,7 @@
     <p class="mb-1 mpfn-text mt-1">Describe lo que sucedió de la forma más detallada posible.</p>
   </div>
 
-  <app-alert [dataAlert]="messages[1]" [cosable]="false" class="mb-0"/>
+  <app-alert *ngIf="mostrarErrorReport" [dataAlert]="messages[1]" [cosable]="false" class="mb-0"/>
 
   <textarea rows="5"
             pInputTextarea

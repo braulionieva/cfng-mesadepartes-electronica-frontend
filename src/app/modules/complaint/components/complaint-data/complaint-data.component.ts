@@ -27,6 +27,7 @@ import { MaestrosService } from '@shared/services/shared/maestros.service';
 import { Subscription } from 'rxjs';
 import {
   Denuncia,
+  Entidad,
 } from '@shared/interfaces/complaint/complaint-registration';
 import { DenunciaInit } from 'src/assets/data/DenunciaInit';
 import { CryptService } from '@shared/services/global/crypt.service';
@@ -86,6 +87,8 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
 
   public fechaPolicial: Date = null;
 
+  public hasFiles: boolean = false;
+
   /*****************/
   /*  CONSTRUCTOR  */
   /*****************/
@@ -120,6 +123,15 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
     // Obtenemos informacion del guardado parcial de la denuncia
     this.complaintId = this.tokenService.getItemValidateToken('complaintId');
 
+    // Inicializar hasFiles desde localStorage si existe
+    const denuncia = localStorage.getItem(LOCALSTORAGE.DENUNCIA_KEY);
+    if (denuncia) {
+      const denunciaData = JSON.parse(this.cryptService.decrypt(denuncia));
+      if (denunciaData.archivoPerfil?.anexos?.length > 0) {
+        this.hasFiles = true;
+      }
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -141,82 +153,114 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
   }
 
   get formsValidation(): boolean {
-    const lugarHecho = this.data.lugarHecho;
-    const delito = this.data.delito;
-    const partesAgraviadas = this.data.partesAgraviadas;
-    const partesDenunciadas = this.data.partesDenunciadas;
-    const anexos: any = this.data.anexosAsociados || {};
-    const entidad: any = this.data.entidad || {};
-    const medidaProteccion: any = this.data.medidaProteccion || {};
-    const policia: any = this.data.policia || {};
-    const juzgado: any = this.data.juzgado || {};
+    return (
+      this.isLugarHechoValido() &&
+      this.isDelitoValido() &&
+      this.hasPartes() &&
+      this.isPerfilValido() &&
+      this.anexosValidos() &&
+      this.hasRequiredFiles()
+    );
+  }
 
-    const delitoTexto = delito?.hecho?.replace(/\s/g, '');
-    const entidadRucNum = Number(entidad?.ruc);
+  private isLugarHechoValido(): boolean {
+    const lugar = this.data.lugarHecho;
+    return (
+      !!lugar &&
+      Object.keys(lugar).length > 0 &&
+      !!lugar.direccion &&
+      !!lugar.ubigeo &&
+      !!lugar.fechaHecho
+    )
+  }
 
-    const isLugarHechoValido =
-      lugarHecho &&
-      Object.keys(lugarHecho).length > 0 &&
-      lugarHecho.direccion &&
-      lugarHecho.ubigeo &&
-      lugarHecho.fechaHecho;
+  private isDelitoValido(): boolean {
+    const hecho = this.data.delito?.hecho?.trim().replace(/\s/g, '') || '';
+    return (
+      hecho.length >= 100 &&
+      hecho.length <= 4000 &&
+      !!this.data.delito?.idEspecialidad
+    );
+  }
 
-    const isDelitoValido = delito?.hecho &&
-      delito.hecho.trim().replace(/\s/g, '').length >= 100 &&
-      delito.hecho.trim().replace(/\s/g, '').length <= 4000 &&
-      delito.idEspecialidad;
+  private hasPartes(): boolean {
+    const agraviadas = this.data.partesAgraviadas;
+    const denunciadas = this.data.partesDenunciadas;
+    return (
+      agraviadas &&
+      Object.keys(agraviadas).length > 0 &&
+      denunciadas &&
+      Object.keys(denunciadas).length > 0
+    );
+  }
 
-    const hasPartes =
-      partesAgraviadas &&
-      Object.keys(partesAgraviadas).length > 0 &&
-      partesDenunciadas &&
-      Object.keys(partesDenunciadas).length > 0;
+  private isPerfilValido(): boolean {
+    return (
+      this.isCiudadano() ||
+      this.isPNP() ||
+      this.isPJValido() ||
+      this.isEntidad()
+    );
+  }
 
-    const isCiudadano = this.tmpProfile === SLUG_PROFILE.CITIZEN;
+  private isCiudadano(): boolean {
+    return this.tmpProfile === SLUG_PROFILE.CITIZEN;
+  }
 
-    const isPNP =
+  private isPNP(): boolean {
+    const p = this.data.policia;
+    return (
       this.tmpProfile === SLUG_PROFILE.PNP &&
       getValidString(this.data.numeroInformePolicial) !== null &&
-      getValidString(policia.codigoCip) !== null &&
-      getValidString(policia.numeroPartePolicial) !== null &&
-      policia.dependenciaPolicial !== null &&
-      policia.ubigeo !== null;
+      !!getValidString(p?.codigoCip) &&
+      !!getValidString(p?.numeroPartePolicial) &&
+      !!p?.dependenciaPolicial &&
+      !!p?.ubigeo
+    );
+  }
 
-    const isPJ = this.tmpProfile === SLUG_PROFILE.PJ;
+  private isPJValido(): boolean {
+    const juzgado = this.data.juzgado;
+    const medida = this.data.medidaProteccion;
     const hasMedida =
       !this.protectiveMeasure ||
-      (medidaProteccion?.idTipoRiesgo && medidaProteccion?.idsTipoViolencia);
-
-    const isPJValido =
-      isPJ &&
-      getValidString(this.data.nroExpediente) !== null &&
-      juzgado.ubigeo !== null &&
-      juzgado.coEntidad !== null &&
-      juzgado.fechaDenuncia !== null &&
-      hasMedida;
-
-    const isEntidad =
-      this.tmpProfile === SLUG_PROFILE.ENTITY &&
-      entidad &&
-      Object.keys(entidad).length > 0 &&
-      entidad.ruc &&
-      !isNaN(entidadRucNum) &&
-      entidad.ruc.length === SLUG_MAX_LENGTH.RUC &&
-      entidad.razonSocial;
-
-    const isPerfilValido = isCiudadano || isPNP || isPJValido || isEntidad;
-
-    const anexosObservacionOk = anexos.observacion === null || (anexos.observacion?.length <= 1000);
-
-    const anexosValidos = Object.keys(anexos).length === 0 || anexosObservacionOk;
+      (!!medida?.idTipoRiesgo && !!medida?.idsTipoViolencia);
 
     return (
-      isLugarHechoValido &&
-      isDelitoValido &&
-      hasPartes &&
-      isPerfilValido &&
-      anexosValidos
+      this.tmpProfile === SLUG_PROFILE.PJ &&
+      !!getValidString(this.data.nroExpediente) &&
+      !!juzgado?.ubigeo &&
+      !!juzgado?.coEntidad &&
+      !!juzgado?.fechaDenuncia &&
+      hasMedida
     );
+  }
+
+  private isEntidad(): boolean {
+    const entidad = (this.data.entidad || {}) as Entidad
+    const ruc = entidad.ruc ?? ''
+    const razonSocial = entidad.razonSocial ?? ''
+    const rucNum = Number(ruc)
+    return (
+      this.tmpProfile === SLUG_PROFILE.ENTITY &&
+      Object.keys(entidad).length > 0 &&
+      ruc.length === SLUG_MAX_LENGTH.RUC &&
+      !isNaN(rucNum) &&
+      razonSocial.trim().length > 0
+    )
+  }
+
+  private anexosValidos(): boolean {
+    const anexos: any = this.data.anexosAsociados || {};
+    return (
+      Object.keys(anexos).length === 0 ||
+      anexos.observacion === null ||
+      (anexos.observacion?.length <= 1000)
+    );
+  }
+
+  private hasRequiredFiles(): boolean {
+    return this.tmpProfile === SLUG_PROFILE.CITIZEN ? true : this.hasFiles;
   }
 
   public countWords(value: string): number {
@@ -281,11 +325,17 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
     });
   }
 
-  readFile(file: any) {
+  readFile(file: any): Promise<ArrayBuffer | string | null> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
+      reader.onerror = (error) => {
+        if (error instanceof Error) {
+          reject(error);
+        } else {
+          reject(new Error(String(error)));
+        }
+      };
       reader.readAsArrayBuffer(file);
     });
   }
@@ -491,4 +541,8 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
   }
 
   protected readonly SLUG_INVOLVED = SLUG_INVOLVED;
+
+  public onFilesChanged(hasFiles: boolean): void {
+    this.hasFiles = hasFiles;
+  }
 }

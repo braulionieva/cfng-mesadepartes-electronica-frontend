@@ -21,7 +21,7 @@ import { FnIcon } from 'ngx-mpfn-dev-cmp-lib/lib/shared/interfaces/fn-icon';
 
 //components
 import { ExtraDataModalComponent } from '../extra-data-modal/extra-data-modal.component';
-import { Subscription, lastValueFrom } from 'rxjs';
+import { Subscription, firstValueFrom, lastValueFrom } from 'rxjs';
 //helpers
 import {
   SLUG_DOCUMENT_TYPE, SLUG_ENTITY, SLUG_INVOLVED, SLUG_INVOLVED_ROL,
@@ -147,7 +147,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /*  LIFE CYCLE  */
   /****************/
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.listInvolvedRoles = this.getInvolvedRolObject().list
     let valida = localStorage.getItem(LOCALSTORAGE.VALIDATE_KEY);
     this.validaToken = JSON.parse(this.cryptService.decrypt(valida));
@@ -190,7 +190,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       this.saveInfo()
     } else {
       if (this.profileType === SLUG_PROFILE.CITIZEN && this.type === SLUG_INVOLVED.DENUNCIANTE) {
-        this.answerQuestion(false)
+        await this.answerQuestion(false)
         this.form.get('documentType').setValue(SLUG_DOCUMENT_TYPE.DNI)
         //this.form.get('documentType').disable()
         this.form.get('documentNumber').setValue(this.validaToken?.validateIdentity.numeroDni)
@@ -218,22 +218,24 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
         this.searchDNI()
         this.saveInfo()
 
+        await this.changeTipoOrigen('PER');
+
         this.form.valueChanges.subscribe(() => this.saveInfo())
       }
 
       if ((this.profileType === SLUG_PROFILE.PNP || this.profileType === SLUG_PROFILE.PJ) && (this.type === SLUG_INVOLVED.DENUNCIANTE || this.type === SLUG_INVOLVED.DENUNCIADO)) {
-        this.answerQuestion(false)
+        await this.answerQuestion(false)
         this.verCancelar = false
       }
       if ((this.profileType === SLUG_PROFILE.CITIZEN || this.profileType === SLUG_PROFILE.ENTITY) && this.type === SLUG_INVOLVED.DENUNCIADO) {
-        this.answerQuestion(false)
+        await this.answerQuestion(false)
         this.verCancelar = false
       }
     }
 
     if (this.type == 'denunciante' && this.profileType == SLUG_PROFILE.CITIZEN) {
-      this.form.get('origen')?.disable();
-      this.form.get('documentType')?.disable();
+      this.form?.get('origen')?.disable();
+      this.form?.get('documentType')?.disable();
     }
   }
 
@@ -249,7 +251,6 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /**************/
 
   private createFreshForm(involved: Involved = null): FormGroup {
-    this.changeTipoOrigen('PER');
 
     this.rucFounded = false;
 
@@ -400,7 +401,8 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     const validarTipoDocumento = form.get('documentType').getRawValue() != null;
     const validarPais = form.get('pais').getRawValue() != null;
 
-    const isNoDocument = form.get('documentType').value === 16; // 16: "Sin Documento"
+    const isNoDocument = form.get('documentType').value === 16
+      || form.get('documentType').value === 3; // 3 - 16: "Sin Documento"
 
     const documentNumberValid = form.get('documentNumber').valid;
     const indigenousVillageValid = form.get('indigenousVillage').valid;
@@ -587,7 +589,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   }
 
 
-  public changeInvolvedType(value: string): void {
+  public async changeInvolvedType(value: string) {
     if (value === SLUG_INVOLVED_ROL.DESCONOCIDO) {//seleccionamos desconocido
       if (this.isDisabledLqrr && !this.editing) {
         setTimeout(() => {
@@ -595,10 +597,12 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
           this.messageService.add({ severity: 'warn', detail: `Ya ha registrado un LQRR en la sección ${this.type}` })
         }, 0);
       } else {
-
         this.form = this.createFreshForm()
         this.form.controls['involvedRol'].setValue(value)
         this.form.controls['names'].setValue('LQRR')
+
+        await this.changeTipoOrigen('PER');
+
       }
     } else {//cuando seleccionas conocido ...
       if (//...en un modo edicion de LQRR
@@ -606,10 +610,12 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
         this.tmpInvolved.involvedRol === SLUG_INVOLVED_ROL.DESCONOCIDO
       ) {
         this.form = this.createFreshForm()
+        await this.changeTipoOrigen('PER');
         return
       }
       //edicion d conocido o de nadie, tmpInvolved puede ser vació
       this.form = this.createFreshForm(this.tmpInvolved)
+      await this.changeTipoOrigen('PER');
     }
   }
 
@@ -686,25 +692,39 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
 
     this.maestrosService.getDocumentTypes(origenID).subscribe({
       next: resp => {
-        if (resp && resp.code === 200) {
-          this.documentTypesOriginal = resp.data.map((d) => ({ id: d.id, nombre: d.nombre.toUpperCase() }));
-
-          const origen = this.form?.get('origen').value;
-          const docsID = (origen === 'EXT') ? this.docsPersonaID.extranjero : this.docsPersonaID.peruano;
-
-          this.documentTypes = this.documentTypesOriginal
-            .filter(document => docsID.includes(document.id));
-
-          this.documentTypesInformer =
-            this.documentTypesOriginal.filter(document => document.nombre === 'DNI');
-
-          if (this.type == 'agraviado') {
-            this.documentTypes = this.documentTypes
-              .filter(document => ![3, 16].includes(document.id)); //QUITAR SIN DOCUMENTO
-          }
-        }
+        this.logicaDocumento(resp);
       }
     })
+  }
+
+  private async getDocumentTypeAsync() {
+    const origen = this.form?.get('origen')?.value;
+    const origenID = origen == 'EXT' ? 1 : 0;
+
+    const resp = await firstValueFrom(this.maestrosService.getDocumentTypes(origenID));
+
+    this.logicaDocumento(resp);
+  }
+
+
+  private logicaDocumento(resp: any) {
+    if (resp && resp.code === 200) {
+      this.documentTypesOriginal = resp.data.map((d) => ({ id: d.id, nombre: d.nombre.toUpperCase() }));
+
+      const origen = this.form?.get('origen').value;
+      const docsID = (origen === 'EXT') ? this.docsPersonaID.extranjero : this.docsPersonaID.peruano;
+
+      this.documentTypes = this.documentTypesOriginal
+        .filter(document => docsID.includes(document.id));
+
+      this.documentTypesInformer =
+        this.documentTypesOriginal.filter(document => document.nombre === 'DNI');
+
+      if (this.type == 'agraviado' || this.type == 'denunciante') {
+        this.documentTypes = this.documentTypes
+          .filter(document => ![3, 16].includes(document.id)); //QUITAR SIN DOCUMENTO
+      }
+    }
   }
 
   /***********************/
@@ -987,13 +1007,15 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /*************************/
   /*    CREATE INVOLVED    */
   /*************************/
-  public createInvolved(flagAdicional: number): void {
+  public async createInvolved(flagAdicional: number) {
     //si no hay creación presente de involucrado
     if (!this.newInvolved) {
       this.form = this.createFreshForm()
       this.newInvolved = true
       this.verCancelar = true
       this.form.get('personType').setValue(SLUG_DOCUMENT_TYPE.DNI);
+
+      await this.changeTipoOrigen('PER');
     } else {
       this.verCancelar = false
 
@@ -1135,7 +1157,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /*    DELETE INVOLVED    */
   /*************************/
 
-  public deleteInvolved(id: string): void {
+  public async deleteInvolved(id: string) {
     const indexFound = this.involveds.findIndex(i => i.id === id)
     this.involveds.splice(indexFound, 1)
     this.cancelEdition()
@@ -1143,7 +1165,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
 
     if (this.documentTypesInformer.length == 0 || this.documentTypes.length == 0) {
       this.form?.get('origen')?.setValue('PER');
-      this.getDocumentType();
+      await this.getDocumentTypeAsync();
     }
 
     // In case all is deleted
@@ -1151,7 +1173,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       this.questionAnswered = false
       this.involvedConocido = false
 
-      this.answerQuestion(false)
+      await this.answerQuestion(false)
       this.verCancelar = false
       this.flagCuestionario = true;
 
@@ -1173,8 +1195,8 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       }
 
       if (this.type == 'denunciante' && this.profileType == SLUG_PROFILE.CITIZEN) {
-        this.form.get('origen')?.disable();
-        this.form.get('documentType')?.disable();
+        this.form?.get('origen')?.disable();
+        this.form?.get('documentType')?.disable();
       }
 
       return;
@@ -1188,7 +1210,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /*    ASK USER    */
   /******************/
 
-  public answerQuestion(confirm: boolean): void {
+  public async answerQuestion(confirm: boolean) {
     if (confirm) {
       this.flagCuestionario = false;
 
@@ -1263,7 +1285,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     }
 
     this.questionAnswered = true; //pregunta respondida
-    this.createInvolved(1);
+    await this.createInvolved(1);
 
     this.form.get('personType').setValue(SLUG_PERSON_TYPE.NATURAL)
   }
@@ -1623,8 +1645,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     );
   }
 
-  protected changeTipoOrigen(origen: string): void {
-    const docsID = (origen === 'EXT') ? this.docsPersonaID.extranjero : this.docsPersonaID.peruano;
+  protected async changeTipoOrigen(origen: string) {
     const pais = this.form?.get('pais');
 
     this.paisArrActual = this.getSoloPeru();
@@ -1636,7 +1657,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       pais?.enable();
     }
 
-    this.getDocumentType();
+    await this.getDocumentTypeAsync();
 
     this.form?.get('documentNumber').reset();
   }

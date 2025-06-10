@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnDestroy, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 //primeng
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { InputTextareaModule } from 'primeng/inputtextarea';
@@ -15,13 +15,13 @@ import { CmpLibModule, ctrlErrorMsg } from "ngx-mpfn-dev-cmp-lib";
 import { noQuotes } from '@shared/utils/utils';
 
 //components
-import { SpecializedModalComponent } from "../specialized-modal/specialized-modal.component";
 import { Delito, Denuncia } from '@shared/interfaces/complaint/complaint-registration';
 import { Subscription } from 'rxjs';
 import { MaestrosService } from '@shared/services/shared/maestros.service';
 import { AlertComponent } from '@shared/components/alert/alert.component';
 import { CryptService } from '@shared/services/global/crypt.service';
 import { LOCALSTORAGE } from '@environments/environment';
+import { handleTextInput, handleTextPaste } from '@shared/utils/text-limit';
 
 const { DENUNCIA_KEY } = LOCALSTORAGE;
 
@@ -110,7 +110,7 @@ export class SceneDetailsComponent implements OnInit, OnDestroy {
     this.buildForm();
 
     this.form.get('report')?.valueChanges.subscribe(value => {
-      const sanitizedLength = (value || '').replace(/\s/g, '').length;
+      const sanitizedLength = (value ?? '').replace(/\s/g, '').length;
       this.mostrarErrorReport = sanitizedLength > 0 && sanitizedLength < 100;
     });
 
@@ -176,95 +176,17 @@ export class SceneDetailsComponent implements OnInit, OnDestroy {
   /*****************/
 
   get counterReportChar(): number {
-    const value = this.form.get('report')?.value || '';
-    return value.replace(/\s/g, '').length;
+    const value = this.form.get('report')?.value ?? ''
+    return value.replace(/\s/g, '').length
   }
 
   protected onReportInput(event: Event): void {
-
-    const textarea = event.target as HTMLTextAreaElement;
-    const textoOriginal = textarea.value;
-
-    const LIMITE = 4000;
-    const cantidadNoBlancos = textoOriginal.replace(/\s/g, '').length;
-
-    if (cantidadNoBlancos <= LIMITE) {
-      this.form.get('report')?.setValue(textoOriginal, { emitEvent: false });
-      return;
-    }
-
-    let exceso = cantidadNoBlancos - LIMITE;
-    const caracteres = Array.from(textoOriginal);
-
-    for (let i = caracteres.length - 1; i >= 0 && exceso > 0; i--) {
-      if (!/\s/.test(caracteres[i])) {
-        caracteres.splice(i, 1);
-        exceso--;
-      }
-    }
-
-    const textoRecortado = caracteres.join('');
-    textarea.value = textoRecortado;
-
-    this.form.get('report')?.setValue(textoRecortado.trim(), { emitEvent: false });
-}
-
-protected onReportPaste(event: ClipboardEvent): void {
-
-  event.preventDefault();
-
-  const clipboardData = event.clipboardData;
-  if (!clipboardData) return;
-
-  const textoPegado = clipboardData.getData('text');
-  const control = this.form.get('report');
-  if (!control) return;
-
-  const textoActual = control.value || '';
-  const LIMITE = 4000;
-
-  const noBlancosActual = textoActual.replace(/\s/g, '').length;
-
-  const espacioDisponible = LIMITE - noBlancosActual;
-
-  if (espacioDisponible <= 0) {
-    return;
+    handleTextInput(event, 'report', this.form, 4000)
   }
 
-  let exceso = textoPegado.replace(/\s/g, '').length - espacioDisponible;
-  if (exceso <= 0) {
-    this.insertarTextoEnCursor(textoPegado, control);
-    return;
+  protected onReportPaste(event: ClipboardEvent): void {
+    handleTextPaste(event, 'report', this.form, 4000)
   }
-
-  const caracteres = Array.from(textoPegado);
-  for (let i = caracteres.length - 1; i >= 0 && exceso > 0; i--) {
-    if (!/\s/.test(caracteres[i])) {
-      caracteres.splice(i, 1);
-      exceso--;
-    }
-  }
-  const textoRecortado = caracteres.join('');
-  this.insertarTextoEnCursor(textoRecortado.trim(), control);
-}
-
-private insertarTextoEnCursor(texto: string, control: AbstractControl): void {
-  const textarea = document.querySelector('textarea[formControlName="report"]') as HTMLTextAreaElement;
-  if (!textarea) return;
-
-  const start = textarea.selectionStart || 0;
-  const end = textarea.selectionEnd || 0;
-  const valorActual = control.value ?? '';
-
-  const nuevoValor = valorActual.substring(0, start) + texto + valorActual.substring(end);
-  textarea.value = nuevoValor;
-  control.setValue(nuevoValor.trim(), { emitEvent: false });
-
-  // Ajustamos cursor para que quede después del texto insertado
-  const nuevaPos = start + texto.length;
-  textarea.selectionStart = textarea.selectionEnd = nuevaPos;
-}
-
 
   /*********************/
   /*  GET SPECIALTIES  */

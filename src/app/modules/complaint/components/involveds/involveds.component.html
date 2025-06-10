@@ -32,9 +32,7 @@
 
 <ng-container *ngFor="let involved of involveds; let i = index">
 
-  <div 
-    class="flex justify-content-between align-items-center mt-4"
-  >
+  <div class="flex justify-content-between align-items-center mt-4">
     <div class="flex align-items-center w-full">
 
       <div class="user-added">
@@ -49,18 +47,14 @@
         </span>
       </div>
 
-      <p-button 
-        class="user-option"
-        (onClick)="deleteInvolved(involved.id)"
-        styleClass="p-button-text"
-      >
+      <p-button class="user-option" (onClick)="deleteInvolved(involved.id)" styleClass="p-button-text">
         <fn-icon [ico]="iTrashCan" />
       </p-button>
 
     </div>
   </div>
 
-  <hr *ngIf="!(involveds.length - 1 === i) || !isComplainant" class="mpfn-divider mt-4"/>
+  <hr *ngIf="!(involveds.length - 1 === i) || !isComplainant" class="mpfn-divider mt-4" />
 
 </ng-container>
 
@@ -83,8 +77,7 @@
 
     <ng-container *ngIf="!isUnknownInvolved">
       <fn-input-wrapper *ngIf="isAggrieved || isDenounced" label="Tipo de persona"
-        class="col-12 md:col-12 mpfn-input-separation" [class.mt-4]="isAggrieved"
-      >
+        class="col-12 md:col-12 mpfn-input-separation" [class.mt-4]="isAggrieved">
         <p-dropdown [options]="personTypes" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
           [filter]="true" filterBy="nombre" (onChange)="selectTipoPersona()" formControlName="personType"
           emptyMessage="Datos no encontrados" emptyFilterMessage="Datos no encontrados"
@@ -92,7 +85,6 @@
       </fn-input-wrapper>
 
       <!-- {{ isInformer }} -->
-      <!-- <div *ngIf="!isRuc && !isPJuridica && (isAggrieved || isDenounced)" class="col-12"> -->
       <div *ngIf="!isRuc && !isPJuridica" class="col-12">
         <div class="grid">
           <div class="col-12 md:col-6 flex align-items-center" style="min-height: 4.5rem;">
@@ -114,9 +106,9 @@
           <div class="col-12 md:col-6">
             <fn-input-wrapper label="País" class="w-full">
               <p-dropdown [options]="paisArrActual" [filter]="true" filterBy="nombre" optionLabel="nombre"
-                optionValue="id" placeholder="Seleccionar" formControlName="pais"
-                emptyMessage="Datos no encontrados" emptyFilterMessage="Datos no encontrados"
-                [ngClass]="{'ng-invalid ng-dirty': errorMsg('pais')}" class="w-full" />
+                optionValue="id" placeholder="Seleccionar" formControlName="pais" emptyMessage="Datos no encontrados"
+                emptyFilterMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('pais')}"
+                class="w-full" />
             </fn-input-wrapper>
 
             <small error *ngIf="errorMsg('pais')" class="p-error block">
@@ -139,14 +131,13 @@
       <fn-input-wrapper *ngIf="!isPJuridica" label="Tipo de documento" class="col-12 md:col-6 mpfn-input-separation">
         <p-dropdown *ngIf="isCitizen && !isPJuridica && isInformer" [options]="documentTypesInformer" [filter]="true"
           filterBy="nombre" (onChange)="onTipoDocumento($event, 'documentNumber')" optionLabel="nombre" optionValue="id"
-          placeholder="Seleccionar" formControlName="documentType"
-          emptyMessage="Datos no encontrados" emptyFilterMessage="Datos no encontrados"
-          [ngClass]="{'ng-invalid ng-dirty': errorMsg('documentType')}" [disabled]="validRemitente" />
+          placeholder="Seleccionar" formControlName="documentType" emptyMessage="Datos no encontrados"
+          emptyFilterMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('documentType')}"
+          [disabled]="validRemitente" />
 
         <p-dropdown *ngIf="isPJ || isPNP || !isInformer" [options]="documentTypes" [filter]="true" filterBy="nombre"
           (onChange)="onTipoDocumento($event, 'documentNumber')" optionLabel="nombre" optionValue="id"
-          placeholder="Seleccionar" formControlName="documentType"
-          class="mpfn-input-separation"
+          placeholder="Seleccionar" formControlName="documentType" class="mpfn-input-separation"
           emptyMessage="Datos no encontrados" emptyFilterMessage="Datos no encontrados"
           [ngClass]="{'ng-invalid ng-dirty': errorMsg('documentType')}" [disabled]="searchingRuc || rucFounded" />
 
@@ -157,39 +148,44 @@
 
       <fn-input *ngIf="!isPJuridica"
         [ngClass]="{'col-12 md:col-6': !isInformer, 'col-12 md:col-6': isInformer, 'col-12 md:col-6': !mostrarBoton, 'col-12 md:col-6': !isRuc }"
-        class="mpfn-count mpfn-input-separation"
-        label="Número de documento" placeholder="Nro. Documento" formControlName="documentNumber" [checking]="true"
-        [disabled]="validRemitenteDoc || form.get('documentType').value === 16" [counter]="validacionDocumento.max"
-        validarInput [validarMaxLength]="validacionDocumento.max" [validarTipoEntrada]="validacionDocumento.tipo" />
+        class="mpfn-count mpfn-input-separation" label="Número de documento" placeholder="Nro. Documento"
+        formControlName="documentNumber" [checking]="true"
+        [disabled]="validRemitenteDoc || form.get('documentType').value === 16 || form.get('documentType').value === 3"
+        [counter]="validacionDocumento.max" validarInput [validarMaxLength]="validacionDocumento.max"
+        [validarTipoEntrada]="validacionDocumento.tipo" />
 
-      <fn-input *ngIf="isPJuridica" class="col-11 md:col-11 mpfn-input mpfn-count mpfn-numero-ruc" label="Número de RUC" placeholder="Número de RUC"
-        formControlName="documentNumber" [checking]="true" [disabled]="searchingRuc || rucFounded || isNoDocument"
-        [counter]="11" validarInput [validarMaxLength]="11" [validarTipoEntrada]="'numero'" />
+      <fn-input *ngIf="isPJuridica" class="col-11 md:col-11 mpfn-input mpfn-count mpfn-numero-ruc" label="Número de RUC"
+        placeholder="Número de RUC" formControlName="documentNumber" [checking]="true"
+        [disabled]="searchingRuc || rucFounded || isNoDocument" [counter]="11" validarInput [validarMaxLength]="11"
+        [validarTipoEntrada]="'numero'" />
 
-      <p-button *ngIf="isPJuridica" class="col-1 md:col-1 flex align-items-center justify-content-end align-btn-ruc mpfn-input-separation mpfn-search-ruc"
-        [class.mpfn-boton-deshabilitado]="invalidRuc"
-        [class.mpfn-boton-activado]="!invalidRuc"
+      <p-button *ngIf="isPJuridica"
+        class="col-1 md:col-1 flex align-items-center justify-content-end align-btn-ruc mpfn-input-separation mpfn-search-ruc"
+        [class.mpfn-boton-deshabilitado]="invalidRuc" [class.mpfn-boton-activado]="!invalidRuc"
         [ngClass]="{'mt-2': !isInvalidNumber, 'mb-3': isInvalidNumber }"
         [styleClass]="rucFounded ? 'btn-ruc-clear' : 'btn-ruc'" [icon]="!rucFounded ? 'pi pi-search' : 'pi pi-times'"
         [loading]="searchingRuc" [disabled]="invalidRuc" (onClick)="!rucFounded ? searchRUC() : cleanSearch()" />
 
-      <fn-input *ngIf="!isRuc && !isPJuridica" class="col-12 md:col-4 mpfn-input-separation" label="Nombre" placeholder="Nombres"
-        formControlName="names" [checking]="true" [disabled]="validRemitente" validarInput [validarMaxLength]="60"
-        [validarTipoEntrada]="'texto'" [validarSoloMayusculas]="true" />
+      <fn-input *ngIf="!isRuc && !isPJuridica" class="col-12 md:col-4 mpfn-input-separation" label="Nombre"
+        placeholder="Nombres" formControlName="names" [checking]="true" [disabled]="validRemitente" validarInput
+        [validarMaxLength]="60" [validarTipoEntrada]="'texto'" [validarSoloMayusculas]="true" />
 
       <fn-input *ngIf="!isRuc && !isPJuridica" class="col-12 md:col-4 mpfn-input-separation" label="Apellido paterno"
         placeholder="Apellido paterno" formControlName="fatherLastName" [checking]="true" [disabled]="validRemitente"
         validarInput [validarMaxLength]="40" [validarTipoEntrada]="'texto'" [validarSoloMayusculas]="true" />
 
-      <fn-input *ngIf="!isRuc && !isPJuridica" class="col-12 md:col-4 mpfn-input-separation" label="Apellido materno (opcional)"
-        placeholder="Apellido materno" formControlName="motherLastName" [checking]="true" [disabled]="validRemitente"
-        validarInput [validarMaxLength]="40" [validarTipoEntrada]="'texto'" [validarSoloMayusculas]="true" />
+      <fn-input *ngIf="!isRuc && !isPJuridica" class="col-12 md:col-4 mpfn-input-separation"
+        label="Apellido materno (opcional)" placeholder="Apellido materno" formControlName="motherLastName"
+        [checking]="true" [disabled]="validRemitente" validarInput [validarMaxLength]="40"
+        [validarTipoEntrada]="'texto'" [validarSoloMayusculas]="true" />
 
-      <fn-input *ngIf="!isRuc && !isPJuridica && isDenounced" class="col-4 md:col-4 mpfn-input-separation" label="Alias (opcional)"
-        placeholder="Alias" formControlName="alias" [checking]="true" [disabled]="validRemitente" validarInput
-        [validarMaxLength]="40" [validarTipoEntrada]="'alfaNumerico'" [validarSoloMayusculas]="true"/>
+      <fn-input *ngIf="!isRuc && !isPJuridica && isDenounced" class="col-4 md:col-4 mpfn-input-separation"
+        label="Alias (opcional)" placeholder="Alias" formControlName="alias" [checking]="true"
+        [disabled]="validRemitente" validarInput [validarMaxLength]="40" [validarTipoEntrada]="'alfaNumerico'"
+        [validarSoloMayusculas]="true" />
 
-      <fn-input-wrapper *ngIf="!isRuc && !isPJuridica" label="Pueblo indígena" class="col-12 mpfn-input mpfn-input-separation">
+      <fn-input-wrapper *ngIf="!isRuc && !isPJuridica" label="Pueblo indígena"
+        class="col-12 mpfn-input mpfn-input-separation">
         <p-dropdown [options]="indigenousVillageList" optionLabel="nombre" optionValue="id" [filter]="true"
           filterBy="nombre" placeholder="Seleccione el pueblo indígena" formControlName="indigenousVillage"
           emptyMessage="Datos no encontrados" emptyFilterMessage="Datos no encontrados"
@@ -211,14 +207,16 @@
         </small>
       </fn-input-wrapper>
 
-      <fn-input *ngIf="isPJuridica" class="col-12 md:col-12 mpfn-input-separation" label="Razón social" placeholder="Razón social"
-        formControlName="businessName" [checking]="true" [disabled]="true" validarInput [validarMaxLength]="150" />
+      <fn-input *ngIf="isPJuridica" class="col-12 md:col-12 mpfn-input-separation" label="Razón social"
+        placeholder="Razón social" formControlName="businessName" [checking]="true" [disabled]="true" validarInput
+        [validarMaxLength]="150" />
 
       <div *ngIf="!isRuc && !isPJuridica" class="col-12 mt-2">
         <div class="flex justify-content-between align-items-center mb-3">
           <!-- Checkbox (izquierda) o espacio vacío -->
           <div class="flex align-items-center color-black2 min-h-3rem">
-            <span class="link text-sm mpfn-register-additional-data" (click)="enableAditionalDataBtn() ?  recordExtraData() : null" onKeyPress="">
+            <span class="link text-sm mpfn-register-additional-data"
+              (click)="enableAditionalDataBtn() ?  recordExtraData() : null" onKeyPress="">
               Registrar datos adicionales
             </span>
 
@@ -229,7 +227,8 @@
 
           <!-- Radios (derecha) -->
           <div class="flex align-items-center color-black2">
-            <label for="Requiere traductor" class="mr-3 text-bold text-sm mpfn-without-bottom">¿Requiere de un traductor?</label>
+            <label for="Requiere traductor" class="mr-3 text-bold text-sm mpfn-without-bottom">¿Requiere de un
+              traductor?</label>
             <ng-container *ngFor="let item of translateOptions">
               <p-radioButton [inputId]="item.value" [value]="item.value" formControlName="translator" />
               <label [for]="item.value" class="mx-2 cursor-pointer mpfn-without-bottom">{{ item.label }}</label>
@@ -239,26 +238,23 @@
 
       </div>
 
-      <fn-input *ngIf="isPJuridica" class="col-12 md:col-6 mpfn-input-icon mpfn-input-separation" label="Teléfono" formControlName="aggrievedPhone"
-        [ico]="obtenerIcono('iSmartPhone')" placeholder="Número de télefono o celular" [counter]="20" validarInput [validarMaxLength]="20"
-       [validarRegex]="'^[0-9+/#(). -]*$'" />
+      <fn-input *ngIf="isPJuridica" class="col-12 md:col-6 mpfn-input-icon mpfn-input-separation" label="Teléfono"
+        formControlName="aggrievedPhone" [ico]="obtenerIcono('iSmartPhone')" placeholder="Número de télefono o celular"
+        [counter]="20" validarInput [validarMaxLength]="20" [validarRegex]="'^[0-9+/#(). -]*$'" />
 
-      <fn-input *ngIf="isPJuridica" class="col-12 md:col-6 mpfn-input-icon mpfn-input-separation" label="Correo electrónico" [ico]="obtenerIcono('iMail')"
-        placeholder="ejemplo@gmail.com" formControlName="aggrievedEmail" (keypress)="noQuotes($event)" validarInput
-        [validarMaxLength]="100" [validarRegex]="'^[a-zA-Z0-9@._-]*$'" />
+      <fn-input *ngIf="isPJuridica" class="col-12 md:col-6 mpfn-input-icon mpfn-input-separation"
+        label="Correo electrónico" [ico]="obtenerIcono('iMail')" placeholder="ejemplo@gmail.com"
+        formControlName="aggrievedEmail" (keypress)="noQuotes($event)" validarInput [validarMaxLength]="100"
+        [validarRegex]="'^[a-zA-Z0-9@._-]*$'" />
     </ng-container>
 
     <ng-template #unknownInvolved />
   </form>
 </ng-container>
 
-<div
-  class="flex justify-content-center mt-2"
-  [class.mt-5]="!isComplainant && involveds.length > 0"
->
-  <p-button *ngIf="verCancelar" class="ml-3"
-    styleClass="surface-200 font-semibold text-primary mpfn-button-action" label="Cancelar"
-    (onClick)="cancelEdition()" />
+<div class="flex justify-content-center mt-2" [class.mt-5]="!isComplainant && involveds.length > 0">
+  <p-button *ngIf="verCancelar" class="ml-3" styleClass="surface-200 font-semibold text-primary mpfn-button-action"
+    label="Cancelar" (onClick)="cancelEdition()" />
 
   <p-button *ngIf="availableSaveBtn && (type !== 'denunciante' || (type === 'denunciante' && involveds.length === 0))"
     class="ml-3 float-right" styleClass="bg-secondary font-semibold mpfn-button-action" label="Agregar"

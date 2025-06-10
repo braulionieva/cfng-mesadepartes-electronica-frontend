@@ -379,7 +379,7 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
     let name = '';
 
     if (this.router.url.includes('documento-generado')) {
-      name = `SEGUIMIENTO DEL CASO ${this.itemCurrentCase?.codigoCaso ? this.itemCurrentCase.codigoCaso : ''}`;
+      name = `SEGUIMIENTO DEL CASO ${this.itemCurrentCase?.codigoCaso ?? ''}`;
     } else {
       name = `CARGO DE INGRESO DE DOCUMENTO - ${this.documentName}`;
     }
@@ -439,12 +439,10 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
   }
 
   public getEntityName(entity: Entidad): string {
-    let name: string = ''
-    switch (entity.idTipoEntidad) {
-      case SLUG_ENTITY.JURIDICA: name = `${entity.razonSocial}`; break;
-      default: name = `${entity.nombreEntidad}`; break;
+    if (entity.idTipoEntidad === SLUG_ENTITY.JURIDICA) {
+      return entity.razonSocial;
     }
-    return name
+    return entity.nombreEntidad;
   }
 
   /**************/

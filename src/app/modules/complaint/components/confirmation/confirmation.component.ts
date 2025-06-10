@@ -227,30 +227,27 @@ export class ConfirmationComponent implements OnInit {
       : 0;
 
     if (amountMedidaProteccion > 0) {
-      for (
-        let i = 0;
-        i < this.data.medidaProteccion.anexosAsociados.anexos.length;
-        i++
-      ) {
-        delete this.data.medidaProteccion.anexosAsociados.anexos[i].file;
+      for (const anexo of this.data.medidaProteccion.anexosAsociados.anexos) {
+        delete anexo.file;
       }
     }
 
-    amountRepresentanteLegal = this.data.entidad ? this.data.entidad.archivoPerfil.anexos[0].tamanyo : 0;
+    amountRepresentanteLegal = this.data.entidad
+    ? this.data.entidad.archivoPerfil.anexos[0].tamanyo
+    : 0;
 
     if (amountRepresentanteLegal > 0) {
-      for (let i = 0; i < this.data.entidad.archivoPerfil.anexos.length; i++) {
-        delete this.data.entidad.archivoPerfil.anexos[i].file;
+      for (const anexo of this.data.entidad.archivoPerfil.anexos) {
+        delete anexo.file;
       }
     }
 
-    let anexo = this.data.anexosAsociados.anexos ? true : false;
-
-    if (anexo) {
-      for (let i = 0; i < this.data.anexosAsociados.anexos.length; i++) {
-        delete this.data.anexosAsociados.anexos[i].file;
+    if (this.data.anexosAsociados.anexos) {
+      for (const anexo of this.data.anexosAsociados.anexos) {
+        delete anexo.file;
       }
     }
+    
   }
 
   public getPreview(): void {
@@ -534,17 +531,10 @@ export class ConfirmationComponent implements OnInit {
   /*********************/
 
   public getEntityName(entity: Entidad): string {
-    let name: string = '';
-    switch (entity.idTipoEntidad) {
-      case SLUG_ENTITY.JURIDICA:
-        name = `${entity.razonSocial}`;
-        break;
-
-      default:
-        name = `${entity.nombreEntidad}`;
-        break;
+    if (entity.idTipoEntidad === SLUG_ENTITY.JURIDICA) {
+      return entity.razonSocial;
     }
-    return name;
+    return entity.nombreEntidad;
   }
 
   /******************/

@@ -507,7 +507,6 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
         this.flyToPlace(district?.nombre, this.coordsRegistered)
       }
       this.flagMapa = true
-      //this.getSedesGrupoAleatorio();
     }
   }
 

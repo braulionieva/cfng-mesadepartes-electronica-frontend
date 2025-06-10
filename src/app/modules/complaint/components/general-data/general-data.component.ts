@@ -36,6 +36,7 @@ export class GeneralDataComponent implements OnInit {
 
   @Output() public formChanged = new EventEmitter<Object>();
   @Output() public fechaPolicialChanged = new EventEmitter<Date>();
+  @Output() public filesChanged = new EventEmitter<boolean>();
 
   deleteURL: string = `${ENDPOINTS_MICROSERVICES.MS_REPOSITORIO}`
   url: string = `${ENDPOINTS_MICROSERVICES.MS_REPOSITORIO}cargar-comprimido`
@@ -122,6 +123,7 @@ export class GeneralDataComponent implements OnInit {
         this.files = this.denunciaToken.archivoPerfil.anexos;
         this.previousFiles = this.denunciaToken.archivoPerfil.anexos;
         this.saveInfo();
+        this.filesChanged.emit(this.files.length > 0);
       }
     }
 
@@ -259,7 +261,6 @@ export class GeneralDataComponent implements OnInit {
 
   public changeProvince(provinceId: string): void {
     if (provinceId !== null) {
-      const province = this.provinces.find(x => x.codigo === provinceId)
       this.form.controls['district'].reset()
       this.form.controls['district'].enable()
       this.getDistricts(this.varDepto, provinceId)
@@ -681,6 +682,7 @@ export class GeneralDataComponent implements OnInit {
     this.files = newFiles;
     this.previousFiles = [...newFiles];
     this.saveInfo(true);
+    this.filesChanged.emit(this.files.length > 0);
   }
 
   public errorMsg(field: string): string {

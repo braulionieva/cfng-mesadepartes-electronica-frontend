@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {  FormGroup, Validators, FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { FormGroup, Validators, FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
 //primeng
 import { MessagesModule } from "primeng/messages";
 import { DividerModule } from 'primeng/divider';
@@ -10,7 +10,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 
 //mpfn
-import { CmpLibModule,  validNames, ctrlErrorMsg } from "ngx-mpfn-dev-cmp-lib";
+import { CmpLibModule, validNames, ctrlErrorMsg } from "ngx-mpfn-dev-cmp-lib";
 import {
   iUser,
   iTrashCan
@@ -27,15 +27,15 @@ import { SLUG_OTHER } from '../../../../shared/helpers/slugs';
 import { ValidationSunat } from '@shared/interfaces/validation/ValidationSunat';
 import { Prefills } from '@modules/complaint/interfaces/EntityInvolved';
 import { PDFDocument } from 'pdf-lib'
-import {  noQuotes } from '@shared/utils/utils';
+import { noQuotes } from '@shared/utils/utils';
 import { ToastModule } from 'primeng/toast';
 import { CryptService } from '@shared/services/global/crypt.service';
 import { ENDPOINTS_MICROSERVICES, LOCALSTORAGE } from '@environments/environment';
 import { ValidarInputDirective } from '@core/directives/validar-input.directive';
 import { Entidad } from '@shared/interfaces/complaint/complaint-registration';
 import { FileUploadComponent } from '@shared/components/file-upload/file-upload.component';
-import { Helpers,IValidacionDocumento } from '@shared/helpers/helpers';
-import {ComplaintPayloadBuilderService} from "@modules/complaint/services/complaint-payload-builder.service";
+import { Helpers, IValidacionDocumento } from '@shared/helpers/helpers';
+import { ComplaintPayloadBuilderService } from "@modules/complaint/services/complaint-payload-builder.service";
 const { DENUNCIA_KEY } = LOCALSTORAGE;
 interface AutoCompleteCompleteEvent {
   originalEvent: Event;
@@ -74,9 +74,10 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     { id: 'PER', value: 'Peruano' },
     { id: 'EXT', value: 'Extranjero' }
   ];
+
   private readonly docsPersonaID = {
     peruano: [1, 7, 8, 11], //3,
-    extranjero: [4, 5, 6, 13, 14, 16]
+    extranjero: [4, 5, 6, 13, 14] //16
   };
 
   /***************/
@@ -140,7 +141,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     private readonly validationService: ValidationService,
     private readonly messageService: MessageService,
     private readonly cryptService: CryptService,
-    private payloadBuilder: ComplaintPayloadBuilderService,
+    private readonly payloadBuilder: ComplaintPayloadBuilderService,
   ) { }
 
 
@@ -236,18 +237,18 @@ export class EntityDataComponent implements OnInit, OnDestroy {
    */
   private commonControls(prefills: Prefills = {}) {
     return {
-      ruc:               [prefills.ruc       ?? '', [Validators.required]],
-      businessName:      [prefills.businessName ?? '', [Validators.required]],
-      documentType:      [prefills.documentType ?? null, [Validators.required]],
-      procuratorDNI:     [prefills.procuratorDNI  ?? ''],
-      procuratorName:    [prefills.procuratorName ?? '', [Validators.required, Validators.pattern(validNames)]],
-      procuradorApellidoPaterno:  [prefills.procuradorApellidoPaterno ?? '', [Validators.required, Validators.pattern(validNames)]],
-      procuradorApellidoMaterno:  [prefills.procuradorApellidoMaterno ?? ''],
-      procuradorDatos:   [''],
-      docRepresentacionTipo:   ['', [Validators.required]],
+      ruc: [prefills.ruc ?? '', [Validators.required]],
+      businessName: [prefills.businessName ?? '', [Validators.required]],
+      documentType: [prefills.documentType ?? null, [Validators.required]],
+      procuratorDNI: [prefills.procuratorDNI ?? ''],
+      procuratorName: [prefills.procuratorName ?? '', [Validators.required, Validators.pattern(validNames)]],
+      procuradorApellidoPaterno: [prefills.procuradorApellidoPaterno ?? '', [Validators.required, Validators.pattern(validNames)]],
+      procuradorApellidoMaterno: [prefills.procuradorApellidoMaterno ?? ''],
+      procuradorDatos: [''],
+      docRepresentacionTipo: ['', [Validators.required]],
       docRepresentacionNumero: ['', [Validators.required]],
-      origen: [ 'PER' ],
-      pais:   [{ value: this.PERU_ID, disabled: true }, [Validators.required]]
+      origen: ['PER'],
+      pais: [{ value: this.PERU_ID, disabled: true }, [Validators.required]]
     };
   }
 
@@ -260,7 +261,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     if (this.isRecoveredFromStorage && this.entidades[0].ruc) {
       return true;
     }
-    
+
     const hasValidEntity = this.entidades.length > 0 && this.entidades[0].ruc;
     const hasValidForm = this.form.get('procuratorName').valid
       && this.form.get('procuradorApellidoPaterno').valid
@@ -284,18 +285,18 @@ export class EntityDataComponent implements OnInit, OnDestroy {
 
     const hasValidRuc = this.form.get('ruc').valid && this.rucFounded;
     const hasValidBusinessName = this.form.get('businessName').valid;
-    const hasValidProcurator = this.form.get('procuratorName').valid 
+    const hasValidProcurator = this.form.get('procuratorName').valid
       && this.form.get('procuradorApellidoPaterno').valid;
     const hasValidDocument = this.form.get('documentType').valid;
-    const hasValidRepresentationDoc = this.form.get('docRepresentacionTipo').valid 
+    const hasValidRepresentationDoc = this.form.get('docRepresentacionTipo').valid
       && this.form.get('docRepresentacionNumero').valid;
     const hasValidFile = this.sumTotalBytesFiles > 0;
 
-    return hasValidRuc 
-      && hasValidBusinessName 
-      && hasValidProcurator 
-      && hasValidDocument 
-      && hasValidRepresentationDoc 
+    return hasValidRuc
+      && hasValidBusinessName
+      && hasValidProcurator
+      && hasValidDocument
+      && hasValidRepresentationDoc
       && hasValidFile;
   }
 
@@ -326,7 +327,8 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     this.maestrosService.getDocumentTypes(origenID).subscribe({
       next: resp => {
         if (resp && resp.code === 200) {
-          this.documentTypesOriginal = resp.data.map((d) => ({ id: d.id, nombre: d.nombre.toUpperCase() }));
+          this.documentTypesOriginal = resp.data.map(
+            (d) => ({ id: d.id, nombre: d.nombre.toUpperCase() }));
 
           const origen = this.form?.get('origen').value;
           const docsID = (origen === 'EXT') ? this.docsPersonaID.extranjero : this.docsPersonaID.peruano;
