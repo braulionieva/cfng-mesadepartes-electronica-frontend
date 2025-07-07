@@ -5,7 +5,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 //primeng
 import { MessagesModule } from 'primeng/messages';
 import { ButtonModule } from 'primeng/button';
-import { PdfViewerModule } from 'ng2-pdf-viewer';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { TokenService } from '@shared/services/auth/token.service';
 import { Router } from '@angular/router';
 import { LOCALSTORAGE, VIEW_GENERATED_COMPLAINT_MINUTES, } from '@environments/environment';
@@ -20,6 +20,9 @@ import { SLUG_PROFILE } from '@shared/helpers/slugs';
 import { ValidateIdentity } from '@shared/interfaces/verification/validate-identity';
 import { ProfileRegistration } from '@shared/interfaces/personal-data/profile-registration';
 import { AlertComponent } from '@shared/components/alert/alert.component';
+import {ScenePlaceModalComponent} from "@modules/complaint/components/scene-place/modal/scene-place-modal.component";
+import {DialogService} from "primeng/dynamicdialog";
+import { ClientInfoUtil } from '@shared/utils/client-info';
 
 const { VALIDATE_KEY, DENUNCIA_KEY, PRECARGO_KEY, NOMBRE_DOCUMENTO_KEY } =
   LOCALSTORAGE;
@@ -32,7 +35,7 @@ const { VALIDATE_KEY, DENUNCIA_KEY, PRECARGO_KEY, NOMBRE_DOCUMENTO_KEY } =
     ButtonModule,
     ProgressBarModule,
     MessagesModule,
-    PdfViewerModule,
+    NgxExtendedPdfViewerModule,
     ToastModule,
     AlertComponent,
   ],
@@ -87,6 +90,7 @@ export class DenunciaRegistradaComponent implements OnInit, OnDestroy {
   };
   public validateIdentity: ValidateIdentity = null;
   public registerProfile: ProfileRegistration = null;
+  public countReintentos: number = 0;
 
   public messages = [
     {
@@ -107,6 +111,7 @@ export class DenunciaRegistradaComponent implements OnInit, OnDestroy {
     private readonly mesaService: MesaService,
     private readonly messageService: MessageService,
     private readonly cryptService: CryptService,
+    private readonly dialogService: DialogService
   ) { }
 
   /****************/
@@ -207,38 +212,50 @@ export class DenunciaRegistradaComponent implements OnInit, OnDestroy {
       dataPreliminar: this.data,
       dataCargo: this.previewData,
       dataPerfil: this.dataPerfil,
+      clientInfo: ClientInfoUtil.getClientInfo()
+    };
+
+    const handleError = () => {
+      this.showErrorModal(this.countReintentos >= 2 ? 2 : 1);
+      this.countReintentos++;
     };
 
     this.suscriptions.push(
-      this.mesaService.generateNewComplaint(request).subscribe({
+      /***en reemplazo de registrarDenunciaEFE***/
+      this.mesaService.registrarDenunciaLegacy(request).subscribe({
         next: (resp) => {
           if (resp.codigo === 200) {
             this.messages[0].detail1 = resp.id;
             this.getUrl(resp.data);
-            let dataDenuncia = JSON.parse(this.cryptService.decrypt(this.data))
-            dataDenuncia.denunciaPreviaRegistrada = 1
-            localStorage.setItem(DENUNCIA_KEY, this.cryptService.encrypt(JSON.stringify(dataDenuncia)));
+
+            const dataDenuncia = JSON.parse(this.cryptService.decrypt(this.data));
+            dataDenuncia.denunciaPreviaRegistrada = 1;
+
+            const encryptedData = this.cryptService.encrypt(JSON.stringify(dataDenuncia));
+            localStorage.setItem(DENUNCIA_KEY, encryptedData);
           } else {
-            this.messageService.add({
-              severity: 'info',
-              detail: `Ha ocurrido un error al intentar registrar la denuncia: ${resp.mensaje}`,
-            });
-            setTimeout(() => {
-              this.router.navigate(['realizar-denuncia/datos-denuncia']);
-            }, 2000);
+            handleError();
           }
         },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            detail: `Ha ocurrido un error al intentar registrar la denuncia ${error}`,
-          });
-          setTimeout(() => {
-            this.router.navigate(['realizar-denuncia/datos-denuncia']);
-          }, 2000);
-        },
+        error: () => handleError(),
       })
     );
+  }
+
+  showErrorModal(errorType: number) {
+    const ref = this.dialogService.open(ScenePlaceModalComponent, {
+      showHeader: false,
+      contentStyle: { 'max-width': '670px', padding: '0px' },
+      data: {
+        errorType: errorType
+      }
+    });
+
+    ref?.onClose.subscribe((retry: boolean) => {
+      if (retry) {
+        this.generateComplaint();
+      }
+    });
   }
 
   /************/
@@ -278,7 +295,7 @@ export class DenunciaRegistradaComponent implements OnInit, OnDestroy {
       this.progress = 100;
       this.procesing = false;
       clearTimeout(this.intervalCargo);
-   
+
       setTimeout(() => {
         this.loading = false;
         this.urlPdf = URL.createObjectURL(file);
@@ -322,4 +339,5 @@ export class DenunciaRegistradaComponent implements OnInit, OnDestroy {
     let difference = expirationDate.getTime() - currentTime;
     this.remainingTime = difference;
   }
+
 }

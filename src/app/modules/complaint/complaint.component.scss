@@ -3,8 +3,7 @@
 
 .contenedor_principal {
     width: $width-content;
-    margin: 0 auto;
-    margin-top: 50px;
+    margin: 50px auto 0 auto;
     .pasos__contenedor {
         background: var(--mpfn-background);
         padding: 5px;
@@ -20,5 +19,35 @@
     .router__contenedor {
         width: $width-subcontent;
         margin: 0 auto;
+    }
+}
+
+@media(max-width: $tablet-large) {
+    .contenedor_principal {
+        width: $width-content-sm;
+        margin: 0 auto 0 auto;
+    }
+}
+
+@media(max-width: $large-mobile) {
+    .contenedor_principal {
+        .pasos__contenedor {
+            .pagina__titulo {
+                text-align: center;
+            }
+        }
+        .router__contenedor {
+            width: 100%;
+        }
+    }
+}
+
+@media(max-width: $medium-mobile) {
+    .contenedor_principal {
+        .pasos__contenedor {
+            .pagina__titulo {
+                font-size: 20px;
+            }
+        }
     }
 }

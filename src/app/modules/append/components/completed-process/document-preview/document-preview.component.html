@@ -7,8 +7,18 @@
 <p-progressBar *ngIf='loading' mode="indeterminate" styleClass="my-2" [style]="{'height': '6px'}"></p-progressBar>
 
 <div class="visor-background">
-  <pdf-viewer class="visor-pdf" [src]="urlPdf" [show-all]="true" [show-borders]="true" [fit-to-page]="true"
-    [original-size]="true" [autoresize]="true" [zoom-scale]="'page-width'"></pdf-viewer>
+  <ngx-extended-pdf-viewer
+    [src]="urlPdf"
+    [language]="'browser'"
+    [textLayer]="true"
+    [showToolbar]="false"
+    [showFindButton]="true"
+    [showDownloadButton]="false"
+    [showPrintButton]="false"
+    [enableDragAndDrop]="false"
+    [height]="'100%'"
+    [zoom]="'auto'"
+  ></ngx-extended-pdf-viewer>
 </div>
 
 <div class="flex justify-content-between mt-8 mb-5">

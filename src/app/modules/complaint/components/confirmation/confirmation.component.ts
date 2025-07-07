@@ -6,7 +6,7 @@ import { MessagesModule } from 'primeng/messages';
 import { ButtonModule } from 'primeng/button';
 import { DialogService, DynamicDialogModule, DynamicDialogRef, } from 'primeng/dynamicdialog';
 //pdf viewer
-import { PdfViewerModule } from 'ng2-pdf-viewer';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { Denuncia, Entidad, EntidadInvolucrada, Involucrado, Lqrr, Persona } from '@shared/interfaces/complaint/complaint-registration';
 import { MesaService } from '@shared/services/shared/mesa.service';
 import { ProgressBarModule } from 'primeng/progressbar';
@@ -29,6 +29,7 @@ import { CmpLibModule } from 'ngx-mpfn-dev-cmp-lib';
 import { ConfirmationModalComponent } from './modal/confirmation-modal/confirmation-modal.component';
 import { CancelModalComponent } from '@shared/components/verification/modal/cancel-modal/cancel-modal.component';
 
+
 interface AttachedsCount {
   annexesCount: number;
   foliosCount: number;
@@ -41,23 +42,11 @@ const { DENUNCIA_KEY, PRECARGO_KEY, NOMBRE_DOCUMENTO_KEY, VALIDATE_KEY } =
   selector: 'app-confirmation',
   standalone: true,
   imports: [
-    CommonModule, MessagesModule, ButtonModule, ProgressBarModule, PdfViewerModule,
-    DynamicDialogModule, AlertComponent, CmpLibModule
+    CommonModule, MessagesModule, ButtonModule, ProgressBarModule, NgxExtendedPdfViewerModule,
+    DynamicDialogModule, AlertComponent, CmpLibModule, NgxExtendedPdfViewerModule
   ],
   templateUrl: './confirmation.component.html',
-  styles: [
-    `
-      .visor-background {
-        width: 100%;
-        background-color: #e8e8e880;
-      }
-
-      .visor-pdf {
-        width: 100%;
-        height: 1135px;
-      }
-    `,
-  ],
+  styleUrls: ['./confirmation.component.scss'],
   providers: [DialogService],
 })
 export class ConfirmationComponent implements OnInit {
@@ -233,8 +222,8 @@ export class ConfirmationComponent implements OnInit {
     }
 
     amountRepresentanteLegal = this.data.entidad
-    ? this.data.entidad.archivoPerfil.anexos[0].tamanyo
-    : 0;
+      ? this.data.entidad.archivoPerfil.anexos[0].tamanyo
+      : 0;
 
     if (amountRepresentanteLegal > 0) {
       for (const anexo of this.data.entidad.archivoPerfil.anexos) {
@@ -247,22 +236,25 @@ export class ConfirmationComponent implements OnInit {
         delete anexo.file;
       }
     }
-    
+
   }
 
   public getPreview(): void {
     const params = this.buildPreviewParams();
     this.previewData = { parametros: params };
 
+    console.log('envio de data', this.data);
+
     // Guardar estado y llamar al servicio
-    localStorage.setItem(
-      DENUNCIA_KEY,
-      this.cryptService.encrypt(JSON.stringify(this.data))
-    );
-    this.trackingService.getPreliminarCargo(params, this.data.idPerfil).subscribe({
-      next: res => this.getUrl(String(res)),
-      error: err => this.getUrl(String(err.error.text))
-    });
+    localStorage.setItem(DENUNCIA_KEY, this.cryptService.encrypt(JSON.stringify(this.data)));
+
+    this.trackingService.getPreliminarCargo(params, this.data.idPerfil)
+      .subscribe({
+        next: res => {
+          this.getUrl2(String(res))
+        },
+        error: err => this.getUrl2(String(err.error.text))
+      });
   }
 
   private buildPreviewParams(): any {
@@ -284,10 +276,15 @@ export class ConfirmationComponent implements OnInit {
       agraviados: this.getPartesInvolucradas(this.data.partesAgraviadas),
       denunciados: this.getPartesInvolucradas(this.data.partesDenunciadas),
       esAbogado: this.isWithAbogado,
-      contacto: this.completeName
+      contacto: this.completeName,
+      documentoPresentacion: this.data.entidad?.archivoPerfil?.docRepresentacionNumero ?? '',
+      grupoAleatorioSgfSelected: this.data.lugarHecho?.grupoAleatorioSgfSelected
+      /*****grupoAleatorioSgfSelected: this.data.grupoAleatorioSgfSelected*****/
     };
     this.data.idPerfil = SLUG_PROFILE.CITIZEN;
     this.applyProfileCustomizations(base);
+
+    // console.log("data a enviar:", base)
     return base;
   }
 
@@ -483,7 +480,7 @@ export class ConfirmationComponent implements OnInit {
   private formatPersonas(personas: Persona[], total: number): string {
     return personas
       .map((p, i) => {
-        const nombre = (p.esMayorEdad === false)
+        const nombre = (p.esMayorEdad === false || p.edad < 18)
           ? [p.nombres, p.apellidoPaterno, p.apellidoMaterno]
             .map(n => this.enmascararTexto(n))
             .join(' ')
@@ -501,7 +498,7 @@ export class ConfirmationComponent implements OnInit {
 
   private formatLqrrs(lqrrs: Lqrr[], offset: number, total: number): string {
     return lqrrs
-      .map((l, i) => `${this.prefix(offset + i, total)}LOS QUE RESULTEN RESPONSABLES`)
+      .map((l, i) => `${this.prefix(offset + i, total)}LOS QUE RESULTEN RESPONSABLES (LQRR)`)
       .join('\n');
   }
 
@@ -577,8 +574,8 @@ export class ConfirmationComponent implements OnInit {
     let flgDenunciaDuplicada: string;
     let nroCargoDenunciaDuplicada: string;
 
-    console.log('data Duplicidad', this.data);
     this.data.fechaPolicial = null; // Se quito la fecha del formulario, se deja en caso se requiera volver a activar
+
     const requestDataDenuncia = {
       dataPreliminar: this.cryptService.encrypt(JSON.stringify(this.data)),
     };
@@ -712,8 +709,18 @@ export class ConfirmationComponent implements OnInit {
       }
       const file = new Blob([bytes], { type: 'application/pdf' });
       this.loading = false;
-      this.urlPdf = URL.createObjectURL(file);
+      this.urlPdf = window.URL.createObjectURL(file);
     }
+  }
+
+  public getUrl2(dataB64: string): void {
+    const data = dataB64;
+    if (data != null) {
+      this.loading = false;
+      this.urlPdf = `data:application/pdf;base64,${data}`;
+
+    }
+
   }
 
   public getCurrentDate(): string {

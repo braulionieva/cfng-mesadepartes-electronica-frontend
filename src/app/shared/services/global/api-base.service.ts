@@ -8,12 +8,17 @@ const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
 };
 
+const options : any = {
+  headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+  responseType: 'blob'
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ApiBaseService {
 
-  constructor(private readonly http: HttpClient) { }
+  constructor(public readonly http: HttpClient) { }
 
   postAuth(path: string, body: string, httpHeaders: Object): Observable<any> {
     return this.http.post(`${this.getDomain('auth')}${path}`, body, httpHeaders);
@@ -24,7 +29,7 @@ export class ApiBaseService {
   }
 
   get(domain: DomainType, path: string, options?: any): Observable<any> {
-    return this.http.get(`${this.getDomain(domain)}${path}`, options || httpOptions);
+    return this.http.get(`${this.getDomain(domain)}${path}`, options ?? httpOptions);
   }
 
   put(domain: DomainType, path: string, body: object): Observable<any> {
@@ -42,6 +47,11 @@ export class ApiBaseService {
   postMultiPart(url: string, body: object): Observable<any> {
     return this.http.post(url, body);
   }
+
+  postPreliminarCargoBlob(domain: DomainType, path: string, body: object): Observable<any> {
+    return this.http.post(`${this.getDomain(domain)}${path}`, body, options);
+  }
+
   getDomain(domain: DomainType): string {
     return {
       'auth': DOMAIN_API_MANAGER,
@@ -49,9 +59,9 @@ export class ApiBaseService {
       'persona': ENDPOINTS_MICROSERVICES.MS_PERSONA,
       'mesa': ENDPOINTS_MICROSERVICES.MS_MESA,
       'documento': ENDPOINTS_MICROSERVICES.MS_DOCUMENTO,
-      'repositorio': ENDPOINTS_MICROSERVICES.MS_REPOSITORIO
+      'repositorio': ENDPOINTS_MICROSERVICES.MS_REPOSITORIO,
+      'ai': ENDPOINTS_MICROSERVICES.MS_CONSULTA_AI,
     }[domain]
   }
-
 
 }

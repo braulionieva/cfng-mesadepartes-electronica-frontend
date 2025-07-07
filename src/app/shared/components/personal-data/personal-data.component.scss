@@ -1,3 +1,4 @@
+@use 'responsive' as *;
 @import url('https://unpkg.com/leaflet@1.9.3/dist/leaflet.css');
 @import url('https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css');
 
@@ -21,16 +22,12 @@
 
 .element1xx {
   flex: 1;
-  /* El primer elemento ocupa todo el espacio disponible */
   background-color: rgb(5, 98, 129);
-  /* Agregamos un color de fondo para demostración */
 }
 
 .element2xx {
   margin-left: 10px;
-  /* Ajusta el margen izquierdo según tus necesidades */
   background-color: rgb(0, 248, 0);
-  /* Agregamos un color de fondo para demostración */
 }
 
 .ajustar-alerta {
@@ -38,4 +35,76 @@
   display: inline-block;
   margin-bottom: 26px;
   width: 100%;
+}
+
+@media(max-width: $tablet) {
+  .mpe_formulario_verificacion {
+    width: $formulario-tablet-width !important;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .mpfn-ouuter-inner {
+    .mpfn-ouuter-relative {
+      position: relative;
+      left: 0;
+      top: 0;
+      width: 100%;
+      display: inline-grid;
+      button {
+        width: 100%;
+      }
+    }
+  }
+}
+
+@media(max-width: $large-mobile) {
+  .mpe_formulario_verificacion {
+    width: 100% !important;
+  }
+  .mpfn-subtitle {
+      text-align: center;
+  }
+  .mpfn-descripcion {
+      text-align: center;
+  }
+  .mpe_opciones {
+      margin-top: 40px !important;
+  }
+}
+
+@media(max-width: $medium-mobile) {
+    .mpfn-subtitle {
+        font-size: 17px;
+        margin-top: 20px;
+    }
+    .mpfn-descripcion {
+        font-size: 14px;
+    }
+    .mpe_boton_continuar {
+        font-size: 12px;
+    }
+    :host::ng-deep p-button {
+        button {
+            font-size: 12px !important;
+        }
+    }
+}
+
+@media(max-width: $mobile) {
+    .mpe_opciones {
+        margin-top: 40px !important;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    :host::ng-deep p-button {
+        width: 100%;
+        button {
+            width: 100%;
+            justify-content: center;
+        }
+        &:first-child {
+            order: 2;
+            margin-top: 10px;
+        }
+    }
 }

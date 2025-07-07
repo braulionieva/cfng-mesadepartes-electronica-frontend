@@ -32,7 +32,7 @@ import { CmpLibModule } from "ngx-mpfn-dev-cmp-lib";
         <span class="ml-2 alert-icon">
             <fn-icon [ico]="obtenerIcono('iAlertHexagonal')" height="2.3rem" class="color-yellow1"/>
         </span>
-        <span class="ml-2 text-2xl nfont-semibold color-yellow1">{{title}}</span>
+        <span class="ml-2 text-2xl nfont-semibold color-yellow1 mpe_modal_titulo">{{title}}</span>
     </div>
 </div>
 

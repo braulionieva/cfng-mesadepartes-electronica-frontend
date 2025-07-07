@@ -1,5 +1,5 @@
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -45,6 +45,9 @@ import { StorageService } from '@shared/services/storage.service';
 import { ValidarInputDirective } from '@core/directives/validar-input.directive';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TooltipModule } from 'primeng/tooltip';
+import { ModalExampleImagesComponent } from './modal/modal-example-images/modal-example-images.component';
+import { checkTouchUi } from '@shared/utils/touchui';
+import { SetNumericInputCalendarModule } from '@shared/directives/set-numeric-input-calendar.module';
 
 @Component({
   selector: 'app-verification',
@@ -52,13 +55,14 @@ import { TooltipModule } from 'primeng/tooltip';
   imports: [CommonModule, MessagesModule, CheckboxModule, FormsModule,
     ReactiveFormsModule, CalendarModule, ButtonModule, ProgressBarModule, DropdownModule,
     CmpLibModule, ToastModule, DateMaskModule, DialogModule, AlertComponent,
-    ValidarInputDirective, TooltipModule
+    ValidarInputDirective, TooltipModule, SetNumericInputCalendarModule
   ],
   templateUrl: './verification.component.html',
   styleUrls: ['./verification.component.scss'],
   providers: [MessageService, DialogService],
 })
 export class VerificationComponent implements OnInit, OnDestroy {
+
   ERRORDNI = false;
   ERRORFECHA = false;
   ERRORDATOS = false;
@@ -123,7 +127,15 @@ export class VerificationComponent implements OnInit, OnDestroy {
 
   public noQuotes = noQuotes
 
+  protected touchUiEnabled: boolean = false
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: UIEvent): void {
+    this.touchUiEnabled = checkTouchUi(window.innerWidth)
+  }
+
   ngOnInit(): void {
+
     window.scrollTo({ top: 0, behavior: 'smooth' })
 
     this.ipService.getIp().subscribe(resp => {
@@ -133,6 +145,9 @@ export class VerificationComponent implements OnInit, OnDestroy {
     if (this.storageService.existItem(LOCALSTORAGE.VALIDATE_KEY)) {
       this.storageService.clearItem(LOCALSTORAGE.VALIDATE_KEY)
     }
+
+    this.touchUiEnabled = checkTouchUi(window.innerWidth)
+
   }
 
   ngOnDestroy(): void {
@@ -294,7 +309,6 @@ export class VerificationComponent implements OnInit, OnDestroy {
   }
 
   validateIdentity(): void {
-
     const dataVerificationForm = this.verificationForm.getRawValue()
     const dataDynamicValidationForm = this.dynamicValidationForm.getRawValue()
     let idTablaDescripcion = sessionStorage.getItem('idTablaDescripcion');
@@ -332,7 +346,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.validating = false
-          this.showMessages(error);
+          this.showMessages(error)
         }
       })
     )
@@ -360,8 +374,10 @@ export class VerificationComponent implements OnInit, OnDestroy {
     this.ERRORDATOS = false;
     if (error.error.code == "42202015")
       this.ERRORDNI = true;
-    else if (error.error.code == "42202020")
+    else if (error.error.code == "42202020") {
       this.ERRORDATOS = true;
+      error.error.message = "Datos incorrectos. Por favor inténtelo nuevamente o acérquese a una Mesa Única de Partes";
+    }
     else if (error.error.code == "42202021")
       this.ERRORFECHA = true;
     else if (error.error.code == "42202016") {
@@ -425,4 +441,13 @@ export class VerificationComponent implements OnInit, OnDestroy {
     fieldControl.markAsDirty();
     fieldControl.markAsTouched();
   }
+
+  openExampleModal(index: number) {
+    this.dialogService.open(ModalExampleImagesComponent, {
+      showHeader: false,
+      contentStyle: { 'max-width': '670px', 'padding': '0px' },
+      data: { currentValidationIndex: this.currentValidationIndex }
+    })
+  }
+
 }

@@ -119,4 +119,15 @@ export class TracingService {
       body
     );
   }
+
+  public getPreliminarCargoBlob(body: Object, idPerfil: number): Observable<any> {
+
+
+    return this.apiBase.postPreliminarCargoBlob(
+      'documento',
+      `v1/t/pdf/denuncia/precargo/${idPerfil}/1/bytes`,
+      body
+    );
+  }
+
 }

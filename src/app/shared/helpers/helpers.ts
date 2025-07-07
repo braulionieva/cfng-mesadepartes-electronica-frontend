@@ -8,9 +8,9 @@ export class Helpers {
 
     /**
      * Valida si una cadena tiene un valor válido.
-     * 
+     *
      * Esta función verifica si un valor no es `null`, `undefined` y en caso de ser una cadena, si no está vacía ni contiene solo espacios en blanco.
-     * 
+     *
      * @param valor - El valor a validar.
      * @returns `true` si el valor tiene un valor válido, `false` en caso contrario.
      */
@@ -20,9 +20,9 @@ export class Helpers {
 
     /**
      * Intenta convertir una cadena JSON a un objeto JavaScript.
-     * 
+     *
      * Si la conversión falla, la función captura el error y muestra un mensaje de advertencia en la consola.
-     * 
+     *
      * @param json - La cadena JSON a convertir.
      * @returns El objeto JavaScript resultante si la conversión fue exitosa o la cadena original si hubo un error.
      */
@@ -39,9 +39,9 @@ export class Helpers {
 
     /**
      * Convierte una cadena de texto en formato `dd/mm/yyyy` a un objeto `Date`.
-     * 
+     *
      * La función espera que la cadena de entrada esté en el formato `día/mes/año` (por ejemplo: `12/03/2025`).
-     * 
+     *
      * @param dateString - La cadena con la fecha en formato `dd/mm/yyyy`.
      * @returns Un objeto `Date` correspondiente a la fecha indicada.
      */
@@ -53,9 +53,9 @@ export class Helpers {
 
     /**
      * Obtiene los errores de validación de un `FormGroup` de Angular.
-     * 
+     *
      * La función recorre todos los controles de un formulario y devuelve un objeto con los errores de cada control.
-     * 
+     *
      * @param formGroup - El `FormGroup` que contiene los controles a validar.
      * @returns Un objeto que contiene los errores de validación de cada control.
      */
@@ -106,7 +106,7 @@ export class Helpers {
 
     /**
      * Devuelve un valor seguro, manejando casos donde el valor es `undefined`, `null`, vacío o inválido.
-     * 
+     *
      * Si el valor es `undefined` o `null`, la función retorna un valor predeterminado basado en el tipo de dato:
      * - Si el valor es de tipo `number`, retorna `-1`.
      * - Si el valor es de tipo `string` y está vacío, contiene solo espacios en blanco, caracteres especiales, o solo números y comas/puntos, retorna una cadena vacía.
@@ -114,7 +114,7 @@ export class Helpers {
      * - Si el valor es un objeto o arreglo vacío, también retorna un valor predeterminado.
      * - Si el valor es un `boolean` con valor `false`, lo considera como vacío.
      * - Si el valor es una fecha inválida, retorna una cadena vacía o cualquier otro valor predeterminado.
-     * 
+     *
      * @param value - El valor a validar.
      * @returns El valor original si no es `undefined`, `null` ni vacío, o un valor predeterminado si es necesario.
      */
@@ -184,7 +184,7 @@ export class Helpers {
             { id: 5, nombre: 'Carnet de Extranjería', min: 12, max: 12, tipo: 'numero' },
             { id: 6, nombre: 'Carné Temporal Migratorio CTM', min: 9, max: 9, tipo: 'numero' },
             { id: 7, nombre: 'Libreta Electoral', min: 8, max: 8, tipo: 'numero' },
-            { id: 8, nombre: 'Partida de Nacimiento', min: 6, max: 15, tipo: 'numero' },
+            { id: 8, nombre: 'Partida de Nacimiento', min: 8, max: 15, tipo: 'numero' },
             { id: 9, nombre: 'Carne Identidad', min: 9, max: 9, tipo: 'numero' },
             { id: 11, nombre: 'Libreta Militar', min: 5, max: 12, tipo: 'alfaNumerico' },
             { id: 13, nombre: 'Carne de solicitud de refugio', min: 9, max: 9, tipo: 'numero' },

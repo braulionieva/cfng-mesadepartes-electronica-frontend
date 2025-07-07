@@ -478,7 +478,7 @@ $subtitle-size: 1.25em;
 }
 
 .mpfn-divider {
-  border: 1px solid var(--mpfn-gray17) !important;
+  border: 0.5px solid var(--mpfn-gray17) !important;
   width: calc(100% + 2.5rem) !important;
   margin-left: -1.25rem !important;
 }
@@ -503,16 +503,16 @@ $subtitle-size: 1.25em;
 }
 
 .p-accordion .p-accordion-header:not(.p-disabled).p-highlight .p-accordion-header-link {
-  border: 2px solid var(--mpfn-gray17) !important;
+  border: 1px solid var(--mpfn-gray17) !important;
   border-bottom: 0 !important;
 }
 
 .p-accordion .p-accordion-header:not(.p-highlight):not(.p-disabled) .p-accordion-header-link {
-  border: 2px solid var(--mpfn-gray17) !important;
+  border: 1px solid var(--mpfn-gray17) !important;
 }
 
 .p-accordion .p-accordion-content {
-  border: 2px solid var(--mpfn-gray17) !important;
+  border: 1px solid var(--mpfn-gray17) !important;
   border-top: 0 !important;
 }
 
@@ -569,6 +569,10 @@ $subtitle-size: 1.25em;
   font-family: var(--mpfn-font-roboto-bold);
 }
 
+.mpfn-poppins-semi-bold {
+  font-family: var(--mpfn-font-semi-bold);
+}
+
 .mpfn-numero-caso-duplicado {
   font-size: 1.8em;
   margin: 10px 0;
@@ -580,4 +584,407 @@ $subtitle-size: 1.25em;
   font-size: 16px;
   margin-top: 10px;
   margin-bottom: 10px;
+}
+
+.user-option {
+  .p-button.p-button-text:enabled:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none;
+  }
+}
+
+.mpfn-upload-file {
+  width: 90%;
+  $total-width: calc(100% + 10%);
+  .file-list {
+    width: $total-width;
+    h3 {
+      font-family: var(--mpfn-font-roboto-semi-bold) !important;
+      font-size: 14px !important;
+      margin-bottom: 10px !important;
+    }
+    .p-datatable {
+      thead {
+        tr {
+          th {
+            font-family: var(--mpfn-font-roboto-semi-bold) !important;
+            font-size: 12px;
+            &:last-child {
+              width: 80px !important;
+            }
+            &:nth-last-child(2) {
+              width: 100px !important;
+            }
+          }
+        }
+      }
+      tbody {
+        tr {
+          td {
+            font-family: var(--mpfn-font-roboto-regular) !important;
+          }
+        }
+      }
+    }
+  }
+  .pi-file-pdf:before {
+      content: "\e958" !important;
+  }
+  .total-size {
+      width: $total-width;
+      margin-top: -10px !important;
+      font-family: var(--mpfn-font-roboto-regular) !important;
+      font-size: 16px;
+  }
+}
+
+.mpfn-alert-below-label {
+  .alerta {
+    margin-top: 0 !important;
+    margin-bottom: 0.35rem !important;
+  }
+}
+
+.p-inputtext.ng-dirty.ng-invalid {
+  border-color: var(--mpfn-red) !important;
+}
+
+.p-error {
+  margin-top: .25rem !important;
+  color: var(--mpfn-red) !important;
+  font-family: var(--mpfn-font-roboto-regular) !important;
+  font-size: 12px !important;
+}
+
+.mpfn-error-message {
+  position: absolute;
+  top: -28px;
+  margin-bottom: 10px;
+  .mpfn-error-with-count {
+    width: calc(100% - 20px);
+  }
+}
+
+.mpfn-error-textarea-message {
+  position: absolute;
+  top: -20px;
+  margin-bottom: 10px;
+  .mpfn-error-with-count {
+    width: calc(100% - 180px);
+  }
+}
+
+.mpfn-input-invalid {
+  border-color: var(--mpfn-red) !important;
+  .pi-check {
+    display: none;
+  }
+  input {
+    border-color: var(--mpfn-red) !important;
+  }
+}
+
+.p-overlaypanel-close {
+  top: 8px !important;
+  right: 3px !important;
+  background: transparent !important;
+  .p-icon-wrapper {
+    color: var(--mpfn-black);
+  }
+  &:focus {
+    box-shadow: none
+  } 
+}
+
+.mpfn-select-hide-icon {
+  p-dropdown {
+    .p-dropdown {
+      .p-icon-wrapper {
+        display: none;
+      }
+    }
+  }
+}
+
+.mpfn-fix-alert-icon {
+  font-size: 14px !important;
+  margin-top: 6px !important;
+}
+
+.mpfn-icon-size {
+  transform: scale(1.8);
+}
+
+.mpfn-icon-size-sm {
+  transform: scale(1.4);
+}
+
+.p-button-aceptar {
+  button {
+    width: 120px !important;
+    min-width: 120px !important;
+    padding: 0 60px;
+    font-family: var(--mpfn-font-semi-bold);
+  }
+}
+
+.mpe_delito {
+  font-family: var(--mpfn-font-roboto-regular) !important;
+}
+
+@media(max-width: 900px) {
+  .alert-icon {
+    font-size: 12px;
+    margin-right: 0 !important;
+    fn-icon {
+      width: calc(1.7rem) !important;
+    }
+  }
+  .mpe_modal_titulo {
+    font-size: 18px !important;
+    width: 100% !important;
+    margin-top: 4px !important;
+    &.mpe_modal_titulo_green {
+      margin-top: 12px !important;
+    }
+  }
+  .margin-error-hecho {
+    width: calc(100% - 180px);
+  }
+  .alert-content {
+    .ml-5.text-right {
+      position: relative;
+      right: 12px;
+    }
+  }
+  .mpe_modal_descripcion {
+    font-size: 14px !important;
+  }
+  .mpe_modal_opciones {
+    p-button {
+      button {
+        height: 50px !important;
+        font-size: 14px !important;
+      }
+    }
+  }
+  .mpfn-numero-caso-duplicado {
+    font-size: 1.4em;
+  }
+  .mpfn-text-continuar {
+    font-size: 14px !important;
+  }
+  .p-component-overlay {
+    align-items: flex-end !important;
+  }
+}
+
+@media(max-width: 720px){
+  .mpfn-upload-file {
+    width: 100%;
+    .file-list {
+      width: 100%;
+    }
+    .total-size {
+        width: 100%;
+    }
+    .p-button-icon {
+      display: none !important;
+    }
+  }
+}
+
+@media(max-width: 545px) {
+  .mpfn-formulario {
+    label {
+      font-size: 12px !important;
+    }
+  }
+  .mpe_otros_delitos {
+    font-size: 14px !important;
+  }
+  .mpfn-label {
+    font-size: 12px !important;
+  }
+  .mpe_delito {
+    font-size: 12px !important;
+  }
+  .mpfn-divider {
+    width: calc(100% + 1.5rem) !important;
+    margin-left: -0.7rem !important;
+  }
+  .mpfn-section-description {
+    margin-top: 5px;
+    margin-bottom: 20px !important;
+    font-size: 12px;
+  }
+  .p-accordion .p-accordion-header:not(.p-disabled) .p-accordion-header-link:focus {
+    padding-bottom: 20px;
+  }
+  .file-upload-limits .file-upload-container .upload-button small .file-limits {
+    font-size: 11.5px;
+  }
+  .file-upload-container {
+    .upload-button {
+      span {
+        margin-left: 0 !important;
+        font-size: 12px !important;
+      }
+    }
+  }
+  .p-error {
+    font-size: 10px !important;
+  }
+  .mpfn-text {
+    font-size: 12px;
+  }
+  .mpfn-inpt-count .field small {
+    font-size: 10px;
+  }
+  .mpfn-upload-file {
+    .file-list {
+      h3 {
+        font-size: 12px !important;
+      }
+      .p-datatable {
+        thead {
+          tr {
+            th {
+              font-size: 11px;
+            }
+          }
+        }
+        tbody {
+          tr {
+            td {
+              font-size: 12px !important;
+            }
+          }
+        }
+      }
+    }
+    .total-size {
+      font-size: 12px !important;
+    }
+  }
+  .mpfn-counter {
+    font-size: 10px !important;
+  }
+}
+
+
+
+
+.joyride-step__container {
+  height: auto !important;
+  padding: 15px 0 !important;
+  min-width: 400px;
+  .joyride-step__close {
+    top: 18px;
+  }
+  .joyride-step__header {
+    padding: 0 15px 10px 15px !important;
+    .joyride-step__title {
+      font-family: var(--mpfn-font-semi-bold) !important;
+      font-size: 16px;
+    }
+  }
+  .joyride-step__body {
+    font-family: var(--mpfn-font-roboto-regular) !important;
+    font-size: 14px;
+    padding: 0 15px 15px 15px !important;
+  }
+  .joyride-step__footer {
+    padding: 0 15px !important;
+    .joyride-step__counter-container {
+      display: none;
+    }
+    .joyride-step__buttons-container {
+      display: flex;
+      justify-content: space-between;
+      width: 100% !important;
+    }
+  }
+  .joyride-button {
+    width: 82px !important;
+    font-size: 14px;
+    color: var(--mpfn-white) !important;
+    background: var(--mpfn-secondary) !important;
+    font-family: var(--mpfn-font-semi-bold) !important;
+    outline: none !important;
+    border: none !important;
+    text-transform: none !important;
+  }
+  .joyride-step__prev-button {
+    .joyride-button {
+      color: var(--mpfn-primary) !important;
+      background: var(--mpfn-gray7) !important;
+      font-family: var(--mpfn-font-semi-bold) !important;
+      outline: none !important;
+      border: none !important;
+      text-transform: none !important;
+    }
+  }
+  .joyride-step__next-container {
+    height: 30px;
+    .joyride-button {
+      position: absolute;
+      right: 15px;
+    }
+  }
+
+  .joyride-step-bullets {
+    text-align: center;
+    position: absolute;
+    bottom: 12px;
+    left: calc(50% - 11px);
+  }
+}
+
+.p-datepicker-mask {
+  z-index: 10;
+}
+
+@media(max-width: 1060px) {
+  .ng-trigger.ng-trigger-overlayAnimation.p-datepicker.p-component{
+    display: none !important;
+  }
+  .scene-hour .ng-trigger.ng-trigger-overlayAnimation.p-datepicker.p-component{
+    display: block !important;
+  }
+  
+  .extra-data-dialog {
+    width: 100% !important;
+    height: 100vh !important;
+    max-width: 100% !important;
+    max-height: 100vh !important;
+  }
+  .extra-data-dialog .p-dialog-content {
+    height: calc(100vh - 100px);
+    overflow: auto;
+  }
+}
+
+@media(max-width: 545px) {
+  .extra-data-dialog {
+    .p-dialog-title {
+      font-size: 14px !important;
+    }
+    .p-dialog-content {
+      .p-tabview .p-tabview-nav li {
+        width: auto !important;
+      }
+      .p-tabview-nav-link {
+        font-size: 12px;
+        padding: 0.75rem 20px 0.75rem 0 !important;
+      }
+      .p-tabview-panels {
+        padding: 1.25rem 0;
+      }
+    }
+    .p-tabview .p-tabview-nav li .p-tabview-nav-link:not(.p-disabled):focus {
+      box-shadow: none;
+    }
+  }
 }

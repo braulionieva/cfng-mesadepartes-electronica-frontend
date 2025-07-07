@@ -1,3 +1,5 @@
+@use 'responsive' as *;
+
 .p-accordion-content {
     max-width: 100%;
     white-space: normal;
@@ -11,7 +13,6 @@
             border-bottom: none !important;
             padding-top: 30px;
             outline: none;
-
         }
     }
 
@@ -20,5 +21,79 @@
         white-space: normal;
         word-break: break-word;
         background: transparent !important;
+    }
+}
+
+@media(max-width: 991px) {
+    .mpe_datos_denuncia {
+        margin-left: 0 !important;
+        width: 100%;
+        padding: 0;
+    }
+}
+
+@media(max-width: $large-mobile) {
+    .mpfn-subtitle {
+        text-align: center;
+    }
+    .mpfn-descripcion {
+        text-align: center;
+    }
+    .mpe_opciones {
+        margin-top: 40px !important;
+    }
+}
+
+@media(max-width: $medium-mobile) {
+    .mpfn-subtitle {
+        font-size: 17px;
+        margin-top: 20px;
+    }
+    .mpfn-descripcion {
+        font-size: 14px;
+    }
+    .mpe_boton_continuar {
+        font-size: 12px;
+    }
+    :host::ng-deep .p-accordion-tab {
+        .p-accordion-header {
+            .p-accordion-header-link {
+                padding-top: 20px;
+                padding-right: 10px;
+                padding-left: 10px;
+                .p-accordion-header-text {
+                    font-size: 14px !important;
+                }
+            }
+        }
+        .p-toggleable-content {
+            .p-accordion-content {
+                padding: 10px;
+            }
+        }
+    }
+    :host::ng-deep p-button {
+        button {
+            font-size: 12px !important;
+        }
+    }
+}
+
+@media(max-width: $mobile) {
+    .mpe_opciones {
+        margin-top: 40px !important;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    :host::ng-deep p-button {
+        width: 100%;
+        button {
+            width: 100%;
+            justify-content: center;
+        }
+        &:first-child {
+            order: 2;
+            margin-top: 10px;
+        }
     }
 }

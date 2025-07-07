@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CmpLibModule, onlyLetterNumberDash } from "ngx-mpfn-dev-cmp-lib";
@@ -19,6 +19,10 @@ import { TokenService } from "@shared/services/auth/token.service";
 import { DropdownModule } from "primeng/dropdown";
 import { DateMaskModule } from "@shared/directives/date-mask.module";
 import { TooltipModule } from "primeng/tooltip";
+import { Item } from '@shared/interfaces/documento/item';
+import { tipoDatoGenerales } from 'src/app/constantes/constante';
+import { checkTouchUi } from '@shared/utils/touchui';
+import { SetNumericInputCalendarModule } from '@shared/directives/set-numeric-input-calendar.module';
 
 const { DENUNCIA_KEY } = LOCALSTORAGE;
 @Component({
@@ -26,7 +30,8 @@ const { DENUNCIA_KEY } = LOCALSTORAGE;
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, CmpLibModule, RadioButtonModule,
-    CalendarModule, CheckboxModule, ValidarInputDirective, FileUploadComponent, DropdownModule, DateMaskModule, TooltipModule
+    CalendarModule, CheckboxModule, ValidarInputDirective, FileUploadComponent, DropdownModule, DateMaskModule, TooltipModule,
+    SetNumericInputCalendarModule
   ],
   templateUrl: './general-data.component.html'
 })
@@ -35,7 +40,7 @@ export class GeneralDataComponent implements OnInit {
   @Input() public recoveredData: DatosGeneralesPJPNP | null = null
 
   @Output() public formChanged = new EventEmitter<Object>();
-  @Output() public fechaPolicialChanged = new EventEmitter<Date>();
+  @Output() public fechaDenunciaChanged = new EventEmitter<Date>();
   @Output() public filesChanged = new EventEmitter<boolean>();
 
   deleteURL: string = `${ENDPOINTS_MICROSERVICES.MS_REPOSITORIO}`
@@ -71,6 +76,7 @@ export class GeneralDataComponent implements OnInit {
   private readonly amountRepresentanteLegal: number = 0;
   public maxDate: Date = new Date()
 
+  protected tipoDatoGenerales = tipoDatoGenerales
 
   /***************/
   /*  VARIABLES  */
@@ -94,6 +100,10 @@ export class GeneralDataComponent implements OnInit {
   public varDepto = ''
   public isDisabledJuzgado: boolean = true
   public isDisabledDependenciaPolicial: boolean = true
+  protected colegioAbogados: Item[] = []
+  protected fieldsCZStatus: boolean = false;
+
+  protected touchUiEnabled: boolean = false
 
   /*****************/
   /*  CONSTRUCTOR  */
@@ -102,16 +112,25 @@ export class GeneralDataComponent implements OnInit {
     private readonly maestrosService: MaestrosService,
     private readonly cryptService: CryptService,
     private readonly tokenService: TokenService,
-  ) { }
+  ) {
+
+   }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: UIEvent): void {
+    this.touchUiEnabled = checkTouchUi(window.innerWidth)
+  }
 
   /****************/
   /*  LIFE CYCLE  */
   /****************/
 
   ngOnInit(): void {
+
+    this.touchUiEnabled = checkTouchUi(window.innerWidth)
+
     this.getDepartments()
     this.form = this.createFreshForm()
-
     let valida = localStorage.getItem(LOCALSTORAGE.VALIDATE_KEY);
     this.validaToken = JSON.parse(this.cryptService.decrypt(valida));
     this.form.get('datosContacto').setValue("DNI: " + this.validaToken?.validateIdentity.numeroDni + " - " + this.validaToken?.personaNatural.nombres + " " + this.validaToken?.personaNatural.apellidoPaterno + " " + this.validaToken?.personaNatural.apellidoMaterno)
@@ -155,6 +174,18 @@ export class GeneralDataComponent implements OnInit {
 
   get isPNPProfile(): boolean {
     return SLUG_PROFILE.PNP === this.profileID
+  }
+
+  get isPJProfile(): boolean {
+    return SLUG_PROFILE.PJ === this.profileID
+  }
+
+  get isCZProfile(): boolean {
+    return SLUG_PROFILE.CITIZEN === this.profileID
+  }
+
+  get esTipoDatoGeneralAbogado(): boolean {
+    return this.validaToken.ciudadano?.denunciaAbogado
   }
 
   public cleanSearch(): void {
@@ -359,11 +390,13 @@ export class GeneralDataComponent implements OnInit {
   /*****************/
 
   public createFreshForm(): FormGroup {
-    return (
-      SLUG_PROFILE.PNP === this.profileID
-        ? this.createPNPFreshForm()
-        : this.createPJFreshForm()
-    )
+    if (this.isPNPProfile) {
+      return this.createPNPFreshForm();
+    } else if (this.isCZProfile) {
+      return this.createCZFreshForm();
+    } else {
+      return this.createPJFreshForm();
+    }
   }
 
   public createPNPFreshForm(): FormGroup {
@@ -372,7 +405,7 @@ export class GeneralDataComponent implements OnInit {
       this.validaToken = JSON.parse(this.cryptService.decrypt(valida));
       const ubigeo = this.validaToken.policia.ubigeo;
       this.form = new FormGroup({
-        policeReportNumber: new FormControl(this.validaToken.policia.numeroInformePolicial, [Validators.required, Validators.pattern(onlyLetterNumberDash)]),
+        policeReportNumber: new FormControl(this.validaToken.policia.numeroInformePolicial, [Validators.required]),
         codigoCip: new FormControl(this.validaToken.policia.codigoCip, [
           Validators.required,
           Validators.minLength(6),
@@ -402,7 +435,7 @@ export class GeneralDataComponent implements OnInit {
       return this.form
     } else {
       this.form = new FormGroup({
-        policeReportNumber: new FormControl('', [Validators.required, Validators.pattern(onlyLetterNumberDash)]),
+        policeReportNumber: new FormControl('', [Validators.required]),
         codigoCip: new FormControl('', [Validators.required,
         Validators.minLength(6),
         Validators.maxLength(8),
@@ -456,7 +489,7 @@ export class GeneralDataComponent implements OnInit {
   }
 
   private extractUbigeo(): string {
-    const juz = this.validaToken.juzgado || {};
+    const juz = this.validaToken.juzgado ?? {};
     return juz.ubigeo ?? '';
   }
 
@@ -466,7 +499,7 @@ export class GeneralDataComponent implements OnInit {
   }
 
   private initPJFormGroup(ubigeo: string, fechaDen: Date | null): FormGroup {
-    const juz = this.validaToken.juzgado || {};
+    const juz = this.validaToken.juzgado ?? {};
     const fg = new FormGroup({
       nroExpediente: new FormControl(this.validaToken.nroExpediente, [
         Validators.required,
@@ -474,7 +507,7 @@ export class GeneralDataComponent implements OnInit {
       ]),
       riskType: new FormControl(this.validaToken.medidaProteccion?.idTipoRiesgo ?? null),
       violenceType: new FormControl(this.validaToken.medidaProteccion?.idsTipoViolencia ?? []),
-      expedient: new FormControl(this.validaToken.medidaProteccion ? true : false),
+      expedient: new FormControl(this.validaToken.medidaProteccion),
       datosContacto: new FormControl(''),
       department: new FormControl(ubigeo.slice(0, 2), [Validators.required]),
       province: new FormControl(ubigeo.slice(2, 4), [Validators.required]),
@@ -565,7 +598,7 @@ export class GeneralDataComponent implements OnInit {
     if (this.loadingData || !this.form) return;
 
     const data = this.form.getRawValue();
-    this.emitFechaPolicial(data.fechaPolicial);
+    this.emitFechaDenuncia(data.fechaDenuncia);
 
     const files = this.formatFiles();
     const descEntidad = this.getJuzgadoDesc(data.juzgado);
@@ -573,17 +606,17 @@ export class GeneralDataComponent implements OnInit {
     // Construimos un request base común
     const baseReq = this.buildBaseRequest(data, files, descEntidad);
 
+    let request = baseReq
     // Adaptamos según perfil
-    const request = this.profileID === SLUG_PROFILE.PNP
-      ? this.buildPNPRequest(baseReq, data)
-      : this.buildPJRequest(baseReq, data);
+    if (this.profileID === SLUG_PROFILE.PNP) request = this.buildPNPRequest(baseReq, data)
+    if (this.profileID === SLUG_PROFILE.PJ) request = this.buildPJRequest(baseReq, data)
 
     if (force) request.force = true;
     this.formChanged.emit(request);
   }
 
-  private emitFechaPolicial(fecha: Date): void {
-    if (fecha) this.fechaPolicialChanged.emit(fecha);
+  private emitFechaDenuncia(fecha: Date): void {
+    if (fecha) this.fechaDenunciaChanged.emit(fecha);
   }
 
   private formatFiles(): any[] {
@@ -632,7 +665,13 @@ export class GeneralDataComponent implements OnInit {
       } : undefined,
       fechaCambio: this.profileID === SLUG_PROFILE.PNP
         ? !!data.fechaPolicial
-        : undefined
+        : undefined,
+      ciudadano: this.profileID === SLUG_PROFILE.CITIZEN ? {
+        denunciaAbogado: data.denunciaAbogado,
+        idColegioAbogado: data.idColegioAbogado,
+        numeroColegiatura: data.numeroColegiatura,
+        numeroDenuncia: data.numeroDenuncia,
+      } : undefined
     };
   }
 
@@ -696,6 +735,82 @@ export class GeneralDataComponent implements OnInit {
       }
     }
     return null;
+  }
+
+  /** CITIZEN */
+  private createCZFreshForm(): FormGroup {
+    this.getColegioAbogados();
+    return localStorage.getItem(DENUNCIA_KEY)
+      ? this.buildCZFormFromToken()
+      : this.buildEmptyCZForm();
+  }
+
+  private buildCZFormFromToken(): FormGroup {
+    this.loadTokenData();
+    const form = this.initCZFormGroup();
+    this.fieldsCZStatus = this.esTipoDatoGeneralAbogado
+    this.saveAndWatch(form);
+    return form
+  }
+
+  private initCZFormGroup(): FormGroup {
+    const fr = new FormGroup({
+      datosContacto: new FormControl('', [Validators.required]),
+      denunciaAbogado: new FormControl(this.validaToken.ciudadano.denunciaAbogado),
+      idColegioAbogado: new FormControl(this.validaToken.ciudadano.idColegioAbogado),
+      numeroColegiatura: new FormControl(this.validaToken.ciudadano.numeroColegiatura),
+      numeroDenuncia: new FormControl(this.validaToken.ciudadano.numeroDenuncia),
+    });
+    setTimeout(() => { this.controlEstadoAbogado(this.esTipoDatoGeneralAbogado) }, 0)
+    return fr
+  }
+
+  private buildEmptyCZForm(): FormGroup {
+    const form = this.initEmptyCZFormGroup();
+    this.saveAndWatch(form);
+    return form;
+  }
+
+  private initEmptyCZFormGroup(): FormGroup {
+    return new FormGroup({
+      datosContacto: new FormControl(''),
+      denunciaAbogado: new FormControl(false),
+      idColegioAbogado: new FormControl({ value: null, disabled: true }),
+      numeroColegiatura: new FormControl(null),
+      numeroDenuncia: new FormControl(null),
+    });
+  }
+
+  protected alCambiarDenunciaAbogado(tipoAbogado: boolean): void {
+    this.form.get('idColegioAbogado').reset()
+    this.form.get('numeroColegiatura').reset()
+    this.controlEstadoAbogado(tipoAbogado)
+  }
+
+  private controlEstadoAbogado(habilitar: boolean): void {
+    this.fieldsCZStatus = habilitar
+    if (habilitar) {
+      this.form.get('idColegioAbogado').enable()
+      this.form.get('idColegioAbogado').setValidators([Validators.required])
+      this.form.get('numeroColegiatura').setValidators([Validators.required, Validators.maxLength(6), Validators.minLength(5)])
+    } else {
+      this.form.get('idColegioAbogado').disable()
+      this.form.get('idColegioAbogado').setValidators(null)
+      this.form.get('numeroColegiatura').setValidators(null)
+    }
+  }
+
+  private getColegioAbogados(): void {
+    this.colegioAbogados = []
+    this.subscriptions.push(
+      this.maestrosService.getColegioAbogados().subscribe({
+        next: resp => {
+          if (resp.code && resp.code === 200) {
+            this.colegioAbogados = resp.data
+          }
+        }
+      })
+    )
   }
 
 }

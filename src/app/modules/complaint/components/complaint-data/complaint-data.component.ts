@@ -125,11 +125,13 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
 
     // Inicializar hasFiles desde localStorage si existe
     const denuncia = localStorage.getItem(LOCALSTORAGE.DENUNCIA_KEY);
+
     if (denuncia) {
       const denunciaData = JSON.parse(this.cryptService.decrypt(denuncia));
-      if (denunciaData.archivoPerfil?.anexos?.length > 0) {
-        this.hasFiles = true;
-      }
+      const hasEntidadFiles = denunciaData.entidad?.archivoPerfil?.anexos?.length > 0;
+      const hasAnexosAsociados = denunciaData.anexosAsociados?.anexos?.length > 0;
+      const hasMedidaProteccion = denunciaData.medidaProteccion?.anexos?.length > 0;
+      this.hasFiles = hasEntidadFiles || hasAnexosAsociados || hasMedidaProteccion;
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -144,8 +146,8 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
   /*    GET METHODS    */
   /*********************/
 
-  get isPNPoPJ(): boolean {
-    return [SLUG_PROFILE.PNP, SLUG_PROFILE.PJ].includes(this.tmpProfile as any);
+  get isPNPoPJoCZ(): boolean {
+    return [SLUG_PROFILE.PNP, SLUG_PROFILE.PJ, SLUG_PROFILE.CITIZEN].includes(this.tmpProfile as any);
   }
 
   get isEntity(): boolean {
@@ -175,7 +177,7 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
   }
 
   private isDelitoValido(): boolean {
-    const hecho = this.data.delito?.hecho?.trim().replace(/\s/g, '') || '';
+    const hecho = this.data.delito?.hecho?.trim() || '';
     return (
       hecho.length >= 100 &&
       hecho.length <= 4000 &&
@@ -204,7 +206,16 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
   }
 
   private isCiudadano(): boolean {
-    return this.tmpProfile === SLUG_PROFILE.CITIZEN;
+    const c = this.data.ciudadano;
+    const esAbogado = c?.denunciaAbogado;
+    const abogadoCompleto =
+      !!c?.idColegioAbogado &&
+      typeof c?.numeroColegiatura === 'string' &&
+      /^\d{5,6}$/.test(c.numeroColegiatura.trim());
+    return (
+      this.tmpProfile === SLUG_PROFILE.CITIZEN &&
+      (!esAbogado || abogadoCompleto)
+    )
   }
 
   private isPNP(): boolean {
@@ -272,9 +283,7 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
   /************************/
 
   public getDocumentsType(): void {
-    this.documentTypes = [];
     const origenID = 0;
-
     this.suscriptions.push(
       this.maestrosService.getDocumentTypes(origenID).subscribe({
         next: (resp) => {
@@ -472,7 +481,7 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
 
       return;
     }
-    console.log('data set localstorage', this.data);
+
     localStorage.setItem(DENUNCIA_KEY, this.cryptService.encrypt(JSON.stringify(this.data)));
 
     this.router.navigate(['/realizar-denuncia/confirmacion']);
@@ -536,7 +545,7 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
     this.router.navigate(['realizar-denuncia/datos-especialidad']);
   }
 
-  public onFechaPolicialChange(fecha: Date): void {
+  public onFechaDenunciaChange(fecha: Date): void {
     this.fechaPolicial = fecha;
   }
 
@@ -545,4 +554,98 @@ export class ComplaintDataComponent implements OnInit, OnDestroy {
   public onFilesChanged(hasFiles: boolean): void {
     this.hasFiles = hasFiles;
   }
+
+  public validateAndShowMissingFields(): void {
+    const missingFields: string[] = [];
+
+    this.validateLugarHecho(missingFields);
+    this.validateDelito(missingFields);
+    this.validatePartes(missingFields);
+    this.validateEntidad(missingFields);
+    this.validateAnexos(missingFields);
+
+    this.showValidationResult(missingFields);
+  }
+
+  private validateLugarHecho(missingFields: string[]): void {
+    const lugar = this.data.lugarHecho;
+    if (!lugar?.direccion || !lugar?.ubigeo || !lugar?.fechaHecho) {
+      missingFields.push('❌ Lugar del hecho: Falta completar dirección, ubigeo o fecha del hecho');
+    }
+  }
+
+  private validateDelito(missingFields: string[]): void {
+    const delito = this.data.delito;
+    const desc = delito?.hecho?.trim() || '';
+    if (!desc || desc.length < 100 || desc.length > 4000 || !delito.idEspecialidad) {
+      missingFields.push('❌ Delito: Falta descripción del hecho (entre 100 y 4000 caracteres) o especialidad');
+    }
+  }
+
+  private validatePartes(missingFields: string[]): void {
+    if (!this.data.partesAgraviadas || Object.keys(this.data.partesAgraviadas).length === 0) {
+      missingFields.push('❌ Partes: Falta agregar al menos una parte agraviada');
+    }
+    if (!this.data.partesDenunciadas || Object.keys(this.data.partesDenunciadas).length === 0) {
+      missingFields.push('❌ Partes: Falta agregar al menos una parte denunciada');
+    }
+  }
+
+  private validateEntidad(missingFields: string[]): void {
+    if (this.tmpProfile !== SLUG_PROFILE.ENTITY) return;
+
+    const entidad: any = this.data.entidad || {};
+    const ruc = entidad?.ruc;
+    const razon = entidad?.razonSocial;
+
+    if (!entidad || Object.keys(entidad).length === 0) {
+      missingFields.push('❌ Entidad: No se han registrado los datos de la entidad');
+      return;
+    }
+
+    if (!ruc) {
+      missingFields.push('❌ Entidad: Falta RUC');
+    } else if (isNaN(Number(ruc)) || ruc.length !== SLUG_MAX_LENGTH.RUC) {
+      missingFields.push('❌ Entidad: El RUC debe ser un número válido de 11 dígitos');
+    }
+
+    if (!razon) {
+      missingFields.push('❌ Entidad: Falta razón social');
+    }
+
+    if (!this.hasFiles) {
+      missingFields.push('❌ Entidad: Falta adjuntar documento de representación');
+    }
+  }
+
+  private validateAnexos(missingFields: string[]): void {
+    const obs = this.data.anexosAsociados?.observacion;
+    if (obs && obs.length > 1000) {
+      missingFields.push('❌ Anexos: La observación no debe exceder los 1000 caracteres');
+    }
+  }
+
+  private showValidationResult(missingFields: string[]): void {
+    const message = missingFields.length > 0
+      ? {
+        severity: 'error',
+        summary: 'Campos incompletos',
+        detail: missingFields.join('\n'),
+        styleClass: 'mpfn-toast-validation'
+      }
+      : {
+        severity: 'success',
+        summary: 'Validación exitosa',
+        detail: 'Todos los campos requeridos han sido completados correctamente'
+      };
+
+    this.messageService.add(message);
+  }
+
+  /** NO PROPAGAR EL FUNCIONAMIENTO DEL ACORDEON */
+  stopAccordionKeyPropagation(event: KeyboardEvent): void {
+    const keysToBlock = new Set(['Home', 'End']);
+    if (keysToBlock.has(event.key)) event.stopPropagation();
+  }
+
 }

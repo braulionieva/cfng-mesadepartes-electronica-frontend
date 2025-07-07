@@ -8,51 +8,59 @@
 
 <app-alert [dataAlert]="verificationMessage[0]" [cosable]="false" />
 
-<form [formGroup]="personDataForm" class="mx-auto plr-15-10 mt-4 color-black2">
+<form [formGroup]="personDataForm"
+  class="mx-auto plr-15-10 mt-4 color-black2 mpfn-formulario mpe_formulario_verificacion">
   <fn-input-wrapper label="Perfil">
     <p-dropdown [options]="tmpProfiles" (onChange)="selectProfile($event.value)" optionLabel="nombre" optionValue="id"
-                placeholder="Seleccione perfil" formControlName="profile" emptyMessage="Datos no encontrados"
-                [ngClass]="{'ng-invalid ng-dirty': errorMsg('profile')}" />
+      placeholder="Seleccione perfil" formControlName="profile" emptyMessage="Datos no encontrados"
+      emptyFilterMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('profile')}" />
 
     <small error *ngIf="errorMsg('profile')" class="p-error block">
       {{errorMsg('profile')}}
     </small>
   </fn-input-wrapper>
 
-  <app-alert *ngIf="showProfileMessage" [dataAlert]="profileMessage[0]" [cosable]="false" />
+  <app-alert *ngIf="showProfileMessage" [dataAlert]="profileMessage[0]" [cosable]="false" class="ajustar-alerta" />
 
-  <fn-input label="Celular" class="color-black2" [ico]="obtenerIcono('iSmartPhone')" placeholder="000 000 000"
-            [counter]="9" [maxlength]="9" formControlName="cellPhone" validarInput [validarMaxLength]="9"
-            [validarTipoEntrada]="'numero'" />
+  <fn-input label="Celular" class="mpfn-input mpfn-count mpfn-input-icon" [ico]="obtenerIcono('iSmartPhone')"
+    placeholder="000 000 000" [counter]="9" [maxlength]="9" formControlName="cellPhone" validarInput
+    [validarMaxLength]="9" [validarTipoEntrada]="'numero'" type="text" inputmode="numeric" pattern="[0-9]*"/>
 
-  <div class="frm-outter-inner mb-2">
-    <fn-input class="w-5p" label="Correo electrónico {{varInstitucional}}" [ico]="obtenerIcono('iMail')"
-              placeholder="ejemplo@gmail.com" formControlName="email" [checking]="true" (keypress)="noQuotes($event)"
-              validarInput [validarMaxLength]="100" [validarRegex]="'^[a-zA-Z0-9@._-]*$'" />
+  <div class="mpfn-ouuter-inner">
+    <fn-input class="mpfn-input mpfn-input-icon" label="Correo electrónico {{varInstitucional}}"
+      [ico]="obtenerIcono('iMail')" placeholder="ejemplo@gmail.com" formControlName="email" [checking]="true"
+      (keypress)="noQuotes($event)" validarInput [validarMaxLength]="100" [validarRegex]="'^[a-zA-Z0-9@._-]*$'"
+      [validarSoloMayusculas]="true" type="email"/>
 
-    <p-button class="frm-outter-relative" styleClass="p-button bg-secondary font-semibold btn-adjust btn-email"
-              label="Enviar código" [disabled]="!emailValidation" (onClick)="modalConfirmation()" />
+    <p-button class="mpfn-ouuter-relative" styleClass="p-button bg-secondary font-semibold btn-adjust btn-email"
+              [class.mpfn-boton-deshabilitado]="!emailValidation || emailCodeSendActive"
+              [label]="getEmailCodeButtonLabel()"
+              [disabled]="!emailValidation || emailCodeSendActive"
+              (onClick)="modalConfirmation()" />
   </div>
 
-  <div class="field col-12 md:col-12">
-    <div class="label-with-icon mt-3">
+  <div class="mpfn-formulari">
+
+    <div class="mpfn-label-icon mt-3">
       <label for="" class="block text-sm font-semibold ng-star-inserted">Confirmar código de verificación</label>
-      <i class="pi pi-question-circle help-icon"
-         pTooltip="Le enviaremos un código de verificación para confirmar que su correo electrónico es correcto. Tendrá un tiempo limitado de uso. Si no lo recibe, revise que haya ingresado bien su correo electrónico."
-         tooltipPosition="right">
-      </i>
     </div>
 
-    <fn-input placeholder="Ingrese el código enviado a su correo" formControlName="codeVerification" [checking]="true"
-              [counter]="6" [disabled]="!validSend" validarInput [validarMaxLength]="SLUG_MAX_LENGTH.CODEVERIFICATION"
-              [validarTipoEntrada]="'numero'" [ngClass]="{'ng-invalid ng-dirty': validatingCode}" styleClass="w-full" />
+    <app-alert *ngIf="validSend" [dataAlert]="confirmationCodeMessage" [cosable]="false"
+      class="mpfn-alert-below-label" />
 
-    <small error *ngIf="validatingCode" class="p-error block">
-      {{validatingCodeCaducado}}
-    </small>
+    <fn-input class="mpfn-input mpfn-count" placeholder="Ingrese el código enviado a su correo"
+      formControlName="codeVerification" [checking]="true" [counter]="6" [disabled]="!validSend" validarInput
+      [validarMaxLength]="SLUG_MAX_LENGTH.CODEVERIFICATION" [validarTipoEntrada]="'numero'"
+      [validarSoloMayusculas]="true" [class.mpfn-input-invalid]="validatingCodeCaducado" styleClass="w-full"
+      (input)="validatingCodeCaducado=''" type="text" inputmode="numeric" pattern="[0-9]*"/>
+    <div *ngIf="validatingCode && validatingCodeCaducado" class="relative mb-3">
+      <small error class="p-error block mpfn-error-message mpfn-error-with-count">
+        {{validatingCodeCaducado}}
+      </small>
+    </div>
   </div>
 
-  <div class="flex flex-start mt-5 mx-auto color-black2 lh-1-5">
+  <div class="mpfn-formulario mpfn-checkbox">
     <p-checkbox inputId="autorizoMP" name="confirmData" formControlName="confirmData" [value]="1" />
 
     <label for="autorizoMP" class="mx-2 cursor-pointer">
@@ -62,22 +70,24 @@
   </div>
 </form>
 
-<div class="flex justify-content-between mt-8 mb-5">
+<div class="flex justify-content-between mt-8 mb-5 mpe_opciones">
+
   <p-button (onClick)="askToCancelComplaint()" [label]="'Cancelar denuncia'"
-            styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton-cancelar">
   </p-button>
 
-  <div class="ml-auto flex gap-3">
+  <p-button (onClick)="nextStep()"
+    [styleClass]=" !formsValidation ? 'mpfn-boton-bloqueado mpfn-boton' : 'p-button-lg bg-secondary text-white font-semibold btn-adjust' "
+    [loading]="validating" [disabled]="!formsValidation">
 
-    <p-button (onClick)="nextStep()"
-              [styleClass]=" !formsValidation ? 'p-button-lg bg-gray text-white font-semibold btn-adjust' : 'p-button-lg bg-secondary text-white font-semibold btn-adjust' "
-              [loading]="validating" [disabled]="!formsValidation">
-      <span>Continuar</span>
+    <span class="mpe_boton_continuar">Continuar</span>
 
-      <fn-icon *ngIf="!validating" [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
-      <i *ngIf="validating" class="pi pi-spin ml-5"> </i>
-    </p-button>
-  </div>
+    <fn-icon *ngIf="!validating" [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
+
+    <i *ngIf="validating" class="pi pi-spin ml-5"> </i>
+
+  </p-button>
+
 </div>
 
 <p-toast />

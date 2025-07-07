@@ -44,6 +44,7 @@
 
           <fn-input class="w-5p col-6" label="Número del documento" placeholder="Ej: 00001 o S/N"
             formControlName="showCodigoDocumento" validarInput [validarMaxLength]="5" [validarTipoEntrada]="'numero'"
+            type="text" inputmode="numeric" pattern="[0-9]*"
             (focusout)="completarSN($event)" />
         </div>
       </form>
@@ -57,7 +58,9 @@
           [disabled]="true" />
 
         <fn-input formControlName="counter" styleClass="p-3" class="col-12 md:col-3" placeholder="Correlativo"
-          validarInput [validarMaxLength]="5" [validarTipoEntrada]="'numero'" (focusout)="completarCeros($event)" />
+          validarInput [validarMaxLength]="5" [validarTipoEntrada]="'numero'" (focusout)="completarCeros($event)"
+          type="text" inputmode="numeric" pattern="[0-9]*"
+          />
       </form>
     </div>
     <div *ngIf="isObservedDocument" class="mb-3">
@@ -83,6 +86,7 @@
         <textarea rows="10" pInputTextarea formControlName="attachedInformation" class="w-full" [autoResize]="true"
           (ngModelChange)="anexoWordCount()" [ngClass]="{'ng-invalid ng-dirty': errorMsg('attachedInformation')}"
           placeholder="Ej.: Adjunto solicitud de..."></textarea>
+
         <small class="block text-right mt-1"
           [ngClass]="{'p-error': SummaryWordsCounter > 1000 ||SummaryWordsCounter < 100}">
           {{SummaryWordsCounter}}/1000 caracteres

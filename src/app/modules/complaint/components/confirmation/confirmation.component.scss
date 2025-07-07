@@ -1,0 +1,99 @@
+
+@use 'responsive' as *;
+
+.visor-background {
+    width: 100%;
+    background-color: #e8e8e880;
+}
+
+.visor-pdf {
+    width: 100%;
+    height: 1135px;
+}
+
+@media(max-width: $large-mobile) {
+    .mpfn-subtitle {
+        text-align: center;
+    }
+    .mpfn-descripcion {
+        text-align: center;
+    }
+    .mpe_opciones {
+        margin-top: 40px !important;
+    }
+}
+
+@media(max-width: $medium-mobile) {
+    .mpfn-subtitle {
+        font-size: 17px;
+        margin-top: 20px;
+    }
+    .mpfn-descripcion {
+        font-size: 14px;
+    }
+    .mpe_boton_continuar {
+        font-size: 12px;
+    }
+    :host::ng-deep p-button {
+        button {
+            font-size: 12px !important;
+        }
+    }
+}
+
+@media (max-width: 740px){
+    :host::ng-deep .mpe_opciones {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        p-button {
+            width: 100% !important;
+            button {
+                width: 100% !important;
+            }
+        }
+        .mpe_opcion_1 {
+            order: 2 !important;
+            margin-top: 1rem !important;
+        }
+    }
+    :host::ng-deep .mpe_sub_opciones{
+        display: flex !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+        order: 1 !important;
+        p-button {
+            width: 100% !important;
+            button {
+                width: 100% !important;
+                justify-content: center !important;
+                display: flex !important;
+                .mpfn-icon-size {
+                    margin-right: 10px !important;
+                }
+            }
+            &:first-child {
+                order: 2;
+                margin-top: 0px;
+            }
+        }
+    }
+}
+
+@media(max-width: $mobile) {
+    .mpe_opciones {
+        margin-top: 40px !important;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    :host::ng-deep p-button {
+        width: 100%;
+        button {
+            width: 100%;
+            justify-content: center;
+        }
+        &:first-child {
+            order: 2;
+            margin-top: 10px;
+        }
+    }
+}

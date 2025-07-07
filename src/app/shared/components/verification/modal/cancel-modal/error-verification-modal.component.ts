@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { SLUG_CONFIRM_RESPONSE } from '@shared/helpers/slugs';
 //primeng
 import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
@@ -13,47 +13,43 @@ import { Router } from '@angular/router';
   selector: 'confirmation-modal',
   standalone: true,
   imports: [
-    RippleModule, CommonModule, ButtonModule, DialogModule, TitleCasePipe
+    RippleModule, CommonModule, ButtonModule, DialogModule
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA
   ],
   template: `
-  <div class="p-dialog-header w-full bg-secondary-header">
+  <div class="p-dialog-header w-full bg-secondary-header pt-4 pl-4">
         <div class="flex align-items-center">
             <i class="pi pi-info-circle icon-color"></i>
-            <span class="p-dialog-title">Advertencia de verificación de Datos</span>
+            <span class="p-dialog-title mpfn-poppins-semi-bold mpe_modal_titulo">Advertencia de verificación de datos</span>
         </div>
     </div>
-    <div class="flex flex-wrap  my-2 mx-2 " >
-          <div class="my-3 mx-5 justify-content-center" >{{ errorMessage | titlecase}}
-          </div>
-
+    <div class="flex flex-wrap my-2" >
+      <div class="mb-3 mx-5 justify-content-center mpfn-roboto-regular mpe_modal_descripcion" >{{ errorMessage }}
+      </div>
     </div>
-    <div class="flex flex-wrap justify-content-center my-3 mx-3 display-inline-block">
-           <p-button
-                styleClass="p-button bg-secondary font-semibold"
-                class="p-button-width"
-                label="Aceptar"
-                [loading]="loading"
-                (onClick)="selectOk(responses.OK)"
-            />
-        </div>
+    <div class="flex flex-wrap justify-content-center mb-4 mx-3 display-inline-block mpe_modal_opciones">
+      <p-button
+        class="p-button-aceptar"
+        styleClass="p-button-lg bg-secondary font-semibold"
+        label="Aceptar"
+        [loading]="loading"
+        (onClick)="selectOk(responses.OK)"
+      />
+    </div>
   `,
   styles: [
     `
         .bg-secondary-header{
-            background-color: #f7eed4;
-            color: #d9a927;
+          color: #d9a927;
+          border-bottom: none;
         }
         .icon-color{
             color: #d9a927;
             font-size: 1.6rem;
             transform: rotate(180deg);
             margin-right: 10px;
-        }
-        .p-button-width button{
-            width: 300px !important;
         }
     `
   ]

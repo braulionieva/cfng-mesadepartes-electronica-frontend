@@ -8,16 +8,16 @@
   <label for="" class="block mt-5 mb-1">Número de caso</label>
   <form [formGroup]="numberCaseForm" class="grid">
     <fn-input formControlName="dependence" styleClass="p-3" class="col-12 md:col-2" placeholder="000000000" validarInput
-      [validarMaxLength]="11" [validarTipoEntrada]="'numero'" /><a class="pt-4">-</a>
+      [validarMaxLength]="11" [validarTipoEntrada]="'numero'" type="text" inputmode="numeric" pattern="[0-9]*"/><a class="pt-4">-</a>
 
     <fn-input formControlName="year" styleClass="p-3" class="col-6 md:col-2" placeholder="0000" validarInput
-      [validarMaxLength]="4" [validarTipoEntrada]="'numero'" /><a class="pt-4">-</a>
+      [validarMaxLength]="4" [validarTipoEntrada]="'numero'" type="text" inputmode="numeric" pattern="[0-9]*"/><a class="pt-4">-</a>
 
     <fn-input formControlName="counter" styleClass="p-3" class="col-6 md:col-2" placeholder="0000" validarInput
-      [validarMaxLength]="4" [validarTipoEntrada]="'numero'" /><a class="pt-4">-</a>
+      [validarMaxLength]="4" [validarTipoEntrada]="'numero'" type="text" inputmode="numeric" pattern="[0-9]*"/><a class="pt-4">-</a>
 
     <fn-input formControlName="number" styleClass="p-3" class="col-6 md:col-1" placeholder="0" validarInput
-      [validarMaxLength]="11" [validarTipoEntrada]="'numero'" [disabled]="true" />
+      [validarMaxLength]="11" [validarTipoEntrada]="'numero'" type="text" inputmode="numeric" pattern="[0-9]*" [disabled]="true" />
 
     <div class="col-12 text-center  md:col-4 md:text-left">
       <p-button (onClick)="consultCase()" [disabled]="numberCaseForm.invalid" [loading]="searchCase.loading"

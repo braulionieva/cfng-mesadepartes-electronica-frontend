@@ -1,63 +1,101 @@
 <app-alert [dataAlert]="messages[0]" [cosable]="true" />
 
-<div class="fn-container plr-6-5 mb-8 mt-6">
-  <div class="text-4xl font-semibold text-primary">
-    Bienvenido a la Mesa de Partes Electrónica
+<div class="mpe_landing__container">
+
+  <div class="mpe_landing__header">
+    <h1>Bienvenido a la Mesa de Partes Electrónica</h1>
+    <p>Aquí usted podrá presentar documentos y denuncias de hechos que ocurrieron en los distritos: Lurín, San Juan de Miraflores, Villa María, Villa el Salvador y Chorrillos. Pertenecientes al Distrito Fiscal de Lima Sur.</p>
   </div>
-  <div class="text-sm font-semibold text-primary mb-5">
-    Aquí usted podrá presentar documentos y denuncias de hechos que ocurrieron en los distritos: Lurín, San Juan de Miraflores, Villa María, Villa el Salvador y Chorrillos. Pertenecientes al Distrito Fiscal de Lima Sur.
-  </div>
-  <div class="grid">
-    <div class="col-12 lg:col-6 xl:col-8">
-      <div class="grid grid-nogutter">
-        <div class="hidden xl:block xl:col-4 bg-no-repeat bg-cover"
-          [ngStyle]="{'background-image': 'url(' + 'assets/images/img_presentacion_denuncia.png' + ')'}"></div>
 
-        <div class="col-12 xl:col-8 h-full">
-          <div class="bg-primary p-5 md:mr-3">
-            <div class="mt-5">
-              <fn-icon [ico]="obtenerIcono('iFileRegister')" height="2.5rem" class="mb-3" />
-              <div class="text-2xl font-semibold mb-2">Presentación de denuncia</div>
-              <div class="mb-5 bg-text">Reporta cualquier conducta sospechosa de la que hayas sido víctima o testigo.
-              </div>
-              <p-button (onClick)="presentarDenuncia()" styleClass="p-button-lg bg-secondary font-semibold btn-adjust">
-                <span>Presentar denuncia</span>
-                <fn-icon *ngIf="!loadingTracking" [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
-                <i *ngIf="loadingTracking" class="pi pi-spin pi-spinner ml-5"></i>
-              </p-button>
-              <a id="link"   target="_blank" alt="Play" rel="noopener">
-                <div class="flex justify-content-end mt-3 mb-1 flex-center">
-                  <p class="text-white ml-2">&nbsp;</p>
-                </div>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 lg:col-6 xl:col-4">
-      <div class="surface-card text-primary p-5">
-        <img height="40px" class="mb-0" src="./assets/images/seguimiento.svg" alt="Caso">
-
-        <div class="text-2xl font-semibold mb-3">¿Ya realizaste una denuncia?</div>
-
-        <div class="mb-2 surface-text">Consulta el estado de su caso</div>
-        <p-button (onClick)="consultarCaso()"
-          styleClass="p-button-lg w-full bg-white font-semibold btn-adjust flex-row justify-content-between">
-          <span class="font-bold">Consultar el caso</span>
-          <fn-icon [ico]="obtenerIcono('iArrowRight')" class="ml-3" />
-        </p-button>
-
-        <div class="mt-4 mb-2 surface-text">Suba documentos de su caso</div>
-        <p-button (onClick)="presentarDocumento()" [loading]="loadingTrackingDocument"
-          styleClass="p-button-lg w-full bg-secondary font-semibold btn-adjust flex-row justify-content-between">
-          <span>Presentar documento</span>
-          <fn-icon *ngIf="!loadingTrackingDocument" [ico]="obtenerIcono('iArrowRight')" class="ml-3" />
+  <div class="mpe_landing__body">
+    <div 
+      class="mpe_landing__left"
+      joyrideStep="presentacionDenuncia"
+      title="Presentar denuncia"
+      text="A través de esta opción, usted como denunciante podrá registrar un hecho delictivo del que haya sido victima o testigo. Debe tener a la mano toda la información necesaria para poder completar las solicitudes."
+    >
+      <div class="mpe_landing__image"></div>
+      <div class="mpe_landing__info">
+        <fn-icon 
+          [ico]="obtenerIcono('iFileRegister')"
+          height="2.5rem"
+        />
+        <h3>Presentación de denuncia</h3>
+        <p>Reporta cualquier conducta sospechosa de la que hayas sido víctima o testigo.</p>
+        <p-button 
+          (onClick)="presentarDenuncia()"
+          styleClass="p-button-lg w-full bg-secondary font-semibold btn-adjust flex-row justify-content-between"
+        >
+          <span class="mpe_boton">Presentar denuncia</span>
+          <fn-icon 
+            *ngIf="!loadingTracking"
+            [ico]="obtenerIcono('iArrowRight')"
+            class="ml-2 mpfn-icon-size-sm"
+          />
+          <i 
+            *ngIf="loadingTracking"
+            class="pi pi-spin pi-spinner ml-5"
+          ></i>
         </p-button>
       </div>
-
+    </div>
+    <div class="mpe_landing__right">
+      <div class="seguimiento_titulo">
+        <img 
+          [src]="seguimientoImage"
+          alt="Seguimiento"
+        >
+        <h3>¿Ya realizaste una denuncia?</h3>
+      </div>
+      <div 
+        class="consultar_caso"
+        joyrideStep="consultarCaso"
+        title="Consultar el caso"
+        text="Con esta opción podra consultar el estado de su caso que investiga la fiscalia correspondiente. Para acceder a esta información, debe tener a la mano el número del Caso para ingresarlo."
+      >
+        <p>Consulta el estado de su caso</p>
+        <p-button 
+          (onClick)="consultarCaso()"
+          styleClass="p-button-lg w-full bg-white font-semibold btn-adjust flex-row justify-content-between"
+        >
+          <span class="mpe_boton">Consultar el caso</span>
+          <fn-icon 
+            [ico]="obtenerIcono('iArrowRight')"
+            class="ml-3 mpfn-icon-size-sm"
+          />
+        </p-button>
+      </div>
+      <div 
+        class="presentar_documento"
+        joyrideStep="presentarDocumento"
+        title="Presentar documento"
+        text="Finalmente, con esta opción usted podra adjuntar documentos digitales a su Caso. Estos deben haber sido solicitados por el fiscal o documentos que usted considere importantes para el apoyo a la investigación fiscal."
+      >
+        <p class="mt-0">Suba documentos de su caso</p>
+        <p-button
+          (onClick)="presentarDocumento()"
+          [loading]="loadingTrackingDocument"
+          styleClass="p-button-lg w-full bg-secondary font-semibold btn-adjust flex-row justify-content-between"
+        >
+          <span class="mpe_boton">Presentar documento</span>
+          <fn-icon
+            *ngIf="!loadingTrackingDocument"
+            [ico]="obtenerIcono('iArrowRight')"
+            class="ml-3 mpfn-icon-size-sm"
+          />
+        </p-button>
+      </div>
+    </div>
+    <div class="mpe_landing__help_guide">
+      <button (click)="startTour()">
+        <div class="icon_help_guide"></div>
+        Guía de ayuda
+      </button>
     </div>
   </div>
+
 </div>
 
-<app-pre-footer></app-pre-footer>
+<div class="mt-6"></div>
+
+<app-pre-footer />

@@ -1,24 +1,18 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, HostListener, inject, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-//primeng
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TabViewModule } from 'primeng/tabview';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ButtonModule } from "primeng/button";
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from "primeng/calendar";
-//mpfn
 import { CmpLibModule, ctrlErrorMsg } from "ngx-mpfn-dev-cmp-lib";
-//utils
-import {
-  SLUG_DOCUMENT_TYPE, SLUG_INVOLVED, SLUG_PROFILE
-} from "@shared/helpers/slugs";
-//interfaces
+import { SLUG_DOCUMENT_TYPE, SLUG_INVOLVED, SLUG_PROFILE } from "@shared/helpers/slugs";
 import { Involved } from '@modules/complaint/interfaces/Involved';
-import { formatDate, noQuotes } from '@shared/utils/utils';
+import { noQuotes } from '@shared/utils/utils';
 import { MaestrosService } from '@shared/services/shared/maestros.service';
-import { Subscription } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import { DateMaskModule } from '@shared/directives/date-mask.module';
 
 import { obtenerIcono } from '@shared/utils/icon';
@@ -26,6 +20,8 @@ import { LOCALSTORAGE } from '@environments/environment';
 import { ProfileType } from '@shared/helpers/dataType';
 import { TokenService } from '@shared/services/auth/token.service';
 import { ValidarInputDirective } from '@core/directives/validar-input.directive';
+import { checkTouchUi } from '@shared/utils/touchui';
+import { SetNumericInputCalendarModule } from '@shared/directives/set-numeric-input-calendar.module';
 
 const { VALIDATE_KEY } = LOCALSTORAGE;
 
@@ -35,132 +31,97 @@ const { VALIDATE_KEY } = LOCALSTORAGE;
   imports: [
     FormsModule, ReactiveFormsModule, CommonModule, TabViewModule,
     ButtonModule, RadioButtonModule, DropdownModule, CalendarModule,
-    CmpLibModule, DateMaskModule, ValidarInputDirective
+    CmpLibModule, DateMaskModule, ValidarInputDirective, SetNumericInputCalendarModule
   ],
   templateUrl: './extra-data-modal.component.html',
   styleUrls: ['./extra-data-modal.component.scss'],
 })
 export class ExtraDataModalComponent implements OnInit {
+  protected readonly ref = inject(DynamicDialogRef);
+  protected readonly config = inject(DynamicDialogConfig);
+  private readonly maestrosService = inject(MaestrosService);
+  private readonly tokenService = inject(TokenService);
+
   private readonly emailRegex: RegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-  @Input() public profileType: ProfileType = SLUG_PROFILE.CITIZEN;
-  @Input() public type: 'agraviado' | 'denunciado' | 'denunciante' = SLUG_INVOLVED.AGRAVIADO
-  /*****************/
-  /*   VARIABLES   */
-  /*****************/
+  protected readonly noQuotes = noQuotes
+  protected readonly obtenerIcono = obtenerIcono;
+  protected readonly today = new Date();
 
-  public obtenerIcono = obtenerIcono
+  protected minDate: Date = new Date(this.today.getFullYear() - 125, this.today.getMonth(), this.today.getDate());
+  protected maxDate: Date = new Date(this.today.getFullYear(), this.today.getMonth(), this.today.getDate() - 1);
 
-  public lgbtiList = []
-  public disabilitiesList = []
-  public maritalStatusList = []
-  public nationalitiesList = []
-  public departmentsList = []
-  public provincesList = []
-  public districtList = []
-  public educationalLevelList = []
-  public indigenousVillageList = []
-  public nativeLanguageList = []
-  public ocupationList = []
+  protected readonly SLUG_INVOLVED = SLUG_INVOLVED;
 
-  public varDepto = '';
-
-  public form: FormGroup;
-  public afroperuvianOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
+  private readonly createOptions = (labelYes: string, labelNo: string) => [
+    { label: labelYes, value: '1' },
+    { label: labelNo, value: '0' }
   ];
-  public genderOptions = [
-    { label: 'Masculino', value: '1' },
-    { label: 'Femenino', value: '2' }
-  ];
-  public disabilityOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
-  ]
 
-  public privateOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
-  ]
-  public vihOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
-  ]
-  public workerOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
-  ]
-  public lgtbiqOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
-  ]
-  public advocateOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
-  ]
-  public migrantOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
-  ]
-  public victimOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
-  ]
-  public serverOptions = [
-    { label: 'Sí', value: '1' },
-    { label: 'No', value: '0' }
-  ]
+  protected lgbtiList = []
+  protected disabilitiesList = []
+  protected maritalStatusList = []
+  protected nationalitiesList = []
+  protected departmentsList = []
+  protected provincesList = []
+  protected districtList = []
+  protected educationalLevelList = []
+  protected indigenousVillageList = []
+  protected nativeLanguageList = []
+  protected ocupationList = []
 
-  private readonly data: Involved = {
-    ...this.config.data.data
+  protected varDepto = '';
+
+  protected form: FormGroup;
+
+  protected afroperuvianOptions = this.createOptions('Sí', 'No');
+  protected genderOptions = [{ label: 'Masculino', value: '1' }, { label: 'Femenino', value: '2' }];
+  protected disabilityOptions = this.createOptions('Sí', 'No');
+  protected privateOptions = this.createOptions('Sí', 'No');
+  protected vihOptions = this.createOptions('Sí', 'No');
+  protected workerOptions = this.createOptions('Sí', 'No');
+  protected lgtbiqOptions = this.createOptions('Sí', 'No');
+  protected advocateOptions = this.createOptions('Sí', 'No');
+  protected migrantOptions = this.createOptions('Sí', 'No');
+  protected victimOptions = this.createOptions('Sí', 'No');
+  protected serverOptions = this.createOptions('Sí', 'No');
+
+  private readonly data: Involved = { ...this.config.data.data }
+  protected readonly tipoInvolucrado: string = this.config.data.tipoInvolucrado
+
+  protected loadingData: boolean = false
+  protected showDNI: boolean = false
+  protected showDenunciante: boolean = true
+  protected ubigeoInfo = { department: null, province: null, district: null }
+  protected touchUiEnabled: boolean = false
+
+  @Input() protected profileType: ProfileType = SLUG_PROFILE.CITIZEN;
+  @Input() protected type: 'agraviado' | 'denunciado' | 'denunciante' = this.SLUG_INVOLVED.AGRAVIADO
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: UIEvent): void {
+    this.touchUiEnabled = checkTouchUi(window.innerWidth)
   }
-
-  private readonly tipoInvolucrado: string = this.config.data.tipoInvolucrado
-
-  public loadingData: boolean = false
-  public suscriptions: Subscription[] = []
-  public showDNI: boolean = false
-  public showDenunciante: boolean = true
-  //utils
-  public noQuotes = noQuotes
-
-  public ubigeoInfo = {
-    department: null,
-    province: null,
-    district: null
-  }
-
-  public maxDate: Date = new Date()
-
-  /*******************/
-  /*   CONSTRUCTOR   */
-  /*******************/
-
-  constructor(
-    public readonly ref: DynamicDialogRef,
-    public readonly config: DynamicDialogConfig,
-    private readonly maestrosService: MaestrosService,
-    private readonly tokenService: TokenService
-  ) { }
-
-  /******************/
-  /*   LIFE CYCLE   */
-  /******************/
 
   ngOnInit(): void {
+    this.ajustarFechasSegunEdad();
+
+    this.loadingData = false
+    this.touchUiEnabled = checkTouchUi(window.innerWidth)
+
     this.listCombos()
     this.form = this.createFreshForm()
 
-    this.loadingData = false
-
     const validateToken = JSON.parse(this.tokenService.getItem(VALIDATE_KEY))
 
-    if (this.tipoInvolucrado === SLUG_INVOLVED.DENUNCIANTE && validateToken.personaNatural.dni === this.data.documentNumber) {
-      this.form.get('phone').setValue(validateToken.registerProfile.numeroCelular);
-
-      this.form.get('email').setValue(validateToken.email);
+    if (this.tipoInvolucrado === this.SLUG_INVOLVED.DENUNCIANTE
+      && validateToken.personaNatural.dni === this.data.documentNumber) {
       this.showDenunciante = false;
+
+      this.form.patchValue({
+        phone: validateToken.registerProfile.numeroCelular,
+        email: validateToken.email
+      })
     }
 
     else {
@@ -169,283 +130,217 @@ export class ExtraDataModalComponent implements OnInit {
       this.form.get('phone').enable(); // Asegura que esté habilitado para ser guardado
       this.form.get('email').enable();
     }
+
     //si la persona tiene DNI
     this.showDNI = false;
 
     if (this.data.documentType === SLUG_DOCUMENT_TYPE.DNI) {
-      this.form.get('gender').setValue(this.data.gender)
+      this.form.patchValue({
+        gender: this.data.gender,
+        bornDate: this.data.bornDate,
+        age: this.data.age,
+        idEducationalLevel: this.data.idEducationalLevel,
+        maritalStatus: this.data.maritalStatus,
+        address: this.data.address,
+        nationality: this.data.nationality,
+        department: this.data.department
+      });
 
-      this.form.get('bornDate').setValue(this.data.bornDate)
-      this.form.get('age').setValue(this.data.age)
-      this.form.get('idEducationalLevel').setValue(this.data.idEducationalLevel)
+      if (this.data.department) {
+        this.getProvinces(this.data.department).then(() => {
+          this.form.get('province').setValue(this.data.province)
 
-      this.form.get('maritalStatus').setValue(this.data.maritalStatus)
+          if (this.data.province) {
+            this.getDistricts(this.data.department, this.data.province).then(() => {
+              this.form.get('district').setValue(this.data.district)
+            });
+          }
+        })
+      }
+    }
 
-      this.form.get('address').setValue(this.data.address)
+    if (this.tipoInvolucrado != this.SLUG_INVOLVED.DENUNCIADO) {
+      this.form.patchValue({
+        phone: this.data.phone,
+        email: this.data.email
+      })
+    }
+  }
 
-      this.form.get('nationality').setValue(this.data.nationality)
+  private ajustarFechasSegunEdad() {
+    const esMenorEdad = this.data.checkMenorEdad;
 
-      this.form.get('department').setValue(this.data.department)
-
-      this.getProvinces(this.data.department)
-      this.form.get('province').setValue(this.data.province)
-
-      this.getDistricts(this.data.department, this.data.province)
-      this.form.get('district').setValue(this.data.district)
+    if (esMenorEdad) {
+      this.minDate = new Date(this.today.getFullYear() - 18, this.today.getMonth(), this.today.getDate() + 1);
+    } else {
+      this.minDate = new Date(this.today.getFullYear() - 125, this.today.getMonth(), this.today.getDate());
     }
   }
 
   private createFreshForm(): FormGroup {
     this.initializeLoadingAndUbigeo();
+
     return new FormGroup(this.buildFormControls());
   }
 
   private initializeLoadingAndUbigeo(): void {
     this.loadingData = true;
+
     this.ubigeoInfo = {
-      department: this.data?.department  || null,
-      province:   this.data?.province    || null,
-      district:   this.data?.district    || null,
+      department: this.data?.department || null,
+      province: this.data?.province || null,
+      district: this.data?.district || null,
     };
   }
 
   private buildFormControls(): { [key: string]: FormControl } {
     const d = this.data;
+
+    const control = (key: keyof typeof d, def: any = null, validators: any[] = []): FormControl =>
+      new FormControl(d?.[key] ?? def, validators);
+
     return {
-      gender:                    new FormControl(d?.gender                  || 'm'),
-      bornDate:                  new FormControl(d?.bornDate                || ''),
-      age:                       new FormControl(d?.age                      || 0),
-      idEducationalLevel:        new FormControl(d?.idEducationalLevel      || null),
-      maritalStatus:             new FormControl(d?.maritalStatus           || null),
-      nationality:               new FormControl(d?.nationality             || null),
-      department:                new FormControl(null),
-      province:                  new FormControl(null),
-      district:                  new FormControl(null),
-      address:                   new FormControl(d?.address                 || ''),
-      phone:                     new FormControl(d?.phone                   || '', [Validators.minLength(9), Validators.maxLength(20)]),
-      email:                     new FormControl(d?.email                   || '', Validators.pattern(this.emailRegex)),
-      secondaryPhone:            new FormControl(d?.secondaryPhone          || '', [Validators.minLength(9), Validators.maxLength(20)]),
-      secondaryEmail:            new FormControl(d?.secondaryEmail          || '', Validators.pattern(this.emailRegex)),
-      ocupation:                 new FormControl(d?.ocupation               || null),
-      indigenousVillage:         new FormControl(d?.indigenousVillage       || null),
-      nativeLanguage:            new FormControl(d?.nativeLanguage          || null),
-      translator:                new FormControl(d?.translator),
-      afroperuvian:              new FormControl(d?.afroperuvian            || null),
-      disability:                new FormControl(d?.disability              || null),
-      privateLibertad:           new FormControl(d?.privateLibertad         || null),
-      vih:                       new FormControl(d?.vih                     || null),
-      worker:                    new FormControl(d?.worker                  || null),
-      lgtbiq:                    new FormControl(d?.lgtbiq                  || null),
-      advocate:                  new FormControl(d?.advocate                || null),
-      migrant:                   new FormControl(d?.migrant                 || null),
-      victim:                    new FormControl(d?.victim                  || null),
-      server:                    new FormControl(d?.server                  || null),
-      otrosDetalleProfesionOficio: new FormControl(d?.otrosDetalleProfesionOficio || null),
+      gender: control('gender', 'm'),
+      bornDate: control('bornDate', ''),
+      age: control('age', 0),
+      idEducationalLevel: control('idEducationalLevel'),
+      maritalStatus: control('maritalStatus'),
+      nationality: control('nationality'),
+      department: control(null),
+      province: control(null),
+      district: control(null),
+      address: control('address', ''),
+      phone: control('phone', '', [Validators.minLength(9), Validators.maxLength(20)]),
+      email: control('email', '', [Validators.pattern(this.emailRegex)]),
+      secondaryPhone: control('secondaryPhone', '', [Validators.minLength(9), Validators.maxLength(20)]),
+      secondaryEmail: control('secondaryEmail', '', [Validators.pattern(this.emailRegex)]),
+      ocupation: control('ocupation'),
+      indigenousVillage: control('indigenousVillage'),
+      nativeLanguage: control('nativeLanguage'),
+      translator: control('translator'),
+      afroperuvian: control('afroperuvian'),
+      disability: control('disability'),
+      privateLibertad: control('privateLibertad'),
+      vih: control('vih'),
+      worker: control('worker'),
+      lgtbiq: control('lgtbiq'),
+      advocate: control('advocate'),
+      migrant: control('migrant'),
+      victim: control('victim'),
+      server: control('server'),
+      otrosDetalleProfesionOficio: control('otrosDetalleProfesionOficio'),
     };
   }
 
   get validForm(): boolean {
-    return this.form.get('phone').valid
-      && this.form.get('email').valid
-      && this.form.get('secondaryPhone').valid
-      && this.form.get('secondaryEmail').valid
+    return this.form.get('phone').valid && this.form.get('email').valid
+      && this.form.get('secondaryPhone').valid && this.form.get('secondaryEmail').valid
   }
 
-  public listCombos(): void {
-    this.getEducationalLevel()
-    this.getMaritalStatus()
-    this.getNationalities()
-    this.getDepartments()
-    this.getIndigenousVillage()
-    this.getNativeLanguages()
-    this.getActivityLaboral()
-  }
+  protected listCombos(): void {
+    this.departmentsList = []
 
-  /*************************/
-  /*   EDUCATIONAL LEVEL   */
-  /*************************/
-
-  public getEducationalLevel(): void {
-    this.suscriptions.push(
-      this.maestrosService.getEducationalLevel().subscribe({
-        next: resp => {
-          if (resp && resp.code === 200) {
-            this.educationalLevelList = resp.data
-          }
+    forkJoin({
+      educationalLevel: this.maestrosService.getEducationalLevel(),
+      maritalStatus: this.maestrosService.getMaritalStatus(),
+      activityLaboral: this.maestrosService.getActivityLaboral(),
+      nationalities: this.maestrosService.getNationalities(),
+      indigenousVillage: this.maestrosService.getIndigenousVillage(),
+      nativeLanguages: this.maestrosService.getNativeLanguages(),
+      departments: this.maestrosService.getAllDepartments()
+    }).subscribe({
+      next: (resp) => {
+        if (resp.educationalLevel?.code === 200) {
+          this.educationalLevelList = resp.educationalLevel.data;
         }
-      })
-    )
+
+        if (resp.maritalStatus?.code === 200) {
+          this.maritalStatusList = resp.maritalStatus.data;
+        }
+
+        if (resp.activityLaboral?.code === 200) {
+          this.ocupationList = resp.activityLaboral.data;
+        }
+
+        if (resp.nationalities?.code === 200) {
+          this.nationalitiesList = resp.nationalities.data;
+        }
+
+        if (resp.indigenousVillage?.codigo === 200) {
+          this.indigenousVillageList = resp.indigenousVillage.data;
+        }
+
+        if (resp.nativeLanguages?.codigo === 200) {
+          this.nativeLanguageList = resp.nativeLanguages.data;
+        }
+
+        if (resp.departments?.code === 200) {
+          this.departmentsList = resp.departments.data.sort((x, y) => x.nombre.localeCompare(y.nombre));
+          this.form.get('department').setValue(this.getUbigeo(1))
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar datos maestros:', err);
+      }
+    });
   }
 
-  public getEducationalLevelDesc(idEducationLevel: number): string | null {
+  protected getEducationalLevelDesc(idEducationLevel: number): string | null {
     if (!idEducationLevel)
       return null
-    const level = this.educationalLevelList.find(x => x.id === idEducationLevel)
+
+    const level = this.educationalLevelList.find(x => x.id === idEducationLevel);
     return level ? level.nombre : null
   }
 
-  /**********************/
-  /*   MARITAL STATUS   */
-  /**********************/
-
-  public getMaritalStatus(): void {
-    this.suscriptions.push(
-      this.maestrosService.getMaritalStatus().subscribe({
-        next: resp => {
-          if (resp && resp.code === 200) {
-            this.maritalStatusList = resp.data
-          }
-        }
-      })
-    )
-  }
-
-  /**********************/
-  /*  ACTIVITY LABORAL  */
-  /**********************/
-
-  public getActivityLaboral(): void {
-    this.suscriptions.push(
-      this.maestrosService.getActivityLaboral().subscribe({
-        next: resp => {
-          if (resp && resp.code === 200) {
-            this.ocupationList = resp.data
-          }
-        }
-      })
-    )
-  }
-
-  /*********************/
-  /*   NATIONALITIES   */
-  /*********************/
-  public getNationalities() {
-    this.suscriptions.push(
-      this.maestrosService.getNationalities().subscribe({
-        next: resp => {
-          if (resp && resp.code === 200) {
-            this.nationalitiesList = resp.data
-          }
-        }
-      })
-    )
-  }
-
-  /****************/
-  /*  DEPARMENTS  */
-  /****************/
-
-  public getDepartments(): void {
-    this.departmentsList = []
-    this.suscriptions.push(
-      this.maestrosService.getAllDepartments().subscribe({
-        next: resp => {
-          if (resp.code && resp.code === 200) {
-            this.departmentsList = resp.data
-            this.departmentsList.sort((x, y) => x.nombre.localeCompare(y.nombre));
-
-            this.form.get('department').setValue(this.getUbigeo(1))
-          }
-        }
-      })
-    );
-  }
-
-  public changeDepartment(id: string): void {
+  protected async changeDepartment(id: string) {
     this.varDepto = id;
 
     if (id !== null && id !== 'null') {
       this.form.controls['province'].reset()
       this.form.controls['province'].enable()
+
       this.form.controls['district'].reset()
       this.form.controls['district'].disable()
-      this.getProvinces(id)
+
+      await this.getProvinces(id)
     }
   }
 
-  /***************/
-  /*  PROVINCES  */
-  /***************/
-
-  public getProvinces(departmentId: string): void {
+  protected async getProvinces(departmentId: string) {
     this.provincesList = []
-    this.suscriptions.push(
-      this.maestrosService.getProvinces(departmentId).subscribe({
-        next: resp => {
-          if (resp.code && resp.code === 200) {
-            this.provincesList = resp.data
-            this.provincesList.sort((x, y) => x.nombre.localeCompare(y.nombre));
-            this.form.get('province').setValue(this.getUbigeo(2))
-          }
-        }
-      })
-    )
+
+    const resp = await firstValueFrom(this.maestrosService.getProvinces(departmentId));
+
+    if (resp.code && resp.code === 200) {
+      this.provincesList = resp.data
+      this.provincesList.sort((x, y) => x.nombre.localeCompare(y.nombre));
+      this.form.get('province').setValue(this.getUbigeo(2))
+    }
   }
 
-  public changeProvince(id: string): void {
+  protected async changeProvince(id: string) {
     if (id !== null && id !== 'null') {
       this.form.controls['district'].reset()
       this.form.controls['district'].enable()
-      this.getDistricts(this.varDepto, id)
+
+      await this.getDistricts(this.varDepto, id)
     }
   }
 
-  /***************/
-  /*  DISTRICTS  */
-  /***************/
-
-  public getDistricts(departmentId: string, provinceId: string): void {
+  protected async getDistricts(departmentId: string, provinceId: string) {
     this.districtList = []
-    this.suscriptions.push(
-      this.maestrosService.getDistricts(departmentId, provinceId).subscribe({
-        next: resp => {
-          if (resp.code && resp.code === 200) {
-            this.districtList = resp.data
-            this.districtList.sort((x, y) => x.nombre.localeCompare(y.nombre));
-            this.form.get('district').setValue(this.getUbigeo(3))
-          }
-        }
-      })
-    )
+
+    const resp = await firstValueFrom(this.maestrosService.getDistricts(departmentId, provinceId));
+
+    if (resp.code && resp.code === 200) {
+      this.districtList = resp.data.sort((x, y) => x.nombre.localeCompare(y.nombre));
+
+      this.form.get('district').setValue(this.getUbigeo(3))
+    }
   }
 
-  /***********************/
-  /*   NATIVE LANGUAGE   */
-  /***********************/
-
-  public getIndigenousVillage(): void {
-    this.suscriptions.push(
-      this.maestrosService.getIndigenousVillage().subscribe({
-        next: resp => {
-          if (resp && resp.codigo === 200) {
-            this.indigenousVillageList = resp.data
-          }
-        }
-      })
-    )
-  }
-
-  /***********************/
-  /*   NATIVE LANGUAGE   */
-  /***********************/
-
-  public getNativeLanguages(): void {
-    this.suscriptions.push(
-      this.maestrosService.getNativeLanguages().subscribe({
-        next: resp => {
-          if (resp && resp.codigo === 200) {
-            this.nativeLanguageList = resp.data
-          }
-        }
-      })
-    )
-  }
-
-  /*****************/
-  /*   SAVE DATA   */
-  /*****************/
-
-  public saveData(): void {
+  protected saveData(): void {
     const cleanFormValue = Object.fromEntries(
       Object.entries(this.form.getRawValue()) // <- usa getRawValue() en lugar de form.value
         .filter(([_, value]) => value !== undefined && value !== null)
@@ -457,47 +352,65 @@ export class ExtraDataModalComponent implements OnInit {
     };
 
     this.ref.close(payload);
-
   }
 
-  /**********************/
-  /*   CANCEL EDITION   */
-  /**********************/
-
-  public cancelEdition(): void {
+  protected cancelEdition(): void {
     this.ref.close()
   }
 
-  /**************/
-  /*   OTHERS   */
-  /**************/
-
-  public errorMsg(ctrlName) {
+  protected errorMsg(ctrlName) {
     return ctrlErrorMsg(this.form.get(ctrlName))
   }
 
-  public getUbigeo(type: number): string {
-    let ubigeo = ''
-    const { department, province, district } = this.ubigeoInfo
-    switch (type) {
-      case 1: ubigeo = `${department}`; break
-      case 2: ubigeo = `${province}`; break
-      default: ubigeo = `${district}`; break
+  protected getUbigeo(type: number): string {
+    if (!this.ubigeoInfo) {
+      return null;
     }
-    return ubigeo
+
+    const { department, province, district } = this.ubigeoInfo
+
+    switch (type) {
+      case 1:
+        return department;
+
+      case 2:
+        return province;
+
+      default:
+        return district;
+    }
   }
 
 
-  public changeDate(event: any): void {
-    let fecha = formatDate(this.form.get('bornDate').value)
-    if (fecha !== '') {
-      let timeDiff = Math.abs(Date.now() - this.form.get('bornDate').value);
-      let edad = Math.ceil((timeDiff / (1000 * 3600 * 24)) / 365);
-      this.form.get('age').setValue(edad - 1)
+  protected changeDate(): void {
+    const bornDateValue = this.form.get('bornDate').value;
+    if (!bornDateValue) {
+      this.form.get('age').setValue(0);
+      return;
     }
 
-    else {
-      this.form.get('age').setValue(0)
+    const fechaNacimiento = new Date(bornDateValue);
+    if (isNaN(fechaNacimiento.getTime())) {
+      this.form.get('age').setValue(0);
+      return;
     }
+
+    const edad = this.calcularEdad(fechaNacimiento);
+
+    this.form.get('age').setValue(edad);
+  }
+
+  calcularEdad(fechaNacimiento: Date): number {
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+    const mesDiff = hoy.getMonth() - fechaNacimiento.getMonth();
+    const diaDiff = hoy.getDate() - fechaNacimiento.getDate();
+
+    // Si no ha cumplido años este año, restamos 1
+    if (mesDiff < 0 || (mesDiff === 0 && diaDiff < 0)) {
+      edad--;
+    }
+
+    return edad;
   }
 }

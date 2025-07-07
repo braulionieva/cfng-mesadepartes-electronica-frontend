@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { DomainType } from '@shared/types/auth/domain-type';
 import { ApiBaseService } from '../global/api-base.service';
-import { Observable } from 'rxjs';
+import { catchError, concat, first, Observable, of, throwError } from 'rxjs';
 import { ProfileRegistration } from '@shared/interfaces/personal-data/profile-registration';
 import { DocumentoCargo } from '@shared/interfaces/documento/documento-cargo';
 
@@ -48,8 +48,14 @@ export class MesaService {
     return this.apiBase.get('maestros', `verifications/CondicionesMesaParte`)
   }*/
 
-  generateNewComplaint(body: Object): Observable<any> {
+  //registra la denuncia en EFE
+  registrarDenunciaEFE(body: Object): Observable<any> {
     return this.apiBase.post(this.mesaKey, `v1/e/denuncia`, body)
+  }
+
+  //registra la denuncia en SGF
+  registrarDenunciaLegacy(body: Object): Observable<any> {
+    return this.apiBase.post(this.mesaKey, `v1/e/denuncia/registrarDenunciaLegacy`, body)
   }
 
   identificarDenunciaDuplicada(body: Object): Observable<any> {
@@ -68,5 +74,28 @@ export class MesaService {
     return this.apiBase.post(this.mesaKey, `v1/e/sgf/consultar-grupo-aleatorio`, body)
   }
 
-}
+  getPublicIp(): Observable<string> {
+    debugger
 
+    const sources = [
+      this.apiBase.http.get<{ ip: string }>('https://api.ipify.org?format=json').pipe(
+        catchError(() => of(null))
+      ),
+
+      this.apiBase.http.get<{ ip: string }>('https://ipinfo.io/json').pipe(
+        catchError(() => of(null))
+      ),
+
+      this.apiBase.http.get('https://icanhazip.com/', { responseType: 'text' }).pipe(
+        catchError(() => of(null))
+      )
+    ];
+
+    return concat(...sources).pipe(
+      first((res: any) => res && (typeof res === 'string' || res.ip)), // toma la primera que funcione
+      catchError(() => throwError(() => new Error('No se pudo obtener la IP')))
+    );
+  }
+
+
+}

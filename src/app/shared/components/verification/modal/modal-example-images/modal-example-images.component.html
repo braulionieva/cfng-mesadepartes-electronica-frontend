@@ -1,0 +1,20 @@
+<h3 class="mpe_titulo_ejemplo">{{ validations[currentValidationIndex].label }}</h3>
+
+<div class="col-12 mpe_ejemplos"
+    style="	display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
+    <div class="w-full">
+        <div class="item-img-example w-fulll" *ngFor="let asset of validations[currentValidationIndex].assets">
+            <img [src]="asset.img" class="w-13rem" alt="">
+            <span class="text-smx line-height-2 w-15rem" [innerHTML]="sanitizerTexto(asset.caption)"></span>
+        </div>
+    </div>
+</div>
+
+<div class="mpe_opciones_ejemplo">
+    <p-button 
+        (onClick)="cerrarModal()"
+        styleClass='p-button-lg bg-secondary text-white font-semibold btn-adjust mpfn-boton'
+    >
+        <span class="mpe_boton_continuar">Aceptar</span>
+    </p-button>
+</div>

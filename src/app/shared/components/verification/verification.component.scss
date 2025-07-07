@@ -1,5 +1,104 @@
+@use 'responsive' as *;
+
 .alerta-verificacion {
     width: 100%;
     max-width: 90%;
     margin-bottom: 20px;
+}
+
+.help-container {
+    display: none;
+    position: relative;
+    .help-icon {
+        position: absolute;
+        left: 165px;
+        top: 25px;
+        z-index: 10;
+    }
+    .help-separation-1 {
+        left: 135px !important;
+    }
+}
+
+@media(max-width: $tablet) {
+    .help-container {
+        display: block;
+    }
+    .mpe_formulario_identificacion {
+        width: 100%;
+        justify-content: center;
+        margin: 0;
+        .mpe_formulario_identificacion_item {
+            width: $formulario-tablet-width;
+            padding: 0;
+        }
+        .mpe_formulario_identificacion_ejemplo {
+            display: none !important;
+        }
+    }
+}
+
+@media(max-width: $large-mobile) {
+    .mpfn-subtitle {
+        text-align: center;
+    }
+    .mpfn-descripcion {
+        text-align: center;
+    }
+    .mpe_formulario_identificacion {
+        .mpe_formulario_identificacion_item {
+            margin-top: 40px !important;
+            width: 100%;
+        }
+    }
+    .mpe_opciones {
+        margin-top: 40px !important;
+    }
+}
+
+@media(max-width: $medium-mobile) {
+    .mpfn-subtitle {
+        font-size: 17px;
+        margin-top: 20px;
+    }
+    .mpfn-descripcion {
+        font-size: 14px;
+    }
+    .mpe_boton_continuar {
+        font-size: 12px;
+    }
+    :host::ng-deep p-button {
+        button {
+            font-size: 12px !important;
+        }
+    }
+    .help-container {
+        .help-icon {
+            left: 142px;
+            top: 23px;
+        }
+        .help-separation-1 {
+            left: 118px !important;
+            top: 23px;
+        }
+    }
+}
+
+@media(max-width: $mobile) {
+    .mpe_opciones {
+        margin-top: 40px !important;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    :host::ng-deep p-button {
+        width: 100%;
+        button {
+            width: 100%;
+            justify-content: center;
+        }
+        &:first-child {
+            order: 2;
+            margin-top: 10px;
+        }
+    }
 }

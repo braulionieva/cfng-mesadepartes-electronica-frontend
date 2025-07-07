@@ -37,7 +37,7 @@ export const SECONDS_TO_PARCIAL_SEND = 30000;
 export const SESSION_MINUTES = 0
 
 export const VIEW_GENERATED_COMPLAINT_MINUTES = 5
-
+export const DEFAULT_CLIENT_IP = '10.40.121.10';
 
 export const SOURCES = {
     LOGO: "http://172.16.111.112:8081/repositorio/resources/publico/carpeta/plantilla/imagen/logoMinisterio.png",

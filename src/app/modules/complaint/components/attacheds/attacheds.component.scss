@@ -1,6 +1,4 @@
-.upload-file {
-    width: 90%;
-}
+@use 'responsive' as *;
 
 :host::ng-deep {
     .pi-file-arrow-up:before {
@@ -17,45 +15,10 @@
         height: 20px;
         margin-left: 20px;
     }
-    $total-width: calc(100% + 10%);
-    .file-list {
-        width: $total-width;
-        h3 {
-            font-family: var(--mpfn-font-roboto-semi-bold) !important;
-            font-size: 14px !important;
-            margin-bottom: 10px !important;
-        }
-        .p-datatable {
-            thead {
-                tr {
-                    th {
-                        font-family: var(--mpfn-font-roboto-semi-bold) !important;
-                        font-size: 12px;
-                        &:last-child {
-                            width: 80px !important;
-                        }
-                        &:nth-last-child(2) {
-                            width: 100px !important;
-                        }
-                    }
-                }
-            }
-            tbody {
-                tr {
-                    td {
-                        font-family: var(--mpfn-font-roboto-regular) !important;
-                    }
-                }
-            }
-        }
-    }
-    .pi-file-pdf:before {
-        content: "\e958" !important;
-    }
-    .total-size {
-        width: $total-width;
-        margin-top: -10px !important;
-        font-family: var(--mpfn-font-roboto-regular) !important;
-        font-size: 16px;
+}
+
+@media(max-width: $medium-mobile) {
+    .mpe_attachments_space {
+        margin-top: 10px !important;
     }
 }

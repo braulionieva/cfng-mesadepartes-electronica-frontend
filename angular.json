@@ -29,6 +29,11 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
+              {
+                "glob": "**/*",
+                "input": "node_modules/ngx-extended-pdf-viewer/assets/",
+                "output": "/assets/"
+              },
               "src/assets/i18n",
               "src/web.config"
             ],
@@ -44,7 +49,14 @@
               "src/assets/styles/theme/tema-mpe.scss",
               "src/assets/styles/scss/base/fonts.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "pako",
+              "leaflet",
+              "jszip",
+              "inputmask",
+              "crypto-js"
+            ]
           },
           "configurations": {
             "options": {
@@ -126,26 +138,26 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "mpe-ng:build"
+            "buildTarget": "mpe-ng:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "mpe-ng:build:production"
+              "buildTarget": "mpe-ng:build:production"
             },
             "preprod": {
-              "browserTarget": "mpe-ng:build:preprod"
+              "buildTarget": "mpe-ng:build:preprod"
             },
             "qa": {
-              "browserTarget": "mpe-ng:build:qa"
+              "buildTarget": "mpe-ng:build:qa"
             },
             "dev": {
-              "browserTarget": "mpe-ng:build:dev"
+              "buildTarget": "mpe-ng:build:dev"
             },
             "api": {
-              "browserTarget": "mpe-ng:build:api"
+              "buildTarget": "mpe-ng:build:api"
             },
             "local": {
-              "browserTarget": "mpe-ng:build:local"
+              "buildTarget": "mpe-ng:build:local"
             }
           },
           "defaultConfiguration": "dev"
@@ -153,7 +165,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "mpe-ng:build"
+            "buildTarget": "mpe-ng:build"
           }
         },
         "test": {

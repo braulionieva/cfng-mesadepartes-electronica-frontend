@@ -18,6 +18,7 @@ export const ENDPOINTS_MICROSERVICES = {
     MS_MESA: `http://cfms-mesadepartes-electronica-gestion-api-qa.apps.ocp4.cfe.mpfn.gob.pe/cfe/mesadepartes/electronica/`,
     MS_REPOSITORIO: `http://cfms-generales-almacenamiento-objetos-api-qa.apps.ocp4.cfe.mpfn.gob.pe/cfe/generales/objetos/v2/t/almacenamiento/publico/`,
     MS_DOCUMENTO: `http://cfms-mesadepartes-documentos-gestion-api-qa.apps.ocp4.cfe.mpfn.gob.pe/cfe/mesadepartes/documentos/`,
+    MS_CONSULTA_AI: `http://cfms-mesadepartes-electronica-gestion-api-qa.apps.ocp4.cfe.mpfn.gob.pe/cfe/mesadepartes/electronica/v1/`,
 };
 
 export const SYSTEM_CODE = '112';
@@ -36,7 +37,7 @@ export const LOCALSTORAGE = {
     NOMBRE_DOCUMENTO_KEY: "bm9tYnJlIGRvY3VtZW50bw=="
 }
 
-
+export const DEFAULT_CLIENT_IP = '10.40.121.10';
 export const SECONDS_TO_PARCIAL_SEND = 30000;
 export const SESSION_MINUTES = 0
 export const VIEW_GENERATED_COMPLAINT_MINUTES = 5

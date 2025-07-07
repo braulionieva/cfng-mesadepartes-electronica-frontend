@@ -25,7 +25,6 @@ import { Router } from '@angular/router';
     <div class="p-dialog-header w-full bg-secondary-header">
         <div class="flex align-items-center">
             <i class="pi pi-info-circle icon-color"></i>
-
             <span class="p-dialog-title">Está a punto de salir de {{isComplaintProcess?'registro de denuncia':'seguimiento del caso'}} </span>
         </div>
     </div>

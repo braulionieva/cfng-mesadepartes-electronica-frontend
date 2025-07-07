@@ -1,4 +1,4 @@
-<form [formGroup]="form" class="grid mpfn-formulario mt-3">
+<form [formGroup]="form" class="grid mpfn-formulario mpe_escenario mt-3">
   <div class="field col-12 md:col-6 mpfn-input-separation">
     <div class="mpfn-label-icon">
       <label for="" class="block text-sm font-semibold ng-star-inserted">Fecha del hecho</label>
@@ -9,7 +9,7 @@
 
     <p-calendar dateFormat="dd/mm/yy" formControlName="sceneDate" placeholder="dd/mm/aaaa" [maxDate]="maxDate"
       styleClass="w-full" [ngClass]="{'ng-invalid ng-dirty': errorMsg('sceneDate')}" (onSelect)="limpiarHora()"
-      (onInput)="validarFecha($event)" dateMask />
+      (onInput)="validarFecha($event)" dateMask calendarNumericInput/>
 
     <small error *ngIf="errorMsg('sceneDate')" class="p-error block">
       {{ errorMsg('sceneDate') }}
@@ -25,15 +25,17 @@
     </div>
 
     <p-calendar formControlName="sceneHour" [timeOnly]="true" [hourFormat]="'12'" placeholder="00:00"
-      [ngClass]="{'ng-invalid ng-dirty': errorMsg('sceneHour')}" styleClass="w-full"
-      (onSelect)="alCambiarHoraHecho()" />
+        [ngClass]="{'ng-invalid ng-dirty': errorMsg('sceneHour')}" styleClass="w-full scene-hour"
+        (onSelect)="alCambiarHoraHecho()" calendarNumericInput/>
+    
     <small error *ngIf="errorMsg('sceneHour')" class="p-error block">
       {{errorMsg('sceneHour')}}
     </small>
   </div>
 
   <label for="" class="mpfn-text map-label mt-2">
-    Bríndanos los datos de la dirección donde ocurrió el hecho. Esto nos servirá como referencia para ubicar el lugar exacto.
+    Bríndanos los datos de la dirección donde ocurrió el hecho. Esto nos servirá como referencia para ubicar el lugar
+    exacto.
   </label>
 
   <fn-input-wrapper label="Departamento" class="col-12 md:col-6 mpfn-input-separation">
@@ -67,28 +69,30 @@
 
   <fn-input-wrapper label="Sede referencial" class="col-12 md:col-6 mpfn-input-separation">
     <p-dropdown [options]="sedesGrupoAleatorio" optionLabel="deSedeGeo" optionValue="idGrupoAleatorio"
-                [disabled]="isDisabledSedesGrupoAleatorio" [filter]="true" filterBy="deSedeGeo" placeholder="Seleccionar" formControlName="sedeGrupoAleatorio"
-                emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('sedeGrupoAleatorio')}" />
+      [disabled]="isDisabledSedesGrupoAleatorio" [filter]="true" filterBy="deSedeGeo" placeholder="Seleccionar"
+      formControlName="sedeGrupoAleatorio" (ngModelChange)="changeSedeGrupoAleatorio($event)"
+      emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('sedeGrupoAleatorio')}" />
 
     <small error *ngIf="errorMsg('sedeGrupoAleatorio')" class="p-error block">
       {{errorMsg('sedeGrupoAleatorio')}}
     </small>
   </fn-input-wrapper>
 
-  <app-alert [dataAlert]="messages[0]" [cosable]="false" />
+  <app-alert [dataAlert]="messages[0]" [cosable]="false" class="mpe_alerta_ajuste" />
 
-  <fn-input-wrapper label="Tipo de via" class="col-3 md:col-3 mpfn-input-separation">
-    <p-dropdown [options]="tiposVias" optionLabel="nombre" optionValue="id"
-                [filter]="true" filterBy="nombre" placeholder="Seleccionar" formControlName="tipoVia"
-                emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('tipoVia')}" />
+  <fn-input-wrapper label="Tipo de vía" class="col-3 md:col-3 mpfn-input-separation mpe_tipo_via">
+    <p-dropdown [options]="tiposVias" optionLabel="nombre" optionValue="id" [filter]="true" filterBy="nombre"
+      placeholder="Seleccionar" formControlName="tipoVia" emptyMessage="Datos no encontrados"
+      [ngClass]="{'ng-invalid ng-dirty': errorMsg('tipoVia')}" />
 
     <small error *ngIf="errorMsg('tipoVia')" class="p-error block">
       {{errorMsg('tipoVia')}}
     </small>
   </fn-input-wrapper>
 
-  <fn-input class="col-9 md:col-9 mpfn-input-separation" label="Dirección" placeholder="Ej.: Av. Pedro Silva 123" formControlName="address"
-    validarInput [validarMaxLength]="200" maxlength="200" />
+  <fn-input class="col-9 md:col-9 mpfn-input-separation mpe_direccion" label="Dirección"
+    placeholder="Ej.: Av. Pedro Silva 123" formControlName="address" validarInput [validarMaxLength]="200"
+    maxlength="200" />
 
   <div class="col-12">
     <div id="map" style="z-index: 1;"></div>

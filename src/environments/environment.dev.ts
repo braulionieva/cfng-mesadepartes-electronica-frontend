@@ -7,7 +7,6 @@ export const CREDENTIALS = {
     PASSWORD: 'ms-dev',
 };
 
-
 export const DOMAIN_API_MANAGER = 'https://apimocha.com/apimanager/';
 export const DOMAIN_MICROSERVICES = 'https://172.16.111.123:8243/';
 
@@ -19,6 +18,7 @@ export const ENDPOINTS_MICROSERVICES = {
     //MS_MESA: `http://localhost:8080/cfe/mesadepartes/electronica/`,
     MS_REPOSITORIO: `http://cfms-generales-almacenamiento-objetos-api-development.apps.dev.ocp4.cfe.mpfn.gob.pe/cfe/generales/objetos/v2/t/almacenamiento/publico/`,
     MS_DOCUMENTO: `http://cfms-mesadepartes-documentos-gestion-api-development.apps.dev.ocp4.cfe.mpfn.gob.pe/cfe/mesadepartes/documentos/`,
+    MS_CONSULTA_AI: `http://cfms-mesadepartes-electronica-gestion-api-development.apps.dev.ocp4.cfe.mpfn.gob.pe/cfe/mesadepartes/electronica/v1/`,
 };
 
 export const SYSTEM_CODE = '112';
@@ -41,7 +41,7 @@ export const LOCALSTORAGE = {
 export const SECONDS_TO_PARCIAL_SEND = 30000;
 export const SESSION_MINUTES = 0
 export const VIEW_GENERATED_COMPLAINT_MINUTES = 5
-
+export const DEFAULT_CLIENT_IP = '10.40.121.10';
 
 export const SOURCES = {
     LOGO: "http://172.16.111.112:8081/repositorio/resources/publico/carpeta/plantilla/imagen/logoMinisterio.png",

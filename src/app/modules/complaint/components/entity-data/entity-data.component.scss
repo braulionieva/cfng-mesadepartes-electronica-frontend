@@ -1,3 +1,4 @@
+@use 'responsive' as *;
 @import url('https://unpkg.com/leaflet@1.9.3/dist/leaflet.css');
 @import url('https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css');
 
@@ -12,6 +13,14 @@
 
 .user-added {
   width: calc(100% - 30px);
+  display: flex;
+  .user-added-icon {
+    width: 20px;
+    margin-right: 10px;
+  }
+  .user-added-content {
+    width: calc(100% - 20px);
+  }
 }
 
 .user-option {
@@ -19,7 +28,7 @@
 }
 
 .mpfn-numero-ruc {
-  width: calc(100% - 55px) !important;
+  width: calc(100% - 60px) !important;
   &.mpfn-count {
     margin-bottom: 10px !important;
   }
@@ -27,4 +36,47 @@
 
 .mpfn-search-ruc {
   margin-bottom: -28px !important;
+  width: 60px;
+}
+
+@media(max-width: 767px) {
+  .mpfn-origen {
+    margin-top: -10px !important;
+  }
+}
+
+@media(max-width: $medium-mobile) {
+  .mpfn-subtitle {
+    font-size: 14px !important;
+  }
+  .mpfn-numero-ruc {
+    margin-top: 10px !important;
+  }
+  .mpfn-search-ruc {
+    margin-bottom: -11px !important;
+  }
+  .mpe_documento_representacion {
+    margin-top: 18px !important;
+    margin-bottom: 12px !important;
+  }
+  .user-added {
+    .user-added-icon {
+      margin-right: 5px;
+      margin-top: 3px;
+    }
+    .user-added-content {
+      .user-added-name {
+        font-size: 12px;
+      }
+    }
+  }
+  .mpe_involucrado {
+    margin-top: 12px !important;
+  }
+}
+
+@media (max-width: $mobile) {
+  p-button:first-child {
+    margin-left: 0 !important;
+  }
 }

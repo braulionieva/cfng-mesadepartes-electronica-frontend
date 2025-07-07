@@ -1,18 +1,19 @@
 <p class="mpfn-section-description mb-4">
-  Aquí podrá agregar la documentación que contribuya a la investigación del caso o que sirva de sustento para su denuncia. Siempre que sea posible, se recomienda incluir varias fuentes de respaldo (como fotos, documentos, testimonios u otros medios), ya que esto fortalece la validez y el impacto de la denuncia.
+  Aquí podrá agregar la documentación que contribuya a la investigación del caso o que sirva de sustento para su
+  denuncia. Siempre que sea posible, se recomienda incluir varias fuentes de respaldo (como fotos, documentos,
+  testimonios u otros medios), ya que esto fortalece la validez y el impacto de la denuncia.
 </p>
 
 <hr class="mpfn-divider">
 
-<div class="mt-4"></div>
+<div class="mt-4 mpe_attachments_space"></div>
 
-<div class="upload-file">
-  <app-file-upload class="file-upload-limits" [files]="files" (filesChange)="onFilesChanged($event)" label="Subir documentos (opcional)"
-    type="multimedia|pdf" [isAccumulated]="true" [deleteURL]="deleteURL" [url]="url" [maxFileSize]="1024 * 1024 * 5"
-    fileLimit="5"
+<div class="mpfn-upload-file">
+  <app-file-upload class="file-upload-limits" [files]="files" (filesChange)="onFilesChanged($event)"
+    label="Subir documentos (opcional)" type="multimedia|pdf" [isAccumulated]="true" [deleteURL]="deleteURL" [url]="url"
+    [maxFileSize]="1024 * 1024 * 5" fileLimit="5"
     [perFileLabel]="'Máximo 5 documentos de <b>5MB cada uno</b>. Formatos permitidos: mp4, avi, webm, mov, jpg, jpeg, png, mp3, aac, ogg, pdf.'"
-    [(sumSize)]="sumTotalBytesFiles"
-  />
+    [(sumSize)]="sumTotalBytesFiles" />
 </div>
 
 <form [formGroup]="form" class="mpfn-formulario">
@@ -21,17 +22,9 @@
     <p class="mb-1 mt-0 font-semibold mpfn-label">Observación adicional sobre los documentos agregados (opcional)</p>
   </div>
 
-  <textarea
-    pInputTextarea
-    rows="5"
-    formControlName="observation"
-    [disabled]="!files?.length"
-    class="w-full"
-    (keypress)="noQuotes($event)"
-    (input)="onObservationInput($event)"
-    (paste)="onObservationPaste($event)"
-    placeholder="Escribe alguna indicación o consideración con respecto a los documentos que está agregando."
-  ></textarea>
+  <textarea pInputTextarea rows="5" formControlName="observation" [disabled]="!files?.length" class="w-full"
+    validarInput [validarMaxLength]="500"
+    placeholder="Escribe alguna indicación o consideración con respecto a los documentos que está agregando."></textarea>
 
   <small *ngIf="files?.length" class="block text-right mpfn-counter" [ngClass]="{ 'p-error': counterReportChar > 500 }">
     {{ counterReportChar }}/500 máximo de caracteres

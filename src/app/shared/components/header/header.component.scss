@@ -13,3 +13,23 @@
     }
   }
 }
+
+@media(max-width: $large-mobile) {
+  .cabecera {
+    .cabecera__contenido {
+      display: flex;
+      justify-content: center;
+    }
+  }
+}
+
+@media(max-width: $medium-mobile) {
+  .cabecera {
+    height: $header-height-sm;
+    .cabecera__contenido {
+      .logo {
+        height: 2.5rem;
+      }
+    }
+  }
+}

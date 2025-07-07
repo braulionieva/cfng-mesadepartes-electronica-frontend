@@ -51,9 +51,6 @@ export class RequestInterceptor implements HttpInterceptor {
     }
 
     // Para el resto de rutas, aplicamos la lógica normal de token
-    if (!this.tokenService.exist()) {
-      this.router.navigate(['/']);
-    }
     request = this.addTokenHeader(request);
 
     return next.handle(request).pipe(
@@ -64,6 +61,7 @@ export class RequestInterceptor implements HttpInterceptor {
           }
           this.authService.logout()
         }
+
         return throwError(error);
       })
     );

@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { MessagesModule } from "primeng/messages";
 import { ButtonModule } from "primeng/button";
 import { ProgressBarModule } from 'primeng/progressbar';
-import { PdfViewerModule } from 'ng2-pdf-viewer';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { TracingService } from '@modules/tracing/tracing.service';
 
 import { formatDate, formatDateString } from '@shared/utils/utils';
@@ -38,7 +38,7 @@ const JASPER = {
     CommonModule,
     ButtonModule,
     MessagesModule,
-    PdfViewerModule,
+    NgxExtendedPdfViewerModule,
     ProgressBarModule,
     DynamicDialogModule,
     AlertComponent
@@ -265,13 +265,7 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
     )
   }
 
-  get currentCase(): string {
-    return this.itemCurrentCase;
-
-  }
-
   get caseFound() {
-
     return this.itemCurrentCase;
   }
 
@@ -280,64 +274,72 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
   }
 
   public payloadBody() {
+    const parseGuion = (texto: string) => {
+      return texto || '-';
+    }
+
     return {
-      "nroCaso": this.caseFound.codigoCaso,
-      "distritoFiscal": this.parseGuion(this.caseFound.distritoFiscalAnterior),
-      "especialidad": this.parseGuion(this.caseFound.especialidadAnterior),
-      "fiscaliaOrigen": this.parseGuion(this.caseFound.fiscaliaAnterior),
-      "despacho": this.parseGuion(this.caseFound.despachoAnterior),
-      "motivoIngreso": this.parseGuion(this.caseFound.tipoOrigen),
-      "fechaIngreso": this.formatDateString(this.caseFound.fechaCreacionDenuncia),
-      "delitosDenuncia": this.parseGuion(this.caseFound.delitosDenuncia),
-      "distritoFiscalActual": this.parseGuion(this.caseFound.distritoFiscal),
-      "especialidadActual": this.parseGuion(this.caseFound.especialidad),
-      "fiscaliaActual": this.parseGuion(this.caseFound.fiscalia),
-      "direccion": this.parseGuion(this.caseFound.residenciaFiscal),
-      "despachoActual": this.parseGuion(this.caseFound.despacho),
-      "etapaActual": this.parseGuion(this.caseFound.etapa),
-      "actoProcesalActual": this.parseGuion(this.caseFound.actoProcesal),
-      "ultimoTramite": this.parseGuion(this.caseFound.tramite),
-      "fechaTramite": this.parseGuion(this.formatDateString(this.caseFound.fechaUltimaAsignacion)),
-      "delitosCaso": this.parseGuion(this.caseFound.delitosSujeto)
+      nroCaso: this.caseFound.codigoCaso,
+      distritoFiscal: parseGuion(this.caseFound.distritoFiscalAnterior),
+      especialidad: parseGuion(this.caseFound.especialidadAnterior),
+      fiscaliaOrigen: parseGuion(this.caseFound.fiscaliaAnterior),
+      despacho: parseGuion(this.caseFound.despachoAnterior),
+      motivoIngreso: parseGuion(this.caseFound.tipoOrigen),
+      fechaIngreso: this.formatDateString(this.caseFound.fechaCreacionDenuncia),
+      delitosDenuncia: parseGuion(this.caseFound.delitosDenuncia),
+      distritoFiscalActual: parseGuion(this.caseFound.distritoFiscal),
+      especialidadActual: parseGuion(this.caseFound.especialidad),
+      fiscaliaActual: parseGuion(this.caseFound.fiscalia),
+      direccion: parseGuion(this.caseFound.residenciaFiscal),
+      despachoActual: parseGuion(this.caseFound.despacho),
+      etapaActual: parseGuion(this.caseFound.etapa),
+      actoProcesalActual: parseGuion(this.caseFound.actoProcesal),
+      ultimoTramite: parseGuion(this.caseFound.tramite),
+      fechaTramite: parseGuion(this.formatDateString(this.caseFound.fechaUltimaAsignacion)),
+      delitosCaso: parseGuion(this.caseFound.delitosSujeto)
     }
   }
 
-  parseGuion(texto: string){
-    return texto || '-';
-  }
-
   public getUrl(dataB64: string) {
-
     const data = dataB64;
+
     if (data != null) {
       const base64str = data;
       const binary = atob(base64str.replace(/\s/g, ''));
-
       const len = binary.length;
       const buffer = new ArrayBuffer(len);
       const bytes = new Uint8Array(buffer);
+
       for (let i = 0; i < len; i++) {
         bytes[i] = binary.charCodeAt(i);
       }
+
       const file = new Blob([bytes], { type: 'application/pdf' });
       this.pdfURL = URL.createObjectURL(file);
       this.startCountDown()
     }
   }
 
-  public getPDFPreview(): void {
+  public getUrl2(dataB64: string) {
+    const data = dataB64;
 
+    if (data != null) {
+      this.loading = false;
+      this.pdfURL = `data:application/pdf;base64,${data}`;
+      this.startCountDown()
+    }
+  }
+
+  public getPDFPreview(): void {
     this.loading = true
 
     this.tracingService.getPreview(this.payloadBody(), SLUG_PROFILE.CITIZEN).subscribe({
       next: res => {
-
-        this.getUrl(String(res));
+        this.getUrl2(String(res));
         this.loading = false
       },
       error: error => {
-
-        this.getUrl(String(error.error.text))
+        this.getUrl2(String(error.error.text))
         this.loading = false
       }
     })
@@ -353,7 +355,6 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
     if (!date) return '-'
     return formatDate(new Date(date))
   }
-
 
   public formatDateString(date: string): string {
     if (!date) return '-'
@@ -375,7 +376,6 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
   }
 
   downloadPDF() {
-
     let name = '';
 
     if (this.router.url.includes('documento-generado')) {
@@ -405,43 +405,47 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
   /***************/
 
   private startCountDown() {
-
     // Get remaining time
     const expirationDate = new Date();
     expirationDate.setMinutes(expirationDate.getMinutes() + VIEW_GENERATED_COMPLAINT_MINUTES);
+
     this.calculateDifferencia(expirationDate)
+
     // Start countdown
     this.countdownInterval = setInterval(() => {
       this.calculateDifferencia(expirationDate)
+
       if (this.remainingTime <= 0) {
         this.remainingTime = 0;
         this.redirect(true)
       }
     }, 1000);
-
   }
 
   private calculateDifferencia(expirationDate: Date) {
     const currentTime = new Date().getTime();
+
     let difference = expirationDate.getTime() - currentTime;
     this.remainingTime = difference;
   }
 
   public getProfileType(profile: ProfileType): string {
     let type: string = ''
+
     switch (profile) {
       case SLUG_PROFILE.CITIZEN: type = 'MPE-CIUDADANO'; break;
       case SLUG_PROFILE.PNP: type = 'MPE-POLICÍA NACIONAL'; break;
       case SLUG_PROFILE.PJ: type = 'MPE-PODER JUDICIAL'; break;
       default: type = 'MPE-ENTIDAD'; break;
     }
+
     return type
   }
 
   public getEntityName(entity: Entidad): string {
-    if (entity.idTipoEntidad === SLUG_ENTITY.JURIDICA) {
+    if (entity.idTipoEntidad === SLUG_ENTITY.JURIDICA) 
       return entity.razonSocial;
-    }
+
     return entity.nombreEntidad;
   }
 
@@ -450,6 +454,7 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
   /**************/
   public redirect(toHome: boolean = false) {
     localStorage.clear()
+
     if (toHome) {
       this.countdownInterval && clearInterval(this.countdownInterval)
       this.router.navigate(['/'])

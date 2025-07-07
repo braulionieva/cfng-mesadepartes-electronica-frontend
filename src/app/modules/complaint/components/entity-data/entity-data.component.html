@@ -3,39 +3,41 @@
 <hr class="mpfn-divider">
 
 <ng-container *ngFor="let entidad of entidades; let i = index">
-  <div class="flex justify-content-between align-items-center mt-4">
+  <div class="flex justify-content-between align-items-center mt-4 mpe_involucrado">
     <div class="flex align-items-center w-full">
       <div class="user-added">
-        <fn-icon [ico]="iUser" class="mr-2" />
-        <span>{{ getNames(entidad) }}</span>
+        <div class="user-added-icon">
+          <fn-icon [ico]="iUser" class="mr-2" />
+        </div>
+        <div class="user-added-content">
+          <span>{{ getNames(entidad) }}</span>
+        </div>
       </div>
-      <p-button 
-        class="user-option"
-        styleClass="p-button-text" 
-        (onClick)="deleteEntidad()"
-      >
+      <p-button class="user-option" styleClass="p-button-text" (onClick)="deleteEntidad()">
         <fn-icon [ico]="iTrashCan" />
       </p-button>
     </div>
   </div>
-  <hr class="mpfn-divider mt-4"/>
+  <hr class="mpfn-divider mt-4 mpe_involucrado" *ngIf="canAddEntity" />
 </ng-container>
 
 <form [formGroup]="form" class="grid mpfn-formulario" *ngIf="newEntidad">
   <ng-container>
-    <fn-input class="col-12 md:col-11 mt-4 mpfn-input mpfn-count mpfn-numero-ruc" label="Número de RUC" placeholder="RUC" formControlName="ruc" counter="11"
-      validarInput [validarMaxLength]="11" [validarTipoEntrada]="'numero'" />
+    <fn-input class="col-12 md:col-11 mt-4 mpfn-input mpfn-count mpfn-numero-ruc" label="Número de RUC"
+      placeholder="RUC" formControlName="ruc" counter="11" validarInput [validarMaxLength]="11"
+      [validarTipoEntrada]="'numero'" type="text" inputmode="numeric" pattern="[0-9]*" />
 
-    <p-button class="col-1 md:col-1 flex align-items-center justify-content-end mt-1 align-btn-ruc mpfn-input-separation mpfn-search-ruc"
-      [ngClass]="{ 'mt-2': !isInvalidNumber, 'mb-3': isInvalidNumber }"
-      [class.mpfn-boton-deshabilitado]="!isRucValid"
-      [class.mpfn-boton-activado]="isRucValid"
-      [styleClass]="rucFounded ? 'btn-ruc-clear' : 'btn-ruc'" [icon]="!rucFounded ? 'pi pi-search' : 'pi pi-times'"
-      [loading]="searchingRuc" (onClick)="!rucFounded ? searchRUC() : cleanSearch()" [disabled]="!isRucValid">
+    <p-button
+      class="col-1 md:col-1 flex align-items-center justify-content-end mt-1 align-btn-ruc mpfn-input-separation mpfn-search-ruc"
+      [ngClass]="{ 'mt-2': !isInvalidNumber, 'mb-3': isInvalidNumber }" [class.mpfn-boton-deshabilitado]="!isRucValid"
+      [class.mpfn-boton-activado]="isRucValid" [styleClass]="rucFounded ? 'btn-ruc-clear' : 'btn-ruc'"
+      [icon]="!rucFounded ? 'pi pi-search' : 'pi pi-times'" [loading]="searchingRuc"
+      (onClick)="!rucFounded ? searchRUC() : cleanSearch()" [disabled]="!isRucValid">
     </p-button>
 
-    <fn-input class="col-12 md:col-12  mpfn-input-separation" label="Razón social" placeholder="Razón social" formControlName="businessName"
-      validarInput [validarMaxLength]="150" [disabled]="disableRuc" (keypress)="noQuotes($event)" />
+    <fn-input class="col-12 md:col-12  mpfn-input-separation" label="Razón social" placeholder="Razón social"
+      formControlName="businessName" validarInput [validarMaxLength]="150" [disabled]="disableRuc"
+      (keypress)="noQuotes($event)" />
   </ng-container>
 
   <div class="col-12 md:col-12">
@@ -61,9 +63,9 @@
 
       <div class="col-12 md:col-6">
         <fn-input-wrapper label="País" class="w-full">
-          <p-dropdown [options]="paisArrActual" [filter]="true" filterBy="nombre" optionLabel="nombre"
-            optionValue="id" placeholder="Seleccionar" formControlName="pais"
-            [ngClass]="{'ng-invalid ng-dirty': errorMsg('pais')}" class="w-full" />
+          <p-dropdown [options]="paisArrActual" [filter]="true" filterBy="nombre" optionLabel="nombre" optionValue="id"
+            placeholder="Seleccionar" formControlName="pais" [ngClass]="{'ng-invalid ng-dirty': errorMsg('pais')}"
+            class="w-full" />
         </fn-input-wrapper>
 
         <small error *ngIf="errorMsg('pais')" class="p-error block">
@@ -84,28 +86,32 @@
     </small>
   </fn-input-wrapper>
 
-  <fn-input class="col-12 md:col-6 mpfn-input-separation" label="Número de documento" placeholder="Nro. Documento" 
-    formControlName="procuratorDNI" [checking]="true"
-    [disabled]="isNoDocument" [counter]="validacionDocumento.max"
-    validarInput [validarMaxLength]="validacionDocumento.max" [validarTipoEntrada]="validacionDocumento.tipo" />
+  <fn-input class="col-12 md:col-6 mpfn-input-separation" label="Número de documento" placeholder="Nro. Documento"
+    formControlName="procuratorDNI" [checking]="true" [disabled]="isNoDocument" [counter]="validacionDocumento.max"
+    validarInput [validarMaxLength]="validacionDocumento.max" [validarTipoEntrada]="validacionDocumento.tipo"
+    type="text" [inputmode]="esTipoDocumentoDNI ? 'numeric' : ''" [pattern]="esTipoDocumentoDNI ? '[0-9]*' : ''" />
 
-  <fn-input class="col-12 md:col-4 mpfn-input-separation" label="Nombre" placeholder="Nombre" formControlName="procuratorName" validarInput
-    [validarMaxLength]="60" [validarTipoEntrada]="'texto'" />
+  <fn-input class="col-12 md:col-4 mpfn-input-separation" label="Nombre" placeholder="Nombre"
+    formControlName="procuratorName" validarInput [validarSoloMayusculas]="true" [validarMaxLength]="60"
+    [validarTipoEntrada]="'texto'" />
 
   <fn-input class="col-12 md:col-4 mpfn-input-separation" label="Apellido Paterno" placeholder="Apellido Paterno"
-    formControlName="procuradorApellidoPaterno" validarInput [validarMaxLength]="40" [validarTipoEntrada]="'texto'" />
+    [validarSoloMayusculas]="true" formControlName="procuradorApellidoPaterno" validarInput [validarMaxLength]="40"
+    [validarTipoEntrada]="'texto'" />
 
-  <fn-input class="col-12 md:col-4 mpfn-input-separation" label="Apellido Materno (opcional)" placeholder="Apellido Materno"
-    formControlName="procuradorApellidoMaterno" validarInput [validarMaxLength]="40" [validarTipoEntrada]="'texto'" />
+  <fn-input class="col-12 md:col-4 mpfn-input-separation" label="Apellido Materno" placeholder="Apellido Materno"
+    [validarSoloMayusculas]="true" formControlName="procuradorApellidoMaterno" validarInput [validarMaxLength]="40"
+    [validarTipoEntrada]="'texto'" />
 
   <h6 class="text-bold ml-2 mpfn-subtitle mpfn-text-primary f-16 mt-0 mb-0">Datos del contacto</h6>
   <fn-input class="col-12 md:col-12" [disabled]="true" formControlName="procuradorDatos" />
 
   <div class="col-12 md:col-12">
-    <h6 class="mpfn-subtitle mpfn-text-primary f-16 mt-0 mb-0">Datos del documento de representación</h6>
+    <h6 class="mpfn-subtitle mpfn-text-primary f-16 mt-0 mb-0 mpe_documento_representacion">Datos del documento de
+      representación</h6>
   </div>
 
-  <fn-input-wrapper label="Tipo de documento" class="col-12 md:col-6 pb-0">
+  <fn-input-wrapper label="Tipo de documento" class="col-12 md:col-6 pb-0 mpfn-input-separation">
     <p-dropdown [options]="documentTypesRepresentation" optionLabel="nombre" optionValue="codigo"
       placeholder="Seleccionar" [filter]="true" filterBy="nombre" formControlName="docRepresentacionTipo"
       emptyMessage="Datos no encontrados">
@@ -113,18 +119,20 @@
   </fn-input-wrapper>
 
   <fn-input class="col-12 md:col-6 pb-0" label="Número de documento" placeholder="Número de documento"
-    formControlName="docRepresentacionNumero" validarInput [validarMaxLength]="20"
+    [validarSoloMayusculas]="true" formControlName="docRepresentacionNumero" validarInput [validarMaxLength]="20"
     [validarRegex]="'^[a-zA-Z0-9K/-]*$'" />
 
   <div class="col-12 pt-0 mt-4">
-    <label for="" class="text-sm font-semibold">Subir documento que lo acredite como representante legal o
-      procurador</label>
-
-    <app-file-upload class="col-12 file-upload-limits" label="Subir documento" type="pdf" [files]="files" fileLimit="1"
-      [labelTableArchivos]="'Documento de representante legal o procurador'" [maxFileSize]="1024 * 1024 * 30"
-      [perFileLabel]="'Puede subir un documento en formato PDF con un <b>peso máximo de 30 MB.</b>'"
-      (filesChange)="onFilesChanged($event)" [(sumSize)]="sumTotalBytesFiles" [isAccumulated]="true"
-      [deleteURL]="deleteURL" [url]="url" [classButton]="'bg-secondary w-full'" />
+    <div class="mpfn-upload-file">
+      <label for="" class="text-sm font-semibold mb-1">Subir documento que lo acredite como representante legal o
+        procurador</label>
+      <app-file-upload class="col-12 file-upload-limits" label="Subir documento" type="pdf" [files]="files"
+        fileLimit="1" [labelTableArchivos]="'Documento de representante legal o procurador'"
+        [maxFileSize]="1024 * 1024 * 30"
+        [perFileLabel]="'Puede subir un documento en formato PDF con un <b>peso máximo de 30 MB.</b>'"
+        (filesChange)="onFilesChanged($event)" [(sumSize)]="sumTotalBytesFiles" [isAccumulated]="true"
+        [deleteURL]="deleteURL" [url]="url" [classButton]="'bg-secondary w-full'" />
+    </div>
   </div>
 
   <div class="col-12 md:col-12 flex justify-content-center pt-0">

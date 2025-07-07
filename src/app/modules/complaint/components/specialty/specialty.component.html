@@ -17,27 +17,27 @@
               <p-radioButton [inputId]="item.id" name="tipoDelitoSeleccionado" [value]="item.id"
                 formControlName="tipoDelitoSeleccionado" (click)="$event.stopPropagation()" />
 
-              <label [for]="item.id" class="font-bold text-lg cursor-pointer">
+              <label [for]="item.id" class="font-bold text-lg cursor-pointer mpe_radio_titulo">
                 {{ item.titulo }}
               </label>
             </div>
 
             <!-- Fila 2: descripción -->
-            <div class="col-12 text-justify text-sm text-color-secondary mb-2">
+            <div class="col-12 text-justify text-sm text-color-secondary mb-2 mpe_especialidad_descripcion">
               {{ item.descripcion }}
             </div>
 
             <!-- Fila 3: link delitos -->
             <div class="col-12">
-              <a #delitosBtn (click)="mostrarDelitos($event, delitosPanel)" class="color-link text-sm cursor-pointer">
+              <a #delitosBtn (click)="mostrarDelitos($event, delitosPanel)" class="color-link text-sm cursor-pointer mpe_ver_delitos">
                 <i class="pi pi-info-circle mr-2"></i> Ver más delitos
               </a>
 
-              <p-overlayPanel #delitosPanel [showCloseIcon]="false" [dismissable]="true">
+              <p-overlayPanel #delitosPanel [showCloseIcon]="true" [dismissable]="true">
                 <div class="delitos-overlay">
-                  <strong>Otros delitos:</strong>
+                  <strong class="mpe_otros_delitos">Otros delitos:</strong>
                   <ul class="delitos-lista">
-                    <li *ngFor="let delito of item.otrosDelitos" class="mb-1">
+                    <li *ngFor="let delito of item.otrosDelitos" class="mb-1 mpe_delito">
                       {{ delito }}
                     </li>
                   </ul>
@@ -51,20 +51,19 @@
   </form>
 </div>
 
-<div class="flex justify-content-between mt-8 mb-5">
+<div class="flex justify-content-between mt-8 mb-5 mpe_opciones">
   <!-- Botón izquierdo -->
   <p-button (onClick)="askToCancelComplaint()" [label]="'Cancelar denuncia'"
-    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton-cancelar">
   </p-button>
 
   <!-- Botones derechos -->
-  <div class="ml-auto flex gap-3">
-    <p-button styleClass="p-button-lg bg-secondary font-semibold btn-adjust" (onClick)="nextStep()"
-      [disabled]="form.invalid">
-      <span>Continuar</span>
-      <fn-icon [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
-    </p-button>
-  </div>
+  <p-button styleClass="p-button-lg bg-secondary font-semibold btn-adjust" (onClick)="nextStep()"
+    [disabled]="form.invalid">
+    <span class="mpe_boton_continuar">Continuar</span>
+    <fn-icon [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
+  </p-button>
+
 </div>
 
 <p-toast />

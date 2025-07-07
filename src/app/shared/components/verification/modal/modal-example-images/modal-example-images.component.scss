@@ -1,0 +1,23 @@
+
+.mpe_titulo_ejemplo {
+    padding: 10px 20px 0 20px;
+    font-family: var(--mpfn-font-medium);
+    font-size: 14px;
+    margin-bottom: 0;
+}
+
+.mpe_ejemplos {
+    margin-top: -15px;
+}
+
+:host::ng-deep p-button{
+    button {
+        width: 100%;
+        font-size: 12px !important;
+        justify-content: center;
+    }
+}
+
+.mpe_opciones_ejemplo {
+    padding: 0 20px 20px 20px;
+}

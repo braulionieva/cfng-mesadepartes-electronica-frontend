@@ -20,6 +20,7 @@ export interface Denuncia {
   archivoPerfil?: AnexosAsociados;
   juzgado?: Juzgado;
   policia?: Policia;
+  ciudadano?: Ciudadano;
 }
 
 // Medida Proteccion
@@ -68,6 +69,7 @@ export interface LugarHecho {
   longitud: number;
   latitud: number;
   direccion: string;
+  grupoAleatorioSgfSelected?:SedeGrupoAleatorioSgf|null;//objeto de grupo aleatorio sgf seleccioando
 }
 
 // Delito
@@ -195,6 +197,7 @@ export interface OtrosDatos {
 
 export interface AnexosAsociados {
   observacion?: string;
+  docRepresentacionNumero?: string;
   anexos?: Anexos[];
 }
 
@@ -233,4 +236,27 @@ export interface Policia {
   descDependenciaPolicial: string,
   anexoComisaria: string,
   numeroPartePolicial: string
+}
+
+export interface SedeGrupoAleatorioSgf {
+  idSedeGeo: number;
+  deSedeGeo: string;
+  idDistJudi: string;
+  idGrupoAleatorio: number;
+  deGrupo: string;
+  tipoIngreso: string;
+  idSede: number;
+  sdDescrip: string;
+  sdDireccion: string;
+  sdTelefono: string;
+  idDpto: number;
+  idProv: number;
+  idDist: number;
+}
+
+export interface Ciudadano {
+  denunciaAbogado: string,
+  idColegioAbogado: number,
+  numeroColegiatura: string,
+  numeroDenuncia: string
 }

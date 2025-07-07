@@ -1,15 +1,26 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, OnChanges, SimpleChanges, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule, HttpEventType, HttpHeaders, HttpResponse } from '@angular/common/http';
-import { ButtonModule } from 'primeng/button';
-import { ProgressBarModule } from 'primeng/progressbar';
-import { TooltipModule } from 'primeng/tooltip';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { FormsModule } from '@angular/forms';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {HttpClient, HttpEventType, HttpHeaders, HttpResponse} from '@angular/common/http';
+import {ButtonModule} from 'primeng/button';
+import {ProgressBarModule} from 'primeng/progressbar';
+import {TooltipModule} from 'primeng/tooltip';
+import {ProgressSpinnerModule} from 'primeng/progressspinner';
+import {FormsModule} from '@angular/forms';
 import JSZip from 'jszip';
-import { FileUploadModalComponent } from "@shared/components/file-upload/modal/file-upload-modal.component";
-import { DialogService } from "primeng/dynamicdialog";
-import { GlobalSpinnerService } from '@shared/services/global-spinner.service';
+import {FileUploadModalComponent} from "@shared/components/file-upload/modal/file-upload-modal.component";
+import {DialogService} from "primeng/dynamicdialog";
+import {GlobalSpinnerService} from '@shared/services/global-spinner.service';
+import { getDocument } from 'pdfjs-dist/build/pdf.mjs';
 
 /**
  * Interfaz para la configuración del modal de error
@@ -33,7 +44,7 @@ interface ErrorModalConfig {
   standalone: true,
   imports: [
     CommonModule, ButtonModule, ProgressBarModule,
-    TooltipModule, FormsModule, HttpClientModule,
+    TooltipModule, FormsModule,
     ProgressSpinnerModule
   ],
   templateUrl: './file-upload.component.html',
@@ -161,9 +172,7 @@ export class FileUploadComponent implements OnChanges, OnInit {
    * Limpia el input de archivo
    */
   private clearFileInput(): void {
-    if (this.fileInput && this.fileInput.nativeElement) {
-      this.fileInput.nativeElement.value = '';
-    }
+    this.fileInput?.nativeElement && (this.fileInput.nativeElement.value = '');
   }
 
   /**
@@ -285,8 +294,8 @@ export class FileUploadComponent implements OnChanges, OnInit {
     });
 
     if (invalidFiles.length > 0) {
-      this.errorTitle = 'Archivo no válido o corrupto';
-      this.errorMessage = `Estimado(a) usuario(a), los siguientes archivos que desea adjuntar se encuentran dañados o estan corruptos. Por favor, seleccione otro archivo. </br> <p class="text-center"><b>${invalidFiles[0].name}</b></p>`;
+      this.errorTitle = 'Formato de archivo no válido';
+      this.errorMessage = `<p class="text-center">El formato del archivo seleccionado no es el permitido. Por favor, seleccione otros archivos para adjuntar.</p><p class="text-center"><b>${invalidFiles[0].name}</b></p>`;
       this.showErrorModal();
       return;
     }
@@ -315,45 +324,14 @@ export class FileUploadComponent implements OnChanges, OnInit {
    * Valida si un archivo es un PDF válido
    */
   private async isValidPDF(file: File): Promise<boolean> {
-    return new Promise((resolve) => {
-      try {
-        const reader = new FileReader();
-        reader.onload = async (e: ProgressEvent<FileReader>) => {
-          try {
-            const arrayBuffer = e.target?.result as ArrayBuffer;
-            if (!arrayBuffer || arrayBuffer.byteLength < 8) {
-              resolve(false);
-              return;
-            }
-
-            const arr = new Uint8Array(arrayBuffer);
-            const header = String.fromCharCode.apply(null, Array.from(arr.subarray(0, 8)));
-
-            // Verificar firma de PDF
-            if (!header.startsWith('%PDF-')) {
-              resolve(false);
-              return;
-            }
-
-            // Verificar versión del PDF
-            const versionBytes = arr.subarray(5, 8);
-            const versionStr = String.fromCharCode.apply(null, Array.from(versionBytes));
-            if (!/^\d+\.\d+/.test(versionStr)) {
-              resolve(false);
-              return;
-            }
-            resolve(true);
-            return;
-          } catch (error) {
-            resolve(false);
-          }
-        };
-        reader.onerror = () => resolve(false);
-        reader.readAsArrayBuffer(file.slice(0, 8));
-      } catch (error) {
-        resolve(false);
-      }
-    });
+    try {
+      const loadingTask = getDocument({ data: await file.arrayBuffer(), worker: true });
+      const pdf = await loadingTask.promise;
+      await pdf.getPage(1);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   /**
@@ -483,7 +461,6 @@ export class FileUploadComponent implements OnChanges, OnInit {
     this.showErrorModal();
   }
 
-
   /**
    * Añade un archivo a la lista de archivos
    */
@@ -572,5 +549,4 @@ export class FileUploadComponent implements OnChanges, OnInit {
     if (!this.fileLimit) return false;
     return this.files.length >= parseInt(this.fileLimit, 10);
   }
-
 }

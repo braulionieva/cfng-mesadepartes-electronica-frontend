@@ -41,7 +41,7 @@ import { Router } from '@angular/router';
 
 <div class="p-4 mt-2 ml-1">
 
-    <div class="color-black2 lh-1-5">
+    <div class="color-black2 lh-1-5 mpe_modal_descripcion">
     El número de documento que ingresó como observado, actualmente no se encuentra como observado. Por favor, ingrese un número de documento que le haya sido comunicado como observado.
     </div>
 

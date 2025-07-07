@@ -47,19 +47,21 @@
 ></p-progressBar>
 <ng-template #pdfPreview>
   <div class="w-full surface-card">
-    <pdf-viewer
+    <ngx-extended-pdf-viewer
       [src]="pdfURL"
-      [show-all]="true"
-      [show-borders]="true"
-      [fit-to-page]="true"
-      [original-size]="true"
-      [autoresize]="true"
-      [zoom-scale]="'ppage-width'"
-      style="width: 100%; height: 1135px;"
-    ></pdf-viewer>
+      [language]="'browser'"
+      [textLayer]="true"
+      [showToolbar]="false"
+      [showFindButton]="true"
+      [showDownloadButton]="false"
+      [showPrintButton]="false"
+      [enableDragAndDrop]="false"
+      [height]="'100%'"
+      [zoom]="'auto'"
+    ></ngx-extended-pdf-viewer>
   </div>
 </ng-template>
-  
+
 <div class="block text-right my-8">
   <p-button
     (onClick)="toCancel()"

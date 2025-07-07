@@ -41,12 +41,10 @@ export const SLUG_TYPE_INGRESO = Object.freeze({
 
 })
 export const SLUG_PROFILE = Object.freeze({
-
   CITIZEN: 1,
   PNP: 2,
   PJ: 4,
   ENTITY: 3
-
 })
 
 export function getProfile(id: any) {

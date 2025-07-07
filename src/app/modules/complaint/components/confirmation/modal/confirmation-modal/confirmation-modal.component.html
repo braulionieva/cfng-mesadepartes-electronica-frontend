@@ -1,7 +1,7 @@
 <div class="">
   <div class="p-1"></div>
   <div class="alert-content p-3 mt-2">
-    <span class="ml-2 text-2xl nfont-semibold color-yellow1 w-full">¿Desea registrar la denuncia?</span>
+    <span class="ml-2 text-2xl nfont-semibold color-yellow1 mpe_modal_titulo w-full">¿Desea registrar la denuncia?</span>
     <div class="w-75 ml-5 text-right">
       <span class="alert-icon cursor-pointer">
         <i class="pi pi-times" (click)="ref.close()" onKeyPress=""></i>
@@ -12,10 +12,10 @@
 
 <div class="p-4 pt-0 mt-2 ml-1" *ngIf="denunciaDuplicada != '1'">
   <div class="color-black2 lh-1-5">
-    <span class="text-bold color-black2 mpfn-roboto-regular"> {{ nameComplete }}</span>, está por enviar su denuncia. Una vez registrada, no se podrá cambiar. ¿Confirma que desea continuar?
+    <span class="text-bold color-black2 mpfn-roboto-regular mpe_modal_descripcion"> {{ nameComplete }}</span>, está por enviar su denuncia. Una vez registrada, no se podrá cambiar. ¿Confirma que desea continuar?
   </div>
 
-  <div class="flex md:flex-row justify-content-between align-items-center mt-5">
+  <div class="flex md:flex-row justify-content-between align-items-center mt-5 mpe_modal_opciones">
     <p-button (onClick)="ref.close()" label="Cancelar" (onClick)="selectOption(responses.CANCEL)"
       styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
     </p-button>
@@ -28,18 +28,18 @@
 
 <div class="p-4 pt-0 mt-2 ml-1" *ngIf="denunciaDuplicada == '1'">
   <div class="color-black2 lh-1-5 mpfn-roboto-regular">
-    <span class="text-bold color-black2"> {{ nameComplete }} </span>, los datos ingresados podrían coincidir con una denuncia ya registrada, con el siguiente número de caso:
+    <span class="text-bold color-black2 mpe_modal_descripcion"> {{ nameComplete }} </span>, los datos ingresados podrían coincidir con una denuncia ya registrada, con el siguiente número de caso:
     <p class="mpfn-roboto-bold text-center mpfn-numero-caso-duplicado"> {{ nroCaso }} </p>
     <h4 class="text-center mpfn-text-continuar mb-4">¿Desea continuar con el registro de la denuncia?</h4>
     <app-alert [dataAlert]="messagesDuplicated" [cosable]="false"/>
   </div>
 
-  <div class="flex md:flex-row justify-content-between align-items-center mt-5">
+  <div class="flex md:flex-row justify-content-between align-items-center mt-5 mpe_modal_opciones">
     <p-button (onClick)="ref.close()" label="Cancelar" (onClick)="selectOption(responses.CANCEL)"
       styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
     </p-button>
 
-    <p-button (onClick)="selectOption(responses.OK)" label="Continuar"
+    <p-button (onClick)="selectOption(responses.OK)" label="Sí, registrar"
       styleClass="p-button-lg bg-secondary text-white font-semibold btn-adjust">
     </p-button>
   </div>

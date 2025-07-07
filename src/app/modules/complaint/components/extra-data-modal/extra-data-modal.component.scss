@@ -1,15 +1,34 @@
-@import url('https://unpkg.com/leaflet@1.9.3/dist/leaflet.css');
-@import url('https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css');
+@use 'responsive' as *;
 
-.lbl-direccion{
-  margin-left: -8px;
-}
+ .lbl-direccion {
+   margin-left: -8px;
+ }
 
-.direccion-titulo {
-  margin-top: 20px;
-  margin-bottom: 15px;
-}
+ .direccion-titulo {
+   margin-top: 20px;
+   margin-bottom: 15px;
+ }
 
-.fix-nacimiento {
-  margin-bottom: -5px;
+ .fix-nacimiento {
+   margin-bottom: -5px;
+ }
+
+ @media(max-width: $mobile) {
+    .mpe_opciones {
+        margin-top: 40px !important;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    :host::ng-deep p-button {
+        width: 100%;
+        button {
+            width: 100%;
+            justify-content: center;
+            font-size: 12px !important;
+        }
+        &:first-child {
+            order: 2;
+            margin-top: 10px;
+        }
+    }
 }

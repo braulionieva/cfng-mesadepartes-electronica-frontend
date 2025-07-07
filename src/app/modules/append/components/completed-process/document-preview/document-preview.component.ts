@@ -6,7 +6,7 @@ import { MessagesModule } from "primeng/messages";
 import { ButtonModule } from "primeng/button";
 import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 //pdf viewer
-import { PdfViewerModule } from 'ng2-pdf-viewer';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { Denuncia } from '@shared/interfaces/complaint/complaint-registration';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TokenService } from '@shared/services/auth/token.service';
@@ -32,7 +32,7 @@ const { DENUNCIA_KEY, NOMBRE_DOCUMENTO_KEY } = LOCALSTORAGE
   selector: 'app-document-preview',
   templateUrl: './document-preview.component.html',
   imports: [
-    CommonModule, MessagesModule, ButtonModule, ProgressBarModule, PdfViewerModule, DynamicDialogModule, AlertComponent
+    CommonModule, MessagesModule, ButtonModule, ProgressBarModule, NgxExtendedPdfViewerModule, DynamicDialogModule, AlertComponent
   ],
   styles: [`
     .visor-background {
@@ -230,10 +230,10 @@ export class DocumentPreviewComponent implements OnInit {
 
     this.appendService.obtenerPreCargoDocumento(data, `${perfilDocumento}-${this.tmpProfile}`, SLUG_ORIGEN.MPE).subscribe({
       next: (resp) => {
-        this.getUrl(String(resp))
+        this.getUrl2(String(resp))
       },
       error: (error) => {
-        this.getUrl(String(error.error.text));
+        this.getUrl2(String(error.error.text));
       },
     });
   }
@@ -316,6 +316,14 @@ export class DocumentPreviewComponent implements OnInit {
 
       this.loading = false;
       this.urlPdf = URL.createObjectURL(file);
+    }
+  }
+
+  public getUrl2(dataB64: string): void {
+    if (dataB64) {
+
+      this.loading = false;
+      this.urlPdf = `data:application/pdf;base64,${dataB64}`;
     }
   }
 

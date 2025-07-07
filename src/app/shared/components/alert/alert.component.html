@@ -33,7 +33,7 @@
             />
         </span>
         <div class="flex justify-content-between w-full">
-            <span *ngIf="dataAlert.severity != 'error'" class="ml-1 mt-1 lh-1-5 mr-3">
+            <span *ngIf="dataAlert.severity != 'error'" class="ml-1 mt-1 lh-1-5 mr-3 alerta_detalle">
                 <span *ngIf="dataAlert.isVerification" class="color-green text-bold">Verificación realizada: </span>
                 <span class="color-black2"> {{ dataAlert.detail }} </span>
                 <span class="color-black2 text-bold"> {{ dataAlert.detail1 }} </span>

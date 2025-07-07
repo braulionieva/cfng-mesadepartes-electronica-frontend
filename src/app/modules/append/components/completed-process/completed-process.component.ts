@@ -6,9 +6,8 @@ import { Router } from '@angular/router';
 import { MessagesModule } from "primeng/messages";
 import { ButtonModule } from "primeng/button";
 import { ProgressBarModule } from 'primeng/progressbar';
-import { PdfViewerModule } from 'ng2-pdf-viewer';
 import { AppendService } from '@modules/append/append.service';
-
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { formatDate, formatDateString } from '@shared/utils/utils';
 
 import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -33,12 +32,8 @@ const JASPER = {
 @Component({
   standalone: true,
   imports: [
-    CommonModule,
-    ButtonModule,
-    MessagesModule,
-    PdfViewerModule,
-    ProgressBarModule,
-    DynamicDialogModule
+    CommonModule, ButtonModule, MessagesModule,
+    NgxExtendedPdfViewerModule, ProgressBarModule, DynamicDialogModule
   ],
   templateUrl: './completed-process.component.html',
   providers: [DialogService]
@@ -66,6 +61,7 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
   public remainingTime: number = 0
   public documentName: string = ''
   documentSave;
+
   constructor(
     private readonly router: Router,
     private readonly appendService: AppendService,
@@ -73,20 +69,17 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
     private readonly mesaService: MesaService,
     private readonly tokenService: TokenService
   ) {
-
     this._currentCase = JSON.parse(sessionStorage.getItem('currentCase'));
+    this.extendsConstructor();
+  }
 
+  extendsConstructor() {
     if (this.areRegisteredDocuments) {
-
-      if (
-        !this.appendService.currentCase.codCaso ||
-        !this.appendService.precargo.data
-      )
+      if (!this.appendService.currentCase.codCaso || !this.appendService.precargo.data)
         this.router.navigate(['/seguir-denuncia/consultar-caso'])
-    } else {//generar doc seguimiento
-
-      if (!this.appendService.currentCase.codCaso)
-        this.router.navigate(['/presentar-denuncia/consultar-caso'])
+    }
+    else if (!this.appendService.currentCase.codCaso) { //generar doc seguimiento
+      this.router.navigate(['/presentar-denuncia/consultar-caso'])
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -95,6 +88,7 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
 
     const personaNatural = this.tokenService.getDecoded();
+
     this.completeName = `${personaNatural.nombres} ${personaNatural.apellidoPaterno} ${personaNatural.apellidoMaterno}`;
 
     const profile = this.tokenService.getItemValidateToken('typeProfile')
@@ -218,34 +212,24 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
   }
 
   get successMessage(): string {
-    return (
-      this.areRegisteredDocuments
-        ? `Los documentos se han registrado satisfactoriamente al Nro. de caso ${this.currentCase}.`
-        : `El documento seguimiento del Nro. de caso ${this.currentCase} se generó satisfactoriamente.`
+    return (this.areRegisteredDocuments ? `Los documentos se han registrado satisfactoriamente al Nro. de caso ${this.currentCase}.`
+      : `El documento seguimiento del Nro. de caso ${this.currentCase} se generó satisfactoriamente.`
     )
   }
 
   get mainMessage(): string {
-    return (
-      this.areRegisteredDocuments
-        ? `El cargo de ingreso de documento que se presenta ha sido enviado al correo ${this.email}, y también puedes descargarlo aquí: `
-        : `El documento de seguimiento del caso que se presenta ha sido enviado al correo ${this.email}, y también puedes descargarlo aquí: `
+    return (this.areRegisteredDocuments ? `El cargo de ingreso de documento que se presenta ha sido enviado al correo ${this.email}, y también puedes descargarlo aquí: `
+      : `El documento de seguimiento del caso que se presenta ha sido enviado al correo ${this.email}, y también puedes descargarlo aquí: `
     )
   }
 
   get downloadBtnTxt(): string {
-    return (
-      this.areRegisteredDocuments
-        ? 'Descargar cargo'
-        : 'Descargar seguimiento'
-    )
+    return (this.areRegisteredDocuments ? 'Descargar cargo' : 'Descargar seguimiento')
   }
 
   get buttonTxt(): { confirm: string, cancel: string } {
-    return (
-      this.areRegisteredDocuments
-        ? { confirm: 'Finalizar y volver al inicio', cancel: 'Anexar otros documentos' }
-        : { confirm: 'Finalizar y volver al inicio', cancel: 'Regresar' }
+    return (this.areRegisteredDocuments ? { confirm: 'Finalizar y volver al inicio', cancel: 'Anexar otros documentos' }
+      : { confirm: 'Finalizar y volver al inicio', cancel: 'Regresar' }
     )
   }
 
@@ -310,15 +294,26 @@ export class CompletedProcessComponent implements OnInit, OnDestroy {
     }
   }
 
+  public getUrl2(dataB64: string) {
+    const data = dataB64;
+    if (data != null) {
+
+      this.loading = false;
+      this.pdfURL = `data:application/pdf;base64,${data}`;
+
+      this.startCountDown()
+    }
+  }
+
   public getPDFPreview(): void {
     this.loading = true
     this.appendService.getPreview(this.payloadBody()).subscribe({
       next: res => {
-        this.getUrl(String(res))
+        this.getUrl2(String(res))
         this.loading = false
       },
       error: error => {
-        this.getUrl(String(error.error.text))
+        this.getUrl2(String(error.error.text))
         this.loading = false
       }
     })

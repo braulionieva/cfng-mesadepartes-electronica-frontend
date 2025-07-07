@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { CancelModalComponent } from '@shared/components/verification/modal/cancel-modal/cancel-modal.component';
 import { MaestrosService } from '@shared/services/shared/maestros.service';
 import { obtenerIcono } from '@shared/utils/icon';
-import { PdfViewerModule } from 'ng2-pdf-viewer';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { CmpLibModule } from 'ngx-mpfn-dev-cmp-lib';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -20,7 +20,7 @@ import { ToastModule } from 'primeng/toast';
   selector: 'app-specialty',
   standalone: true,
   imports: [
-    CommonModule, MessagesModule, ButtonModule, ProgressBarModule, PdfViewerModule,
+    CommonModule, MessagesModule, ButtonModule, ProgressBarModule, NgxExtendedPdfViewerModule,
     DynamicDialogModule, CmpLibModule, ToastModule, ReactiveFormsModule,
     ReactiveFormsModule, RadioButtonModule, OverlayPanelModule,
   ],
@@ -47,7 +47,7 @@ export class SpecialtyComponent {
     {
       "id": "001",
       "titulo": "Común",
-      "descripcion": "Si el delito tiene relación con robo, hurto, estafa usurpación, apropiación ilícita y otros.",
+      "descripcion": "Esta especialidad tiene relación con los delitos: Robo, Estafa, Usurpación, Apropiación ilícita y Otros.",
       "otrosDelitos": [
         "Homicidio",
         "Aborto",

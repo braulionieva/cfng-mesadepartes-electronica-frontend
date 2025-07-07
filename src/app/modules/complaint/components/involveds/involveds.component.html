@@ -3,11 +3,11 @@
 <hr class="mpfn-divider">
 
 <div *ngIf="showAggrievedQuestion">
-  <p class="text-center font-semibold color-black2 mt-4">
+  <p class="text-center font-semibold color-black2 mt-4 mpe_titulo_sino">
     {{ questionMessageForAggrieved }}
   </p>
 
-  <div class="flex justify-content-center">
+  <div class="flex justify-content-center mpe_opciones_sino">
     <p-button styleClass="bg-secondary font-semibold btn-adjust-involment ml-1 px-5 mr-3" label="Sí"
       (onClick)="answerQuestion(true)" />
 
@@ -17,11 +17,11 @@
 </div>
 
 <div *ngIf="showDenouncedQuestion">
-  <p class="text-center font-semibold color-black2">
+  <p class="text-center font-semibold color-black2 mpe_titulo_sino">
     {{ questionMessageForDenounced }}
   </p>
 
-  <div class="flex justify-content-center">
+  <div class="flex justify-content-center mpe_opciones_sino">
     <p-button styleClass="bg-secondary font-semibold btn-adjust-involment ml-1 px-5 mr-3" label="Sí"
       (onClick)="answerQuestion(true)" />
 
@@ -31,20 +31,23 @@
 </div>
 
 <ng-container *ngFor="let involved of involveds; let i = index">
-
-  <div class="flex justify-content-between align-items-center mt-4">
+  <div class="flex justify-content-between align-items-center mt-4 mpe_involucrado">
     <div class="flex align-items-center w-full">
 
       <div class="user-added">
-        <fn-icon [ico]="iUser" class="mr-2" />
+        <div class="user-added-icon">
+          <fn-icon [ico]="iUser" class="mr-2" />
+        </div>
 
-        <span>{{ getNames(involved) }}</span>
+        <div class="user-added-content">
+          <span class="user-added-name">{{ getNames(involved) }}</span>
 
-        <span *ngIf="!(involved.involvedRol === SLUG_INVOLVED_ROL.DESCONOCIDO) && involved.validated"
-          class="ml-3 py-1 px-2 border-round-md color-green flex align-items-center"
-          [ngStyle]="{'min-width': involved.documentType===SLUG_RUC ? '155px' : 'auto' }">
-          {{ getTagValidated(involved.documentType) }}
-        </span>
+          <span *ngIf="!(involved.involvedRol === SLUG_INVOLVED_ROL.DESCONOCIDO) && involved.validated"
+            class="ml-3 py-1 px-2 border-round-md color-green"
+            [ngStyle]="{'min-width': involved.documentType === SLUG_RUC ? '155px' : 'auto' }">
+            {{ getTagValidated(involved.documentType) }}
+          </span>
+        </div>
       </div>
 
       <p-button class="user-option" (onClick)="deleteInvolved(involved.id)" styleClass="p-button-text">
@@ -54,14 +57,19 @@
     </div>
   </div>
 
-  <hr *ngIf="!(involveds.length - 1 === i) || !isComplainant" class="mpfn-divider mt-4" />
+  <hr *ngIf="!(involveds.length - 1 === i)" class="mpfn-divider mt-4 mpe_involucrado" />
 
 </ng-container>
 
 <ng-container *ngIf="newInvolved">
-
   <form [formGroup]="form" class="grid mpfn-formulario">
     <div [class]="classForRolesList">
+
+      @if (isDenounced){
+      <strong>Estado de identificación del denunciado:</strong>
+      <br><br>
+      }
+
       <ng-container *ngFor="let item of listInvolvedRoles">
         <p-radioButton [inputId]="item.value+type" [value]="item.value" formControlName="involvedRol"
           (onClick)="changeInvolvedType(item.value)" />
@@ -76,17 +84,17 @@
       placeholder="Los que resulten responsables (LQRR)" [disabled]="true" />
 
     <ng-container *ngIf="!isUnknownInvolved">
-      <fn-input-wrapper *ngIf="isAggrieved || isDenounced" label="Tipo de persona"
-        class="col-12 md:col-12 mpfn-input-separation" [class.mt-4]="isAggrieved">
+      <fn-input-wrapper *ngIf="(isAggrieved || isDenounced ||
+      (this.type === this.SLUG_INVOLVED.DENUNCIANTE && (this.isPNP || this.isPJ)))" label="Tipo de persona"
+        class="col-12 md:col-12 mpfn-input-separation mt-3">
         <p-dropdown [options]="personTypes" optionLabel="nombre" optionValue="id" placeholder="Seleccionar"
           [filter]="true" filterBy="nombre" (onChange)="selectTipoPersona()" formControlName="personType"
           emptyMessage="Datos no encontrados" emptyFilterMessage="Datos no encontrados"
           [ngClass]="{'ng-invalid ng-dirty': errorMsg('personType')}" />
       </fn-input-wrapper>
 
-      <!-- {{ isInformer }} -->
       <div *ngIf="!isRuc && !isPJuridica" class="col-12">
-        <div class="grid">
+        <div class="grid mt-3" [class.mt-3]="isComplainant">
           <div class="col-12 md:col-6 flex align-items-center" style="min-height: 4.5rem;">
             <div class="flex align-items-center flex-wrap flex-grow-1 mpfn-origen">
               <fn-input-wrapper label="Origen" class="w-full">
@@ -118,9 +126,11 @@
         </div>
       </div>
 
-      <ng-container *ngIf="!isRuc && !isPJuridica && (isDenounced || isAggrieved); else emptySpace">
+      <ng-container
+        *ngIf="!isRuc && !isPJuridica && (isDenounced || isAggrieved) 
+        || (this.type === this.SLUG_INVOLVED.DENUNCIANTE && (this.isPNP || this.isPJ)); else emptySpace">
         <div class="col-12 mpfn-menor">
-          <p-checkbox formControlName="checkMenorEdad" [value]="true" inputId="id"
+          <p-checkbox formControlName="checkMenorEdad" [value]="true" inputId="id" [binary]="true"
             (onChange)="onCheckboxMenorEdad($event)" />
           <label for="id" class="mx-2 cursor-pointer">Es menor de edad</label>
         </div>
@@ -133,7 +143,7 @@
           filterBy="nombre" (onChange)="onTipoDocumento($event, 'documentNumber')" optionLabel="nombre" optionValue="id"
           placeholder="Seleccionar" formControlName="documentType" emptyMessage="Datos no encontrados"
           emptyFilterMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('documentType')}"
-          [disabled]="validRemitente" />
+          [disabled]="isCitizenDenounced" />
 
         <p-dropdown *ngIf="isPJ || isPNP || !isInformer" [options]="documentTypes" [filter]="true" filterBy="nombre"
           (onChange)="onTipoDocumento($event, 'documentNumber')" optionLabel="nombre" optionValue="id"
@@ -150,14 +160,15 @@
         [ngClass]="{'col-12 md:col-6': !isInformer, 'col-12 md:col-6': isInformer, 'col-12 md:col-6': !mostrarBoton, 'col-12 md:col-6': !isRuc }"
         class="mpfn-count mpfn-input-separation" label="Número de documento" placeholder="Nro. Documento"
         formControlName="documentNumber" [checking]="true"
-        [disabled]="validRemitenteDoc || form.get('documentType').value === 16 || form.get('documentType').value === 3"
-        [counter]="validacionDocumento.max" validarInput [validarMaxLength]="validacionDocumento.max"
+        [disabled]="isCitizenDenounced || form.get('documentType').value === 16 || form.get('documentType').value === 3"
+        [counter]="validacionDocumento.max" validarInput [validarMaxLength]="validacionDocumento.max" type="text"
+        [inputmode]="esTipoDocumentoDNI ? 'numeric' : ''" [pattern]="esTipoDocumentoDNI ? '[0-9]*' : ''"
         [validarTipoEntrada]="validacionDocumento.tipo" />
 
       <fn-input *ngIf="isPJuridica" class="col-11 md:col-11 mpfn-input mpfn-count mpfn-numero-ruc" label="Número de RUC"
         placeholder="Número de RUC" formControlName="documentNumber" [checking]="true"
         [disabled]="searchingRuc || rucFounded || isNoDocument" [counter]="11" validarInput [validarMaxLength]="11"
-        [validarTipoEntrada]="'numero'" />
+        [validarTipoEntrada]="'numero'" type="text" inputmode="numeric" pattern="[0-9]*" />
 
       <p-button *ngIf="isPJuridica"
         class="col-1 md:col-1 flex align-items-center justify-content-end align-btn-ruc mpfn-input-separation mpfn-search-ruc"
@@ -167,22 +178,37 @@
         [loading]="searchingRuc" [disabled]="invalidRuc" (onClick)="!rucFounded ? searchRUC() : cleanSearch()" />
 
       <fn-input *ngIf="!isRuc && !isPJuridica" class="col-12 md:col-4 mpfn-input-separation" label="Nombre"
-        placeholder="Nombres" formControlName="names" [checking]="true" [disabled]="validRemitente" validarInput
+        placeholder="Nombres" formControlName="names" [checking]="true" [disabled]="isCitizenDenounced" validarInput
         [validarMaxLength]="60" [validarTipoEntrada]="'texto'" [validarSoloMayusculas]="true" />
 
       <fn-input *ngIf="!isRuc && !isPJuridica" class="col-12 md:col-4 mpfn-input-separation" label="Apellido paterno"
-        placeholder="Apellido paterno" formControlName="fatherLastName" [checking]="true" [disabled]="validRemitente"
-        validarInput [validarMaxLength]="40" [validarTipoEntrada]="'texto'" [validarSoloMayusculas]="true" />
-
-      <fn-input *ngIf="!isRuc && !isPJuridica" class="col-12 md:col-4 mpfn-input-separation"
-        label="Apellido materno (opcional)" placeholder="Apellido materno" formControlName="motherLastName"
-        [checking]="true" [disabled]="validRemitente" validarInput [validarMaxLength]="40"
-        [validarTipoEntrada]="'texto'" [validarSoloMayusculas]="true" />
-
-      <fn-input *ngIf="!isRuc && !isPJuridica && isDenounced" class="col-4 md:col-4 mpfn-input-separation"
-        label="Alias (opcional)" placeholder="Alias" formControlName="alias" [checking]="true"
-        [disabled]="validRemitente" validarInput [validarMaxLength]="40" [validarTipoEntrada]="'alfaNumerico'"
+        placeholder="Apellido paterno" formControlName="fatherLastName" [checking]="true"
+        [disabled]="isCitizenDenounced" validarInput [validarMaxLength]="40" [validarTipoEntrada]="'texto'"
         [validarSoloMayusculas]="true" />
+
+      <fn-input *ngIf="!isRuc && !isPJuridica" class="col-12 md:col-4 mpfn-input-separation" label="Apellido materno"
+        placeholder="Apellido materno" formControlName="motherLastName" [checking]="true"
+        [disabled]="isCitizenDenounced" validarInput [validarMaxLength]="40" [validarTipoEntrada]="'texto'"
+        [validarSoloMayusculas]="true" />
+
+      <fn-input *ngIf="!isRuc && !isPJuridica && isDenounced" class="col-4 md:col-4 mpfn-input-separation mpe_alias"
+        label="Alias (opcional)" placeholder="Alias" formControlName="alias" [checking]="true"
+        [disabled]="isCitizenDenounced" validarInput [validarMaxLength]="40" [validarTipoEntrada]="'alfaNumerico'"
+        [validarSoloMayusculas]="true" />
+
+
+      @if (this.type != SLUG_INVOLVED.DENUNCIADO && !isPJuridica) {
+      <fn-input [ico]="obtenerIcono('iSmartPhone')"
+        class="col-12 md:col-6 mpfn-input-separation mpfn-inpt-count mpfn-input-icon"
+        label="Teléfono o celular principal" placeholder="Número de teléfono o celular" formControlName="phone"
+        [counter]="20" validarInput [validarMaxLength]="20" [validarRegex]="'^[0-9+/#(). -]*$'" type="tel"
+        [disabled]="showDenunciante" />
+
+      <fn-input [ico]="obtenerIcono('iMail')" class="col-12 md:col-6 mpfn-input-separation mpfn-input-icon"
+        label="Correo electrónico principal" placeholder="Dirección de correo electrónico" formControlName="email"
+        type="email" validarInput [validarMaxLength]="100" [validarRegex]="'^[a-zA-Z0-9@._-]*$'"
+        [validarSoloMayusculas]="true" [disabled]="showDenunciante" />
+      }
 
       <fn-input-wrapper *ngIf="!isRuc && !isPJuridica" label="Pueblo indígena"
         class="col-12 mpfn-input mpfn-input-separation">
@@ -212,10 +238,10 @@
         [validarMaxLength]="150" />
 
       <div *ngIf="!isRuc && !isPJuridica" class="col-12 mt-2">
-        <div class="flex justify-content-between align-items-center mb-3">
+        <div class="flex justify-content-between align-items-center mb-3 mpe_datos_adicionales">
           <!-- Checkbox (izquierda) o espacio vacío -->
-          <div class="flex align-items-center color-black2 min-h-3rem">
-            <span class="link text-sm mpfn-register-additional-data"
+          <div class="flex align-items-center color-black2 min-h-3rem mpe_registrar_datos">
+            <span class="link text-sm mpfn-register-additional-data" style="text-decoration: underline;"
               (click)="enableAditionalDataBtn() ?  recordExtraData() : null" onKeyPress="">
               Registrar datos adicionales
             </span>
@@ -226,9 +252,9 @@
           </div>
 
           <!-- Radios (derecha) -->
-          <div class="flex align-items-center color-black2">
-            <label for="Requiere traductor" class="mr-3 text-bold text-sm mpfn-without-bottom">¿Requiere de un
-              traductor?</label>
+          <div class="flex align-items-center color-black2 mpe_requiere_traductor">
+            <label for="Requiere traductor" class="mr-3 text-bold text-sm mpfn-without-bottom">
+              ¿Requiere de un traductor?</label>
             <ng-container *ngFor="let item of translateOptions">
               <p-radioButton [inputId]="item.value" [value]="item.value" formControlName="translator" />
               <label [for]="item.value" class="mx-2 cursor-pointer mpfn-without-bottom">{{ item.label }}</label>
@@ -243,22 +269,21 @@
         [counter]="20" validarInput [validarMaxLength]="20" [validarRegex]="'^[0-9+/#(). -]*$'" />
 
       <fn-input *ngIf="isPJuridica" class="col-12 md:col-6 mpfn-input-icon mpfn-input-separation"
-        label="Correo electrónico" [ico]="obtenerIcono('iMail')" placeholder="ejemplo@gmail.com"
+        label="Correo electrónico" [ico]="obtenerIcono('iMail')" placeholder="ejemplo@gmail.com" type="email"
         formControlName="aggrievedEmail" (keypress)="noQuotes($event)" validarInput [validarMaxLength]="100"
-        [validarRegex]="'^[a-zA-Z0-9@._-]*$'" />
+        [validarRegex]="'^[a-zA-Z0-9@._-]*$'" [validarSoloMayusculas]="true" />
     </ng-container>
 
     <ng-template #unknownInvolved />
   </form>
 </ng-container>
 
-<div class="flex justify-content-center mt-2" [class.mt-5]="!isComplainant && involveds.length > 0">
+<div class="flex justify-content-center mt-2 mpe_opciones_involucrados" [class.mt-5]="involveds.length > 0">
   <p-button *ngIf="verCancelar" class="ml-3" styleClass="surface-200 font-semibold text-primary mpfn-button-action"
     label="Cancelar" (onClick)="cancelEdition()" />
 
-  <p-button *ngIf="availableSaveBtn && (type !== 'denunciante' || (type === 'denunciante' && involveds.length === 0))"
-    class="ml-3 float-right" styleClass="bg-secondary font-semibold mpfn-button-action" label="Agregar"
-    [disabled]="disabledBtn" (onClick)="createInvolved(0)" [loading]="validating" />
+  <p-button *ngIf="availableSaveBtn" class="ml-3 float-right" styleClass="bg-secondary font-semibold mpfn-button-action"
+    label="Agregar" [disabled]="disabledBtn" (onClick)="createInvolved(0)" [loading]="validating" />
 </div>
 
 <p-toast />

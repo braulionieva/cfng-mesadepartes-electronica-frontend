@@ -13,7 +13,7 @@ export class ValidarInputDirective implements AfterViewInit, OnChanges {
     @Input() validarRegex: string | null = null;
     @Input() validarIgnorarTildes: boolean = false;
 
-    private inputElement: HTMLInputElement | null = null;
+    private inputElement: HTMLInputElement | HTMLTextAreaElement | null = null;
 
     private readonly navigationKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End', 'ArrowLeft', 'ArrowRight',];
 
@@ -37,14 +37,14 @@ export class ValidarInputDirective implements AfterViewInit, OnChanges {
 
     private initializeInputReference(): void {
         const nativeEl = this.el.nativeElement;
-        if (nativeEl instanceof HTMLInputElement) {
+        if (nativeEl instanceof HTMLInputElement || nativeEl instanceof HTMLTextAreaElement) {
             this.inputElement = nativeEl;
         } else {
-            const innerInput = nativeEl.querySelector('input');
-            if (innerInput instanceof HTMLInputElement) {
+            const innerInput = nativeEl.querySelector('input, textarea');
+            if (innerInput instanceof HTMLInputElement || innerInput instanceof HTMLTextAreaElement) {
                 this.inputElement = innerInput;
             } else {
-                console.warn('[ValidarInputDirective] No se encontró un <input>, reintentando...');
+                console.warn('[ValidarInputDirective] No se encontró un <input | textarea>, reintentando...');
                 setTimeout(() => this.initializeInputReference(), 50);
             }
         }
@@ -110,7 +110,7 @@ export class ValidarInputDirective implements AfterViewInit, OnChanges {
         this.insertarTexto(limpio);
     }
 
-    @HostListener('Blur', ['$event'])
+    @HostListener('blur', ['$event'])
     blur(e: FocusEvent): void {
         this.onBlurValue(e);
     }
@@ -123,10 +123,17 @@ export class ValidarInputDirective implements AfterViewInit, OnChanges {
     private onBlurValue(e: FocusEvent): void {
         if (!this.inputElement) return;
 
-        this.inputElement.value = this.inputElement.value.trim();
+        let val = this.inputElement.value;
+
+        // Reemplaza dos o más espacios en blanco consecutivos por uno solo
+        val = val.replace(/ {2,}/g, ' ');
+
+        // Opcional: trim para eliminar espacios al inicio o fin
+        val = val.trim();
+
+        this.inputElement.value = val;
         this.triggerEvent(this.inputElement, 'input');
     }
-
 
     private forecastValue(char: string): string {
         if (!this.inputElement) return '';
@@ -208,7 +215,7 @@ export class ValidarInputDirective implements AfterViewInit, OnChanges {
         this.triggerEvent(this.inputElement, 'input');
     }
 
-    private triggerEvent(el: HTMLInputElement, tipo: string): void {
+    private triggerEvent(el: HTMLInputElement | HTMLTextAreaElement, tipo: string): void {
         queueMicrotask(() => {
             el.dispatchEvent(new Event(tipo, { bubbles: true, cancelable: true }));
         });

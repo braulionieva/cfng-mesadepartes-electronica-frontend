@@ -59,12 +59,14 @@ export class EntityDataComponent implements OnInit, OnDestroy {
 
   @Input() recoveredData: Entidad | null = null
   @Output() formChanged = new EventEmitter<Object>();
-  @Input() public documentTypes = []
-  public documentTypesRepresentation = [];
+  @Input() protected documentTypes = []
+  protected documentTypesRepresentation = [];
   @Input() sumTotalBytesFiles: number = 0;
 
   deleteURL: string = `${ENDPOINTS_MICROSERVICES.MS_REPOSITORIO}`
   url: string = `${ENDPOINTS_MICROSERVICES.MS_REPOSITORIO}cargar-comprimido`
+
+  @Output() filesChanged = new EventEmitter<boolean>();
 
   /****************/
   /*  CONSTANTES  */
@@ -84,31 +86,31 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*  VARIABLES  */
   /***************/
 
-  public iUser: FnIcon = iUser as FnIcon
-  public iTrashCan: FnIcon = iTrashCan as FnIcon
-  public files = []
-  public previousFiles = []
-  public entidades: Entidad[] = [];
+  protected iUser: FnIcon = iUser as FnIcon
+  protected iTrashCan: FnIcon = iTrashCan as FnIcon
+  protected files = []
+  protected previousFiles = []
+  protected entidades: Entidad[] = [];
 
-  public searchingRuc: boolean = false
-  public rucFounded: boolean = false
-  public disableRuc: boolean = true;
+  protected searchingRuc: boolean = false
+  protected rucFounded: boolean = false
+  protected disableRuc: boolean = true;
 
 
-  public newEntidad: boolean = true
-  public tmpEntidad: Entidad;
+  protected newEntidad: boolean = true
+  protected tmpEntidad: Entidad;
 
   private amountAnexo: number = 0;
   private sumaTotalFolios: number = 0;
 
   //util
-  public noQuotes = noQuotes
-  public validaToken
-  public denunciaToken
-  public suscriptions: Subscription[] = []
+  protected noQuotes = noQuotes
+  protected validaToken
+  protected denunciaToken
+  protected suscriptions: Subscription[] = []
 
 
-  public loadingData: boolean = false
+  protected loadingData: boolean = false
 
 
   //autocomplete
@@ -119,13 +121,13 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*  FORM  */
   /**********/
 
-  public form: FormGroup = new FormGroup({})
+  protected form: FormGroup = new FormGroup({})
 
-  public paisArrOriginal: any[] = [];
-  public paisArrActual: any[] = [];
+  protected paisArrOriginal: any[] = [];
+  protected paisArrActual: any[] = [];
   private readonly PERU_ID = 102;
 
-  public documentTypesOriginal: any[] = [];
+  protected documentTypesOriginal: any[] = [];
 
   protected validacionDocumento: IValidacionDocumento = { id: 15, min: 0, max: 0, tipo: '' };
 
@@ -151,17 +153,20 @@ export class EntityDataComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.buildForm()
-    let valida = localStorage.getItem(LOCALSTORAGE.VALIDATE_KEY);
-    this.validaToken = JSON.parse(this.cryptService.decrypt(valida));
-    this.form.get('procuradorDatos').setValue("DNI: " + this.validaToken?.validateIdentity.numeroDni + " - " + this.validaToken?.personaNatural.nombres + " " + this.validaToken?.personaNatural.apellidoPaterno + " " + this.validaToken?.personaNatural.apellidoMaterno);
 
+    this.obtenerProcurador();
     let denuncia = localStorage.getItem(LOCALSTORAGE.DENUNCIA_KEY);
+
     if (denuncia) {
       this.isRecoveredFromStorage = true;
       this.denunciaToken = JSON.parse(this.cryptService.decrypt(denuncia));
-      this.form.get('docRepresentacionTipo').setValue(this.denunciaToken.entidad.archivoPerfil.docRepresentacionTipo);
-      this.form.get('docRepresentacionNumero').setValue(this.denunciaToken.entidad.archivoPerfil.docRepresentacionNumero);
-      if (this.denunciaToken.entidad !== undefined && this.denunciaToken.entidad.archivoPerfil !== undefined && this.denunciaToken.entidad.archivoPerfil.anexos !== undefined) {
+
+      this.form.patchValue({
+        docRepresentacionTipo: this.denunciaToken.entidad.archivoPerfil.docRepresentacionTipo,
+        docRepresentacionNumero: this.denunciaToken.entidad.archivoPerfil.docRepresentacionNumero
+      });
+
+      if (this.denunciaToken.entidad != undefined && this.denunciaToken.entidad.archivoPerfil !== undefined && this.denunciaToken.entidad.archivoPerfil.anexos != undefined) {
         this.files = this.denunciaToken.entidad.archivoPerfil.anexos;
         this.previousFiles = this.denunciaToken.entidad.archivoPerfil.anexos;
         this.saveInfo();
@@ -171,6 +176,17 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     this.getDocumentTypes()
     this.getDocumentRepresentationType()
     this.getNationalities();
+  }
+
+  obtenerProcurador() {
+    let valida = localStorage.getItem(LOCALSTORAGE.VALIDATE_KEY);
+    this.validaToken = JSON.parse(this.cryptService.decrypt(valida));
+
+    this.form.get('procuradorDatos')
+      .setValue("DNI: " + this.validaToken?.validateIdentity.numeroDni
+        + " - " + this.validaToken?.personaNatural.nombres
+        + " " + this.validaToken?.personaNatural.apellidoPaterno
+        + " " + this.validaToken?.personaNatural.apellidoMaterno);
   }
 
   ngDoCheck() {
@@ -188,8 +204,13 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     this.files = newFiles;
     this.previousFiles = [...newFiles];
     this.saveInfo(true);
+    this.filesChanged.emit(newFiles.length > 0);
   }
 
+  get esTipoDocumentoDNI(): boolean {
+    let datos = this.form.getRawValue()
+    return datos.documentType === 1
+  }
 
   /**********/
   /*  FORM  */
@@ -303,7 +324,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*****************/
   /*  GET METHODS  */
   /*****************/
-  public getDocumentRepresentationType(): void {
+  protected getDocumentRepresentationType(): void {
     this.maestrosService.getCaseDocumentTypes().subscribe({
       next: (resp) => {
         if (resp && resp.code === 200) {
@@ -320,7 +341,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     });
   }
 
-  public getDocumentTypes(): void {
+  protected getDocumentTypes(): void {
     const origen = this.form?.get('origen')?.value;
     const origenID = origen == 'EXT' ? 1 : 0;
 
@@ -363,7 +384,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     this.getPadronSunat(event.query)
   }
 
-  public async getPadronSunat(nombreEmpresa: string): Promise<void> {
+  protected async getPadronSunat(nombreEmpresa: string): Promise<void> {
     let request: ValidationSunat = {
       razonSocial: nombreEmpresa
     };
@@ -382,7 +403,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*    SEARCH RUC    */
   /********************/
 
-  public searchRUC(): void {
+  protected searchRUC(): void {
     this.searchingRuc = true;
     this.rucFounded = false;
 
@@ -431,7 +452,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     );
   }
 
-  public cleanSearch(): void {
+  protected cleanSearch(): void {
     this.rucFounded = false;
     this.form.get('ruc').setValue('');
     this.form.get('ruc').markAsUntouched();
@@ -439,7 +460,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     this.form.get('businessName').markAsUntouched();
   }
 
-  public cleanProcurator(): void {
+  protected cleanProcurator(): void {
     this.form.get('procuratorDNI').setValue('')
     this.form.controls['procuratorDNI'].reset()
     this.form.get('procuratorName').setValue('')
@@ -449,7 +470,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     this.form.get('procuradorApellidoMaterno').setValue('')
   }
 
-  public cleanDocumentoRepresentacion(): void {
+  protected cleanDocumentoRepresentacion(): void {
     this.form.get('docRepresentacionTipo').setValue('')
     this.form.controls['docRepresentacionTipo'].reset()
     this.form.get('docRepresentacionNumero').setValue('')
@@ -461,21 +482,29 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*    DELETE ENTIDAD     */
   /*************************/
 
-  public deleteEntidad(id: string): void {
+  protected deleteEntidad(id: string): void {
     this.entidades = [];
     this.isRecoveredFromStorage = false;
+
     this.cancelEdition();
+
     this.form.reset({
       origen: 'PER',
       pais: { value: this.PERU_ID, disabled: true }
     });
+
     this.form.get('pais').disable();
+
     this.cleanSearch();
     this.cleanProcurator();
     this.cleanDocumentoRepresentacion();
+
+    this.obtenerProcurador();
+
     this.files = [];
     this.previousFiles = [];
     this.sumTotalBytesFiles = 0;
+
     this.formChanged.emit({ entidad: null });
   }
 
@@ -483,7 +512,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*    CANCEL EDITION    */
   /************************/
 
-  public cancelEdition(): void {
+  protected cancelEdition(): void {
     this.newEntidad = true
     this.tmpEntidad = undefined
   }
@@ -492,8 +521,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*    CREAR ENTIDAD     */
   /*************************/
 
-  public async crearEntidad(): Promise<void> {
-
+  protected crearEntidad(): void {
     const data = this.form.getRawValue();
 
     this.entidades.push({
@@ -516,7 +544,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
     this.saveInfo()
   }
 
-  public getNames(entidad: Entidad): string {
+  protected getNames(entidad: Entidad): string {
     let name: string = ''
     name = entidad.razonSocial;
     return name;
@@ -526,7 +554,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*    AUTOSAVE    */
   /******************/
 
-  public onFormChange(newValues: Object): void {
+  protected onFormChange(newValues: Object): void {
     this.amountAnexo = 0;
 
     let anexo = this.entidades[0].archivoPerfil.anexos ? true : false;
@@ -594,7 +622,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*  SAVE INFO  */
   /***************/
 
-  public saveInfo(force: boolean = false): void {
+  protected saveInfo(force: boolean = false): void {
     if (this.entidades.length > 0) {
       const data = this.form.getRawValue();
       const anexos = this.payloadBuilder.formatFiles(this.files);
@@ -613,7 +641,7 @@ export class EntityDataComponent implements OnInit, OnDestroy {
   /*  OTHERS  */
   /************/
 
-  public errorMsg(ctrlName) {
+  protected errorMsg(ctrlName) {
     return ctrlErrorMsg(this.form.get(ctrlName))
   }
 

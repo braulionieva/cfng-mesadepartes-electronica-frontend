@@ -29,7 +29,7 @@ import { obtenerIcono } from '@shared/utils/icon';
             <span class="ml-1 mt-2 alert-icon">
                 <fn-icon [ico]="obtenerIcono('iCheckCircle')" class="color-green" height="2.2rem"/>
             </span>
-            <span class="ml-2 mt-2 text-2xl nfont-semibold color-green">Código de verificación enviado</span>
+            <span class="ml-2 mt-2 text-2xl nfont-semibold color-green mpe_modal_titulo mpe_modal_titulo_green">Código de verificación enviado</span>
             <div class="w-150 ml-5 text-right">
                 <span class="alert-icon cursor-pointer">
                     <i class="pi pi-times" (click)="ref.close()"></i>
@@ -39,12 +39,13 @@ import { obtenerIcono } from '@shared/utils/icon';
     </div>
 
     <div class="p-3 ml-1 text-center s-1-2rem">
-        <div class="color-black2 lh-1-5 ml-4 mr-4">
+        <div class="color-black2 lh-1-5 ml-4 mr-4 mpe_modal_descripcion">
             Hemos enviado el código de verificación al correo:
-            <p class="lbl-center text-bold text-center mt-0" style="word-break:  break-word; text-align: justify;">{{ config.data.name }}</p>
-            <p >Revise su bandeja de entrada para continuar.
+            <p class="lbl-center text-bold text-center mt-0 mpe_modal_descripcion" style="word-break:  break-word; text-align: justify;">{{ config.data.name }}</p>
+            <p>Revise su bandeja de entrada para continuar. Si no lo recibe, por favor verifique que haya ingresado
+                correctamente su dirección de correo electrónico.
         </div>
-        <div class="flex flex-column md:flex-row justify-content-center mt-5 mb-2">
+        <div class="flex flex-column md:flex-row justify-content-center mt-5 mb-2 mpe_modal_opciones">
             <p-button (onClick)="ref.close()" label="Aceptar"
             styleClass="lbl-center p-button-lg bg-secondary font-semibold btn-adjust">
             </p-button>

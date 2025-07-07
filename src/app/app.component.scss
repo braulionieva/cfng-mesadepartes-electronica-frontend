@@ -1,0 +1,30 @@
+@use 'responsive' as *;
+
+.mpe_contenedor_principal {
+
+    width: 100%;
+
+    app-header {
+        width: 100%;
+    }
+
+    .mpe_contenido {
+        width: 100%;
+    }
+
+    app-footer {
+        width: 100%;
+    }
+}
+
+@media ( min-width: $max-screen ){
+    .mpe_contenedor_principal {
+        max-width: $max-screen;
+        display: flex;
+        align-items: flex-start;
+        margin: 0 auto;
+        flex-wrap: wrap;
+        border-left: 2px solid var(--mpfn-gray11);
+        border-right: 2px solid var(--mpfn-gray11);
+    }
+}

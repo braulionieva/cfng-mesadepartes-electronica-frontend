@@ -39,6 +39,7 @@ export const DOMAIN_API_IP = 'https://api.ipify.org/?format=json';
 export const SECONDS_TO_PARCIAL_SEND = 30000;
 export const SESSION_MINUTES = 0
 export const VIEW_GENERATED_COMPLAINT_MINUTES = 5
+export const DEFAULT_CLIENT_IP = '10.40.121.10';
 
 export const FILE_DOMAINS = {
     //para registro d ddenuncia id 168 por defecto

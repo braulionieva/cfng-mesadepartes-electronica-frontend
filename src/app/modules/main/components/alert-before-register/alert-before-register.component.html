@@ -1,0 +1,17 @@
+<div class="flex flex-wrap justify-content-center my-2 mx-2">
+    <div class="mt-4 mb-3 mx-2 mpfn-roboto-regular text-justify">
+        Para tu comodidad, te recomendamos realizar este proceso desde una computadora de escritorio o portátil, ya que
+        algunos pasos implican ingresar una cantidad considerable de información y resultan más cómodos con teclado
+        físico.
+    </div>
+    <div class="mb-4 mx-2 mpfn-roboto-regular text-justify">
+        Sin embargo, si lo prefieres, puedes continuar desde tu celular sin inconvenientes
+    </div>
+    <div class="flex justify-content-between my-3 w-full">
+        <p-button styleClass="p-button-lg surface-200 font-semibold text-primary btn-adjust" class="p-button-width"
+            label="Cancelar" (onClick)="selectOption(responses.CANCEL)" />
+            
+        <p-button styleClass="p-button-lg bg-secondary font-semibold btn-adjust" class="p-button-width"
+            label="Continuar" (onClick)="selectOption(responses.OK)" />
+    </div>
+</div>

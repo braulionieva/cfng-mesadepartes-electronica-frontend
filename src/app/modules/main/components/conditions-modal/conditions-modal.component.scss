@@ -1,0 +1,111 @@
+@use 'responsive' as *;
+
+.mpe_terminos_titulo {
+    font-family: var(--mpfn-font-semi-bold);
+    font-size: $font-24;
+}
+
+.mpe_terminos_subtitulo {
+    font-family: var(--mpfn-font-semi-bold);
+    font-size: $font-24;
+}
+
+.mpe_terminos_cerrar {
+    position: relative;
+    top: 3px;
+    right: 4px;
+    img {
+        width: 34px;
+    }
+}
+
+.mpe_terminos_contenido {
+    font-family: var(--mpfn-font-roboto-regular);
+    padding-right: 1.8rem;
+}
+
+@media(max-width: $large-mobile) {
+    .mpe_terminos_titulo {
+        font-size: $font-18 !important;
+    }
+
+    .mpe_terminos_subtitulo {
+        font-size: $font-18 !important;
+    }
+    .mpe_terminos_cerrar {
+        img {
+            width: 28px;
+        }
+    }
+    .mpe_terminos_condiciones {
+        padding: 10px 10px 0 0 !important;
+        margin-left: 10px !important;
+        margin-right: 16px !important;
+    }
+    .mpe_terminos_opciones {
+        padding-bottom: 20px;
+        margin-top: 20px !important;
+    }
+}
+
+@media(max-width: $medium-mobile) {
+    .mpe_terminos_titulo {
+        font-size: $font-16 !important;
+        position: relative;
+        top: -30px;
+        margin-bottom: 0 !important;
+    }
+    .mpe_terminos_subtitulo {
+        font-size: $font-16 !important;
+        margin-top: -10px !important;
+    }
+    .mpe_terminos_condiciones {
+        padding: 2px 10px 0 0 !important;
+        margin-left: 10px !important;
+        margin-right: 16px !important;
+    }
+    .mpe_terminos_contenido {
+        font-size: 13px;
+    }
+    :host::ng-deep .mpe_terminos_opciones {
+        padding-bottom: 20px;
+        margin-top: 20px !important;
+        display: flex;
+        flex-wrap: wrap;
+        p-button {
+            width: calc(50% - 10px);
+            .p-button {
+                width: 100% !important;
+                display: flex;
+                justify-content: center;
+                font-size: 12px !important;
+            }
+            &:last-child {
+                fn-icon {
+                    margin-left: 6px !important;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: $mobile ){
+    :host::ng-deep .mpe_terminos_opciones {
+        width: 100%;
+        p-button {
+            width: 100%;
+            .p-button {
+                width: 100% !important;
+                display: flex;
+                justify-content: center;
+            }
+            &:first-child {
+                order: 2;
+            }
+            &:last-child {
+                margin-bottom: 10px;
+                order: 1;
+            }
+        }
+    }
+}

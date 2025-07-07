@@ -11,7 +11,7 @@ import { CommonModule, DatePipe } from "@angular/common";
 import { ButtonModule } from "primeng/button";
 import { ProgressBarModule } from "primeng/progressbar";
 import { MessagesModule } from "primeng/messages";
-import { PdfViewerModule } from "ng2-pdf-viewer";
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { ToastModule } from "primeng/toast";
 import { AlertComponent } from "@shared/components/alert/alert.component";
 import { AppendService } from "@modules/append/append.service";
@@ -49,7 +49,7 @@ const { VALIDATE_KEY, NOMBRE_DOCUMENTO_KEY } = LOCALSTORAGE
     ButtonModule,
     ProgressBarModule,
     MessagesModule,
-    PdfViewerModule,
+    NgxExtendedPdfViewerModule,
     ToastModule,
     AlertComponent
   ],
@@ -214,7 +214,7 @@ export class DocumentRegisteredComponent implements OnInit {
     this.appendService.guardarPresentarDocumento(reqDocumento).subscribe({
       next: res => {
         this.nombreCargoDocumento = res.mensaje
-        this.getUrl(String(res.data))
+        this.getUrl2(String(res.data))
         this.registrado = true
 
         let valida = localStorage.getItem(LOCALSTORAGE.VALIDATE_KEY);
@@ -255,6 +255,16 @@ export class DocumentRegisteredComponent implements OnInit {
       const file = new Blob([bytes], { type: 'application/pdf' });
       this.loading = false
       this.urlPdf = URL.createObjectURL(file);
+      this.startCountDown();
+    }
+  }
+
+  public getUrl2(dataB64: string): void {
+    const data = dataB64;
+    if (data != null) {
+
+      this.loading = false;
+      this.urlPdf = `data:application/pdf;base64,${data}`;
       this.startCountDown();
     }
   }

@@ -1,3 +1,128 @@
-.border-footer {
-  border: 1px solid #d3d3d3;
+@use 'responsive' as *;
+
+.prefooter__contenedor {
+  width: 100%;
+  background: var(--mpfn-gray18);
+  padding: 50px 0 20px 0;
+  border-bottom: 1px solid var(--mpfn-gray17);
+  h3 {
+    font-family: var(--mpfn-font-semi-bold);
+    font-size: 20px;
+    color: var(--mpfn-blue);
+    margin: 0 0 20px 0;
+  }
+  .prefooter__contenido {
+    width: $width-content;
+    margin: 0 auto;
+    .prefooter_elementos {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      .prefooter__elemento {
+        width: 30%;
+        margin-bottom: 25px;
+        h4 {
+          font-family: var(--mpfn-font-semi-bold);
+          font-size: 16px !important;
+          margin: 0 10px 0 0;
+          color: var(--mpfn-gray19);
+        }
+        p {
+          font-family: var(--mpfn-font-roboto-regular);
+          font-size: 14px;
+          color: var(--mpfn-gray16);
+          span {
+            font-family: var(--mpfn-font-roboto-semi-bold);
+          }
+          a {
+            color: var(--mpfn-gray16);
+          }
+        }
+      }
+    }
+    .prefooter_logos {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-top: 50px;
+      .prefooter_logo {
+        img {
+          width: 220px;
+        }
+        &:nth-child(2) {
+          width: 100px;
+          margin: 0 40px;
+        }
+      }
+    }
+  }
+}
+
+@media(max-width: $tablet-large) {
+  .prefooter__contenedor {
+    .prefooter__contenido {
+      .prefooter_elementos {
+        .prefooter__elemento {
+          width: 48%;
+        }
+      }
+    }
+  }
+}
+
+@media(max-width: $large-mobile) {
+  .prefooter__contenedor {
+    .prefooter__contenido {
+      .prefooter_elementos {
+        .prefooter__elemento {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+@media(max-width: $medium-mobile) {
+  .prefooter__contenedor {
+    padding: 40px 0 30px 0;
+    h3 {
+      font-size: 16px;
+    }
+    .prefooter__contenido {
+      width: $width-content-sm;
+      .prefooter_elementos {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        .prefooter__elemento {
+          margin-bottom: 15px;
+          h4 {
+            font-size: 14px !important;
+          }
+          p {
+            font-size: 12px;
+          }
+        }
+      }
+      .prefooter_logos {
+        margin-top: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        .prefooter_logo {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          img {
+            width: 140px;
+          }
+          &:nth-child(2) {
+            width: 60px;
+            margin: 20px 0 30px 0;
+          }
+        }
+      }
+    }
+  }
 }

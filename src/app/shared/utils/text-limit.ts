@@ -9,12 +9,13 @@ export function handleTextInput(
   const textarea = event.target as HTMLTextAreaElement
   const textoOriginal = textarea.value
 
-  const cantidadNoBlancos = textoOriginal.replace(/\s/g, '').length
+  const cantidadNoBlancos = textoOriginal.length
+
   const control = form.get(formControlName)
   if (!control) return
 
   if (cantidadNoBlancos <= limite) {
-    control.setValue(textoOriginal.trim(), { emitEvent: false })
+    control.setValue(textoOriginal, { emitEvent: false })
     return
   }
 
@@ -49,12 +50,12 @@ export function handleTextPaste(
   if (!control) return
 
   const textoActual = control.value ?? ''
-  const noBlancosActual = textoActual.replace(/\s/g, '').length
+  const noBlancosActual = textoActual.length
   const espacioDisponible = limite - noBlancosActual
 
   if (espacioDisponible <= 0) return
 
-  let exceso = textoPegado.replace(/\s/g, '').length - espacioDisponible
+  let exceso = textoPegado.length - espacioDisponible
   if (exceso <= 0) {
     insertarTextoEnCursor(textoPegado, control, formControlName)
     return
@@ -69,7 +70,7 @@ export function handleTextPaste(
   }
 
   const textoRecortado = caracteres.join('')
-  insertarTextoEnCursor(textoRecortado.trim(), control, formControlName)
+  insertarTextoEnCursor(textoRecortado, control, formControlName)
 }
 
 const insertarTextoEnCursor = (texto: string, control: AbstractControl, formControlName: string): void => {

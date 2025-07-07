@@ -8,6 +8,7 @@ import { ApiBaseService } from '../global/api-base.service';
 })
 export class MaestrosService {
 	private readonly maestrosKey: DomainType = 'maestros';
+	private readonly aiKey: DomainType = 'ai';
 	constructor(private readonly apiBase: ApiBaseService) { }
 
 	getConditions(): Observable<any> {
@@ -18,8 +19,9 @@ export class MaestrosService {
 		return this.apiBase.get(this.maestrosKey, `cftm/e/catalogo/${grupo}`);
 
 	}
-	getBarAssociationList(): Observable<any> {
-		return this.apiBase.get(this.maestrosKey, 'catalogo/grupo/colegioAbogados');
+
+	getColegioAbogados(): Observable<any> {
+		return this.apiBase.get(this.maestrosKey, 'cftm/e/colegioabogados');
 	}
 
 	getProfiles(): Observable<any> {
@@ -60,6 +62,18 @@ export class MaestrosService {
 
 	getDistricts(codigoDepartamento: string, provinceId: string): Observable<any> {
 		return this.apiBase.get(this.maestrosKey, `cftm/e/reniec/distgeografica/${codigoDepartamento}/${provinceId}`);
+	}
+
+	getDepartmentsLegacy(): Observable<any> {
+		return this.apiBase.get(this.maestrosKey, 'cftm/e/reniec/dptogeograficalegacy');
+	}
+
+	getProvincesLegacy(codigoDepartamento: string): Observable<any> {
+		return this.apiBase.get(this.maestrosKey, `cftm/e/reniec/provgeograficalegacy/${codigoDepartamento}`);
+	}
+
+	getDistrictsLegacy(codigoDepartamento: string, provinceId: string): Observable<any> {
+		return this.apiBase.get(this.maestrosKey, `cftm/e/reniec/distgeograficalegacy/${codigoDepartamento}/${provinceId}`);
 	}
 
 	getRoads(): Observable<any> {
@@ -152,5 +166,8 @@ export class MaestrosService {
     return this.apiBase.get(this.maestrosKey, `cftm/e/dependenciapolicial/ubigeo/${coUbigeo}`);
   }
 
+  getAISuggestions(requestData: { nivelDelito: string, hecho: string }): Observable<any> {
+    return this.apiBase.post(this.aiKey, 'e/ia/obtenerdelito', requestData);
+  }
 }
 

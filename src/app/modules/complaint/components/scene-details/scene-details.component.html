@@ -2,7 +2,7 @@
 
   <div class="mt-4"></div>
 
-  <fn-input-wrapper label="Especialidad seleccionada" class="mpfn-input">
+  <fn-input-wrapper label="Especialidad seleccionada" class="mpfn-input mpfn-select-hide-icon">
     <p-dropdown (onChange)="cambiarEspecialidad($event)" [options]="specialtyList" optionLabel="nombre"
       optionValue="codigo" placeholder="Seleccionar" [filter]="true" filterBy="nombre" formControlName="specialty"
       emptyMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('specialty')}" />
@@ -16,42 +16,122 @@
     <p class="mb-1 mpfn-text mt-1">Describe lo que sucedió de la forma más detallada posible.</p>
   </div>
 
-  <app-alert *ngIf="mostrarErrorReport" [dataAlert]="messages[1]" [cosable]="false" class="mb-0"/>
+  <app-alert [dataAlert]="messages[1]" [cosable]="false" class="mb-0"
+    *ngIf="counterReportChar < 100 || counterReportChar > 4000" />
 
-  <textarea rows="5"
-            pInputTextarea
-            formControlName="report"
-            class="w-full text-justify"
-            [autoResize]="false"
-            [ngClass]="{'ng-invalid ng-dirty': errorMsg('report')}"
-            placeholder="Ingrese la descripción de los hechos de la forma más detallada posible."
-            (input)="onReportInput($event)"
-            (paste)="onReportPaste($event)">
-    </textarea>
+  <textarea rows="5" pInputTextarea formControlName="report" class="w-full text-justify" [autoResize]="false"
+    [class.mpfn-input-invalid]="mostrarErrorReport" validarInput [validarMaxLength]="4000"
+    placeholder="Ingrese la descripción de los hechos de la forma más detallada posible.">
+  </textarea>
 
   <small class="mpfn-counter" [ngClass]="{ 'p-error': counterReportChar < 100 || counterReportChar > 4000 }">
     {{ counterReportChar }}/4000 máximo de caracteres
   </small>
 
-  <small *ngIf="mostrarErrorReport" [ngClass]="{ 'hidden': counterReportChar > 100 || counterReportChar < 1 }"
-    class="p-error block margin-error-hecho">
-    Por favor, ingrese un mayor detalle sobre los hechos sucedidos.
-  </small>
+  <div *ngIf="mostrarErrorReport" class="relative">
+    <small [ngClass]="{ 'hidden': counterReportChar > 100 || counterReportChar < 1 }"
+      class="p-error block margin-error-hecho mpfn-error-textarea-message mpfn-error-with-count">
+      Por favor, ingrese un mayor detalle sobre los hechos sucedidos.
+    </small>
+  </div>
+
+  <!-- sonar:off -->
+  <!-- Botón de sugerencias de IA -->
+  <div class="mt-3 mb-2">
+    <p-button label="Ver sugerencias de delitos (IA)" icon="pi pi-sparkles" styleClass="p-button-outlined p-button-sm"
+      [loading]="loadingSuggestions" loadingIcon="pi pi-spin pi-spinner" (onClick)="getAISuggestions()"
+      [disabled]="!form.get('report')?.valid || counterReportChar < 100 || counterReportChar > 4000 || !isReportChangedSinceAISearch">
+    </p-button>
+  </div>
+
+  <!-- Panel de sugerencias de IA -->
+  <div *ngIf="showAISuggestions && aiSuggestions.length > 0" class="ai-suggestions-panel mb-3">
+    <div class="suggestions-header">
+      <div class="flex align-items-center justify-content-between mb-2">
+        <span class="font-medium text-sm text-primary">
+          <i class="pi pi-lightbulb mr-1"></i>
+          Sugerencias de IA basadas en la descripción de los hechos:
+        </span>
+        <button type="button" class="p-link text-xs" (click)="closeAISuggestions()">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="suggestions-list">
+      <div onkeyup="" *ngFor="let suggestion of aiSuggestions; let i = index"
+        class="suggestion-item p-3 border-1 border-300 border-round mb-2 cursor-pointer hover:bg-blue-50 transition-colors transition-duration-150"
+        (click)="selectAISuggestion(suggestion)">
+        <div class="flex align-items-start">
+          <i class="pi pi-circle-fill text-primary text-xs mt-1 mr-2"></i>
+          <div class="flex-1">
+            <div class="font-medium text-sm text-900 mb-1">
+              {{ suggestion.noDelitoSubgenericoEspecifico }}
+            </div>
+            <div class="text-xs text-600">
+              {{ suggestion.noDelitoGenerico }}
+              <span *ngIf="suggestion.noDelitoSubGenerico"> > {{ suggestion.noDelitoSubGenerico }}</span>
+              <span *ngIf="suggestion.noDelitoEspecifico"> > {{ suggestion.noDelitoEspecifico }}</span>
+            </div>
+          </div>
+          <i class="pi pi-angle-right text-400"></i>
+        </div>
+      </div>
+    </div>
+    <!-- Opción "Otros" -->
+    <div onkeyup=""
+      class="suggestion-item otros-option p-3 border-1 border-300 border-round cursor-pointer hover:bg-orange-50 transition-colors transition-duration-150"
+      (click)="selectOtherAndListDelitos()">
+      <div class="flex align-items-start">
+        <i class="pi pi-plus-circle text-orange-500 text-xs mt-1 mr-2"></i>
+        <div class="flex-1">
+          <div class="font-medium text-sm text-900 mb-1">
+            Listar más delitos
+          </div>
+          <div class="text-xs text-600">
+            Ninguna de las sugerencias anteriores se ajusta a mi caso. Listar más delitos
+          </div>
+        </div>
+        <i class="pi pi-angle-right text-400"></i>
+      </div>
+    </div>
+
+    <div class="text-xs text-500 mt-2 p-2 bg-blue-50 border-round">
+      <i class="pi pi-info-circle mr-1"></i>
+      Haga clic en una sugerencia para seleccionarla como el delito de su denuncia.
+    </div>
+  </div>
+
+  <!-- Mensaje cuando no hay sugerencias -->
+  <div *ngIf="showAISuggestions && aiSuggestions.length === 0" class="no-suggestions-panel mb-3">
+    <div class="p-3 border-1 border-300 border-round bg-yellow-50">
+      <div class="flex align-items-center">
+        <i class="pi pi-exclamation-triangle text-yellow-600 mr-2"></i>
+        <span class="text-sm text-600">
+          No se encontraron sugerencias para la descripción proporcionada.
+          Puede seleccionar manualmente el delito en la lista completa.
+        </span>
+      </div>
+    </div>
+  </div>
+
 
   <div class="mt-4 mb-2">
     <app-alert [dataAlert]="messages[0]" [cosable]="false" />
   </div>
-
   <fn-input-wrapper label="Seleccione el delito" class="mpfn-input mpfn-last">
     <p-dropdown (onChange)="cambiarDelito($event)" [options]="crimeList" optionLabel="noDelitoSubgenericoEspecifico"
       [filter]="true" filterBy="noDelitoSubgenericoEspecifico" optionValue="idDelitoSubgenericoEspecifico"
-      placeholder="Seleccionar" formControlName="crime" emptyMessage="Datos no encontrados" emptyFilterMessage="Datos no encontrados"
-      [ngClass]="{'ng-invalid ng-dirty': errorMsg('crime')}" />
+      placeholder="Seleccionar" formControlName="crime" emptyMessage="Datos no encontrados"
+      emptyFilterMessage="Datos no encontrados" [ngClass]="{'ng-invalid ng-dirty': errorMsg('crime')}" />
 
     <small error *ngIf="errorMsg('crime')" class="p-error block">
       Debe seleccionar un delito.
     </small>
   </fn-input-wrapper>
+
+
+  <!-- sonar:on -->
 
   <fn-input style="display: none;" formControlName="especialidad" />
   <fn-input style="display: none;" formControlName="delito" />

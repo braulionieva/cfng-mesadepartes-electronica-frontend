@@ -29,7 +29,7 @@ import { obtenerIcono } from '@shared/utils/icon';
             <!--fn-icon [ico]="obtenerIcono('iAlertHexagonal')" height="2.3rem" class="color-yellow1"/-->
 
         </span>
-        <span class="ml-2 text-2xl nfont-semibold color-yellow1">Está a punto de registrar el documento </span>
+        <span class="ml-2 text-2xl nfont-semibold color-yellow1 mpe_modal_titulo">Está a punto de registrar el documento </span>
         <div class="ml-5 text-right">
             <span class="alert-icon cursor-pointer">
                 <i class="pi pi-times" (click)="ref.close()"></i>
@@ -40,7 +40,7 @@ import { obtenerIcono } from '@shared/utils/icon';
 
 <div class="p-4 mt-2 ml-1">
 
-    <div class="color-black2 lh-1-5">
+    <div class="color-black2 lh-1-5 mpe_modal_descripcion">
     <strong>{{completeName| titlecase}},</strong> esta a punto de registrar el documento cargado.
     </div>
     <div>Esta acción no podrá revertirse.¿Desea continuar con el registro?</div>

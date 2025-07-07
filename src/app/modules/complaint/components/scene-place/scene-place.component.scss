@@ -1,3 +1,4 @@
+@use 'responsive' as *;
 @import url('https://unpkg.com/leaflet@1.9.3/dist/leaflet.css');
 @import url('https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css');
 
@@ -12,4 +13,23 @@
 
 ::ng-deep .p-dropdown-filter-icon {
   display: none !important;
+}
+
+@media(max-width: $large-mobile){
+  .mpe_tipo_via {
+    width: 100%;
+  }
+
+  .mpe_direccion {
+    width: 100%;
+  }
+}
+
+@media(max-width: $medium-mobile){
+  .mpe_alerta_ajuste {
+    margin: 0 8px !important;
+  }
+  .mpe_escenario {
+    margin-top: 24px !important;
+  }
 }

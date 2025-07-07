@@ -1,0 +1,13 @@
+@use 'responsive' as *;
+
+:host::ng-deep p-button {
+    width: 135px;
+    button {
+        width: 135px;
+        font-size: $font-12 !important;
+    }
+}
+
+.mpfn-roboto-regular {
+    font-size: $font-14;
+}

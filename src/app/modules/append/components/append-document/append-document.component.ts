@@ -276,8 +276,8 @@ export class AppendDocumentComponent implements OnInit {
     return this.attachmentsForm.get('attachedInformation').value?.trim()
       .length !== 0
       ? this.attachmentsForm
-        .get('attachedInformation')
-        .value?.length
+      .value?.length
+      .get('attachedInformation')
       : 0;
   }
 

@@ -1,161 +1,71 @@
-<div class="bg-footer pt-2">
-  <div class="fn-container plr-6-5">
-    <div *ngIf="esIdPeru" class="grid flex-column md:flex-row">
-      <div class="col-12 md:col-6 card-footer">
-        <div class="grid flex-row align-items-center">
-          <div class="col-12 d-flex">
-            <span class="h-10px align-middle align-items-center">Desde:</span>
-            <a href="https://play.google.com/store/apps/details?id=pe.gob.reniec.pki.reniecidaas2&hl=es_PE"
-              target="_blank" rel="noopener noreferrer"><img class="h-10px select-none mr-2 ml-2"
-                src="assets/images/logo-play-store.svg" alt="Play Store"></a>
-            <a href="https://apps.apple.com/pe/app/id-per%C3%BA/id6473041276" target="_blank"
-              rel="noopener noreferrer"><img class="h-10px select-none" src="assets/images/logo-app-store.svg"
-                alt="App Store"></a>
-          </div>
-        </div>
-        <div class="grid flex-row">
-          <div class="col-12">
-            Importante: Ingresa a la aplicación <b>ID Perú</b> cuando aparezca el código <b>QR</b> y escanéalo para la
-            validación biofacial correspondiente.
-          </div>
-        </div>
+<div class="prefooter__contenedor">
+
+  <div class="prefooter__contenido">
+
+    <h3>Denuncias en Flagrancia</h3>
+
+    <div class="prefooter_elementos">
+
+      <div class="prefooter__elemento">
+        <h4>Fiscalía Provincial Penal de turno:</h4>
+        <p>+51 944 986 524, +51 944 987 056, +51 944 985 723</p>
+        <p><span>Fiscalía de Violencia Contra la Mujer y los Integrantes del Grupo Familiar de turno:</span> +51
+          945305791</p>
       </div>
-      <div class="col-12 md:col-6 card-footer">
-        <div class="border-footer m-2 p-2">
-          Modernizamos nuestro sistema de autentificación de quieren acceden a nuestra base de datos y, la validación de
-          la identidad de las personas será utilizando la aplicación <b>ID Perú</b> del Reniec.
-        </div>
+
+      <div class="prefooter__elemento">
+        <h4>Fiscalía Provincial Penal de turno:</h4>
+        <p><span>Miraflores:</span> +51 920 388 902</p>
+        <p><span>San Isidro:</span> +51 921 814 062, +51 922 636 145</p>
+        <p><span>Surquillo:</span> +51 926 132 728, +51 922 692 129</p>
       </div>
-    </div>
-    <p class="text-xl nfont-bold text-primary">
-      Denuncias en Flagrancia
-    </p>
 
-    <div class="grid flex-column md:flex-row">
-      <div class="col-12 md:col-6 lg:col-4 card-footer">
-        <div class="cfe-subtitulo-2 nfont-bold text-black-alpha-90">
-          Fiscalía Provincial Penal de turno:
-        </div>
+      <div class="prefooter__elemento">
+        <h4>Fiscalía Provincial Penal de turno:</h4>
+        <p><span>Magdalena del Mar:</span> +51 932 729 703, +51 932 728 020, +51 932 737 155</p>
+        <p><span>San Borja:</span> +51 944 987 288, +51 945 306 625</p>
+        <p><span>La Victoria:</span> +51 937 568 749, +51 937 561 786</p>
+      </div>
 
+      <div class="prefooter__elemento">
+        <h4>Mesa de Partes Electrónica</h4>
+        <p>Es parte de la Carpeta Fiscal Electrónica, que busca agilizar procesos de investigación a cargo de la
+          fiscalía y forma parte de la política de modernización del Ministerio Público.</p>
+      </div>
+
+      <div class="prefooter__elemento">
+        <h4>Contacto</h4>
+        <p><span>Ministerio Público - Fiscalía de la Nación (Central telefónica):</span> +51 625 5555</p>
+        <p><span>Línea gratuita:</span> 0 800 00 205</p>
         <p>
-          +51 944 986 524, +51 944 987 056, +51 944 985 723
-        </p>
-
-        <p>
-          <span class="font-semibold">
-            Fiscalía de Violencia Contra la Mujer y los Integrantes del Grupo Familiar de turno:
-          </span>
-
-          +51 945305791
+          <span>Página web: </span>
+          <a [href]="link" rel="noopener" target="_blank">{{ link }}</a>
         </p>
       </div>
 
-      <div class="col-12 md:col-6 lg:col-4 card-footer">
-        <div class="cfe-subtitulo-2 nfont-bold text-black-alpha-90">Fiscalía Provincial Penal de turno:</div>
-        <p><span class="font-semibold">Miraflores: </span>+51 920 388 902</p>
-        <p><span class="font-semibold">San Isidro: </span>+51 921 814 062, +51 922 636 145</p>
-        <p><span class="font-semibold">Surquillo: </span>+51 926 132 728, +51 922 692 129</p>
-      </div>
-
-      <div class="col-12 md:col-6 lg:col-4 card-footer">
-        <div class="cfe-subtitulo-2 nfont-bold text-black-alpha-90">
-          Fiscalía Provincial Penal de turno:
-        </div>
-
+      <div class="prefooter__elemento">
+        <h4>Ayuda</h4>
         <p>
-          <span class="font-semibold">
-            Magdalena del Mar:
-          </span>
-
-          +51 932 729 703, +51 932 728 020, +51 932 737 155
-        </p>
-
-        <p>
-          <span class="font-semibold">
-            San Borja:
-          </span>
-
-          +51 944 987 288, +51 945 306 625
-        </p>
-
-        <p>
-          <span class="font-semibold">
-            La Victoria:
-          </span>
-
-          +51 937 568 749, +51 937 561 786
-        </p>
-      </div>
-
-      <div class="col-12 md:col-6 lg:col-4 card-footer">
-        <div class="cfe-subtitulo-2 nfont-bold text-black-alpha-90">
-          Mesa de Partes Electrónica
-        </div>
-
-        <p>
-          Es parte de la Carpeta Fiscal Electrónica, que busca agilizar procesos de investigación a cargo de la
-          fiscalía y forma parte de la política de modernización del Ministerio Público.
-        </p>
-      </div>
-
-      <div class="col-12 md:col-6 lg:col-4 card-footer">
-        <div class="cfe-subtitulo-2 nfont-bold text-black-alpha-90">
-          Contacto
-        </div>
-
-        <p>
-          <span class="font-semibold">
-            Ministerio Público - Fiscalía de la Nación (Central telefónica):
-          </span>
-
-          (01) 625 5555
-        </p>
-
-        <p>
-          <span class="font-semibold">
-            Línea gratuita:
-          </span>
-
-          0 800 00 205
-        </p>
-        <p>
-          <span class="font-semibold">
-            Página web:
-          </span>
-
-          <a [href]="link" rel="noopener" target="_blank">
-            {{ link }}
-          </a>
-        </p>
-      </div>
-
-      <div class="col-12 md:col-6 lg:col-4 card-footer">
-        <div class="cfe-subtitulo-2 nfont-bold text-black-alpha-90">
-          Ayuda
-        </div>
-
-        <p>
-          <a href="#" target="_blank">
+          <a rel="noopener" target="_blank">
             Preguntas frecuentes
           </a>
         </p>
       </div>
+
     </div>
 
-    <div class="col-12 md:col-12 g-container">
-      <div class="d-center">
-        <img class="h-6rem g-item" src="assets/images/img-logo-fiscalia.png"
-          alt="Logo del Ministerio Público Fiscalía de la Nación">
+    <div class="prefooter_logos">
+      <div class="prefooter_logo">
+        <img [src]="logoMinisterio" alt="Logo del Ministerio Público Fiscalía de la Nación">
       </div>
-      
-      <div class="d-center">
-        <img class="h-5rem g-item" src="assets/images/logo-mpe.png" alt="Logo de Mesa de Partes Electrónica">
-
+      <div class="prefooter_logo">
+        <img [src]="logoMesaPartes" alt="Logo de Mesa de Partes Electrónica">
       </div>
-      <div class="d-center">
-        <img class="h-4rem g-item" src="assets/images/img_logo_mpe_inicio.png"
-          alt="Logo de la Carpeta Fiscal Electrónica">
+      <div class="prefooter_logo">
+        <img [src]="logoCarpetaFiscal" alt="Logo de la Carpeta Fiscal Electrónica">
       </div>
     </div>
+
   </div>
+
 </div>

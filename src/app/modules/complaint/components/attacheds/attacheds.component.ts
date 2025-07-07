@@ -10,13 +10,14 @@ import { ENDPOINTS_MICROSERVICES, LOCALSTORAGE } from '@environments/environment
 import { CryptService } from '@shared/services/global/crypt.service';
 import { FileUploadComponent } from '@shared/components/file-upload/file-upload.component';
 import { handleTextInput, handleTextPaste } from '@shared/utils/text-limit';
+import { ValidarInputDirective } from '@core/directives/validar-input.directive';
 
 @Component({
   selector: 'complaint-attacheds',
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule, CmpLibModule,
-    InputTextareaModule, DividerModule, FileUploadComponent
+    InputTextareaModule, DividerModule, FileUploadComponent, ValidarInputDirective
   ],
   templateUrl: './attacheds.component.html',
   styleUrls: ['./attacheds.component.scss'],
@@ -100,7 +101,7 @@ export class AttachedsComponent implements OnInit {
 
   get counterReportChar(): number {
     const value = this.form.get('observation')?.value ?? ''
-    return value.replace(/\s/g, '').length
+    return value.length
   }
 
   protected onObservationInput(event: Event): void {
@@ -133,12 +134,11 @@ export class AttachedsComponent implements OnInit {
     // BUild new structure to save
     let request = {
       anexosAsociados: {
-        observacion: this.form.get('observation').value.replace(/\s/g, ''),
+        observacion: this.form.get('observation').value.trim(),
         anexos: newFiles,
       },
     };
     force && (request['force'] = true);
-    console.log("🚀 ~ AttachedsComponent ~ saveInfo ~ request:", request)
     this.formChanged.emit(request);
   }
 

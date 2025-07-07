@@ -62,6 +62,16 @@ export class PersonalDataComponent implements OnInit, OnDestroy {
   public obtenerIcono = obtenerIcono
   isTrackingDocument: any;
 
+  public emailCodeSendActive: boolean = false;
+  public emailCodeCountdownSeconds: number = 30;
+  private emailCodeCountdownInterval: any;
+
+  public confirmationCodeMessage = {
+    severity: 'warn',
+    isVerification: false,
+    detail: 'Le hemos enviado un código de verificación para confirmar que su correo electrónico es correcto. Tiene un tiempo de 3 minutos para utilizarlo. Si no lo recibe, por favor verifique que haya ingresado correctamente su dirección de correo electrónico.',
+  }
+
   constructor(
     private readonly router: Router,
     private readonly fb: FormBuilder,
@@ -208,7 +218,12 @@ export class PersonalDataComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.suscriptions.forEach(s => s.unsubscribe())
+    this.suscriptions.forEach(s => s.unsubscribe());
+
+    // Limpiar el interval si existe
+    if (this.emailCodeCountdownInterval) {
+      clearInterval(this.emailCodeCountdownInterval);
+    }
   }
 
 
@@ -258,17 +273,21 @@ export class PersonalDataComponent implements OnInit, OnDestroy {
     this.identificarRegistrarVerificacion.destinatario = this.personDataForm.get('email').value;
     this.identificarRegistrarVerificacion.nombre = this.verificationMessage[0].detail1;
 
+    // Iniciar countdown
+    this.startEmailCodeCountdown();
+
     this.mesaService.getRegistrarVerificacion(this.identificarRegistrarVerificacion).subscribe({
       next: resp => {
 
         return
       }
-    })
+    });
+
     this.refModal = this.dialogService.open(PendingVerificationModalComponent, {
       showHeader: false,
       contentStyle: { 'max-width': '670px', 'padding': '0px' },
       data: { name: this.identificarRegistrarVerificacion.destinatario }
-    })
+    });
   }
 
   nextStep(): void {
@@ -556,4 +575,33 @@ export class PersonalDataComponent implements OnInit, OnDestroy {
     });
   }
 
+  private startEmailCodeCountdown(): void {
+    this.emailCodeSendActive = true;
+    this.emailCodeCountdownSeconds = 30;
+
+    this.emailCodeCountdownInterval = setInterval(() => {
+      this.emailCodeCountdownSeconds--;
+
+      if (this.emailCodeCountdownSeconds <= 0) {
+        this.stopEmailCodeCountdown();
+      }
+    }, 1000);
+  }
+
+  private stopEmailCodeCountdown(): void {
+    this.emailCodeSendActive = false;
+    this.emailCodeCountdownSeconds = 30;
+
+    if (this.emailCodeCountdownInterval) {
+      clearInterval(this.emailCodeCountdownInterval);
+      this.emailCodeCountdownInterval = null;
+    }
+  }
+
+  public getEmailCodeButtonLabel(): string {
+    if (this.emailCodeSendActive) {
+      return `Enviar código (${this.emailCodeCountdownSeconds})`;
+    }
+    return 'Enviar código';
+  }
 }

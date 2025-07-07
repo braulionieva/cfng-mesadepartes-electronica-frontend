@@ -21,7 +21,7 @@ import { MaestrosService } from '@shared/services/shared/maestros.service';
 import { AlertComponent } from '@shared/components/alert/alert.component';
 import { CryptService } from '@shared/services/global/crypt.service';
 import { LOCALSTORAGE } from '@environments/environment';
-import { handleTextInput, handleTextPaste } from '@shared/utils/text-limit';
+import { ValidarInputDirective } from '@core/directives/validar-input.directive';
 
 const { DENUNCIA_KEY } = LOCALSTORAGE;
 
@@ -30,7 +30,7 @@ const { DENUNCIA_KEY } = LOCALSTORAGE;
   standalone: true,
   imports: [
     FormsModule, ReactiveFormsModule, CommonModule, MessagesModule, RadioButtonModule, InputTextareaModule,
-    DropdownModule, DynamicDialogModule, CmpLibModule, ButtonModule, OverlayPanelModule, AlertComponent
+    DropdownModule, DynamicDialogModule, CmpLibModule, ButtonModule, OverlayPanelModule, AlertComponent, ValidarInputDirective
   ],
   templateUrl: './scene-details.component.html',
   styleUrls: ['./scene-details.component.scss'],
@@ -66,7 +66,14 @@ export class SceneDetailsComponent implements OnInit, OnDestroy {
   public formInitialized: boolean = false
   public mostrarErrorReport: boolean = false
   public suscriptions: Subscription[] = [];
-  public caracteresMaximo : number = 4000;
+  public caracteresMaximo: number = 4000;
+
+  //todoo lo relacionado a la ia
+  public delitosAIActivado: boolean = true//constante
+  public loadingSuggestions: boolean = false
+  public aiSuggestions: any[] = []
+  public showAISuggestions: boolean = false
+  public showComboDelitos: boolean = false
 
   public messages = [
     {
@@ -89,6 +96,8 @@ export class SceneDetailsComponent implements OnInit, OnDestroy {
   public form: FormGroup = new FormGroup({})
   public noQuotes = noQuotes;
 
+  public lastAISearchReport: string = '';
+
   /*****************/
   /*  CONSTRUCTOR  */
   /*****************/
@@ -110,7 +119,7 @@ export class SceneDetailsComponent implements OnInit, OnDestroy {
     this.buildForm();
 
     this.form.get('report')?.valueChanges.subscribe(value => {
-      const sanitizedLength = (value ?? '').replace(/\s/g, '').length;
+      const sanitizedLength = (value ?? '').length;
       this.mostrarErrorReport = sanitizedLength > 0 && sanitizedLength < 100;
     });
 
@@ -156,7 +165,6 @@ export class SceneDetailsComponent implements OnInit, OnDestroy {
     }
 
     this.form.valueChanges.subscribe(() => {
-
       this.saveInfo()
     })
   }
@@ -177,16 +185,10 @@ export class SceneDetailsComponent implements OnInit, OnDestroy {
 
   get counterReportChar(): number {
     const value = this.form.get('report')?.value ?? ''
-    return value.replace(/\s/g, '').length
+    return value.length
   }
 
-  protected onReportInput(event: Event): void {
-    handleTextInput(event, 'report', this.form, 4000)
-  }
 
-  protected onReportPaste(event: ClipboardEvent): void {
-    handleTextPaste(event, 'report', this.form, 4000)
-  }
 
   /*********************/
   /*  GET SPECIALTIES  */
@@ -232,6 +234,90 @@ export class SceneDetailsComponent implements OnInit, OnDestroy {
     )
   }
 
+  /*********************/
+  /*  AI SUGGESTIONS   */
+  /*********************/
+  public getAISuggestions(): void {
+    const reportValue = this.form.get('report')?.value;
+    if (!reportValue || reportValue.trim().length === 0) {
+      // Mostrar mensaje de que necesita escribir algo en el textarea
+      return;
+    }
+    this.lastAISearchReport = reportValue.trim();
+    this.loadingSuggestions = true;
+
+    const requestData = {
+      nivelDelito: "subgenerico",
+      hecho: reportValue.trim()
+    };
+
+    this.suscriptions.push(
+      this.maestrosService.getAISuggestions(requestData).subscribe({
+        next: (resp) => {
+          this.loadingSuggestions = false;
+          if (resp && resp.codigo === 200 && resp.data) {
+            // Mapear la respuesta de IA al formato esperado para mostrar como opciones
+            this.aiSuggestions = resp.data.map(item => ({
+              idDelitoSubgenericoEspecifico: `${item.idDelitoGenerico}/${item.idDelitoSubGenerico}/${item.idDelitoEspecifico || 0}`,
+              noDelitoSubgenericoEspecifico: item.noDelitoEspecifico ?
+                `${item.noDelitoGenerico} - ${item.noDelitoSubGenerico} - ${item.noDelitoEspecifico}` :
+                `${item.noDelitoGenerico} - ${item.noDelitoSubGenerico}`,
+              idDelitoGenerico: item.idDelitoGenerico,
+              noDelitoGenerico: item.noDelitoGenerico,
+              idDelitoSubGenerico: item.idDelitoSubGenerico,
+              noDelitoSubGenerico: item.noDelitoSubGenerico,
+              idDelitoEspecifico: item.idDelitoEspecifico,
+              noDelitoEspecifico: item.noDelitoEspecifico
+            }));
+
+            this.showAISuggestions = true;
+            if (this.aiSuggestions.length === 0) {
+              this.showComboDelitos = true;
+            }
+          }
+        },
+        error: (error) => {
+          this.loadingSuggestions = false;
+          console.error('Error al obtener sugerencias de IA:', error);
+          // Aquí podrías mostrar un mensaje de error al usuario
+        }
+      })
+    );
+  }
+
+  public selectAISuggestion(suggestion: any): void {
+    // Agregar la sugerencia seleccionada a la lista de crímenes si no existe
+    const exists = this.crimeList.find(crime =>
+      crime.idDelitoSubgenericoEspecifico === suggestion.idDelitoSubgenericoEspecifico
+    );
+
+    if (!exists) {
+      this.crimeList.unshift(suggestion);
+    }
+
+    // Seleccionar la sugerencia en el formulario
+    this.form.get('crime')?.setValue(suggestion.idDelitoSubgenericoEspecifico);
+    this.form.get('delito')?.setValue(suggestion.noDelitoSubgenericoEspecifico);
+
+    // Ocultar las sugerencias después de seleccionar
+    this.showAISuggestions = false;
+
+    this.showComboDelitos = true;
+  }
+
+  public closeAISuggestions(): void {
+    this.showAISuggestions = false;
+  }
+
+  public selectOtherAndListDelitos(): void {
+
+    // Por ahora, oculto las sugerencias y el usuario puede usar el dropdown normal
+    this.showAISuggestions = false;
+
+    //mostramos delitos
+    this.showComboDelitos = true;
+  }
+
   /***************/
   /*  SAVE INFO  */
   /***************/
@@ -274,5 +360,10 @@ export class SceneDetailsComponent implements OnInit, OnDestroy {
   /************/
   public errorMsg(ctrlName) {
     return ctrlErrorMsg(this.form.get(ctrlName))
+  }
+
+  public get isReportChangedSinceAISearch(): boolean {
+    const current = this.form.get('report')?.value?.trim() ?? '';
+    return current !== this.lastAISearchReport;
   }
 }

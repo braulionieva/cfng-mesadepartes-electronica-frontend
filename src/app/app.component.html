@@ -1,11 +1,13 @@
-<div class="flex flex-column min-h-screen">
-    <app-header></app-header>
+<div class="mpe_contenedor_principal">
 
-    <div class="flex-grow-1">
-        <router-outlet></router-outlet>
+    <app-header />
+
+    <div class="mpe_contenido">
+        <router-outlet />
     </div>
 
-    <app-footer></app-footer>
+    <app-footer />
 
     <app-global-spinner [show]="showSpinner"></app-global-spinner>
+
 </div>

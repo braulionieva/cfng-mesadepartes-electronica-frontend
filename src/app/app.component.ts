@@ -9,6 +9,7 @@ import { HeaderComponent } from "@shared/components/header/header.component";
 import { FooterComponent } from "@shared/components/footer/footer.component";
 import { GlobalSpinnerComponent } from '@shared/components/global-spinner/global-spinner.component';
 import { GlobalSpinnerService } from '@shared/services/global-spinner.service';
+import { GlobalWorkerOptions } from 'pdfjs-dist/build/pdf.mjs';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +18,7 @@ import { GlobalSpinnerService } from '@shared/services/global-spinner.service';
     CommonModule, RouterModule, HeaderComponent, FooterComponent,
     GlobalSpinnerComponent
   ],
+  styleUrls: ['./app.component.scss'],
   templateUrl: './app.component.html',
 })
 export class AppComponent implements OnDestroy {
@@ -51,6 +53,8 @@ export class AppComponent implements OnDestroy {
     this.globalSpinnerService.showSpinner$.subscribe(show => {
       this.showSpinner = show;
     });
+
+    GlobalWorkerOptions.workerSrc = 'assets/pdf.worker.js';
   }
 
   ngOnDestroy() {

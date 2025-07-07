@@ -53,6 +53,15 @@ import {CmpLibModule} from "ngx-mpfn-dev-cmp-lib";
           </li>
         </ol>
       </div>
+      <div *ngIf="errorType === 4" class="color-black2 lh-1-5 wrap-text">
+        <span>No existen sedes referenciales disponibles para el distrito seleccionado.</span>
+        <ol>
+          <li>Presente su denuncia de manera presencial en la comisaria de su distrito.</li>
+          <li>Presente su denuncia de manera presencial en la mesa única de partes del distrito fiscal de su
+            jurisdicción
+          </li>
+        </ol>
+      </div>
 
       <div class="flex md:flex-row justify-content-center align-items-center mt-5"
            [ngClass]="{'justify-content-between': [1,2].includes(errorType)}">

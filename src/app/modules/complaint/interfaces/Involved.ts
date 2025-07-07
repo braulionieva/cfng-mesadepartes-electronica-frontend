@@ -59,7 +59,7 @@ export interface Involved {
   foto?: string;
 
   esMayorEdad?: boolean
-
+  checkMenorEdad?: boolean
   otrosDetalleProfesionOficio?: string;
 
 

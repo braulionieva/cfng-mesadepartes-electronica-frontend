@@ -1,3 +1,5 @@
+@use 'responsive' as *;
+
 .border-card {
   border: 1px solid #CACACA
 }
@@ -112,5 +114,68 @@
 ::ng-deep .p-overlaypanel {
   .p-overlaypanel-content {
     padding: 0;
+  }
+}
+
+.mpe_especialidad_descripcion {
+  font-family: var(--mpfn-font-roboto-regular);
+}
+
+@media(max-width: $large-mobile) {
+  .mpfn-subtitle {
+      text-align: center;
+  }
+  .mpfn-descripcion {
+      text-align: center;
+  }
+  .mpe_opciones {
+      margin-top: 40px !important;
+  }
+}
+
+@media(max-width: $medium-mobile) {
+  .mpfn-subtitle {
+      font-size: 17px;
+      margin-top: 20px;
+  }
+  .mpfn-descripcion {
+      font-size: 14px;
+  }
+  .mpe_boton_continuar {
+      font-size: 12px;
+  }
+  :host::ng-deep p-button {
+    button {
+      font-size: 12px !important;
+    }
+  }
+  .mpe_radio_titulo {
+    font-size: 16px !important;
+  }
+  .mpe_especialidad_descripcion {
+    font-size: 12px !important;
+  }
+  .mpe_ver_delitos {
+    display: inline-flex;
+    font-size: 12px !important;
+  }
+}
+
+@media(max-width: $mobile) {
+  .mpe_opciones {
+    margin-top: 40px !important;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  :host::ng-deep p-button {
+    width: 100%;
+    button {
+        width: 100%;
+        justify-content: center;
+    }
+    &:first-child {
+        order: 2;
+        margin-top: 10px;
+    }
   }
 }

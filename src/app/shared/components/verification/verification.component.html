@@ -6,21 +6,23 @@
 
 <app-alert [dataAlert]="messages[0]" [cosable]="true" class="mb-3"/>
 
-<div class="grid">
-  <div class="col-12 mt-7 {{ classValidationContainer() }}">
+<div class="grid mpe_formulario_identificacion">
+  <div class="col-12 mt-7 {{ classValidationContainer() }} mpe_formulario_identificacion_item">
     
     <form [formGroup]="verificationForm" class="mpfn-formulario">
 
       <fn-input label="Número de DNI" placeholder="DNI" [counter]="8" [checking]="true" formControlName="dni"
         validarInput [validarMaxLength]="8" [validarTipoEntrada]="'numero'" [styleClass]="ERRORDNI ? 'p-filled': '' "
-        class="mpfn-input mpfn-count"
+        class="mpfn-input mpfn-count" type="text" inputmode="numeric" pattern="[0-9]*"
       >
       </fn-input>
 
       <fn-input-wrapper label="Fecha de nacimiento" class="mpfn-input mpfn-input-separation">
-        <p-calendar dateFormat="dd/mm/yy" formControlName="bornDate" placeholder="dd/mm/aaaa" onSelected="true"
+        <p-calendar 
+          dateFormat="dd/mm/yy" formControlName="bornDate" placeholder="dd/mm/aaaa" onSelected="true"
           [ngClass]="{'ng-invalid ng-dirty': errorMsg('bornDate')}" [styleClass]="ERRORFECHA? 'p-filled': '' "
-          dateMask />
+          dateMask calendarNumericInput
+        />
 
         <i *ngIf="verificationForm.get('bornDate').valid" class="pi pi-check text-green-500 left-auto"
           [style]="{'right': '0.75rem'}">
@@ -34,6 +36,17 @@
     </form>
 
     <form [formGroup]="dynamicValidationForm" class="mpfn-formulario">
+      <div 
+        *ngIf="showExampleImg"
+        class="help-container"
+      >
+        <i 
+          class="pi pi-info-circle help-icon"
+          [class.help-separation-1]="currentValidationIndex===0"
+          (click)="openExampleModal()"
+          onKeyPress=""
+        ></i>
+      </div>
 
       <div *ngIf="renderingValidation; else validationLoader">
         <fn-input *ngIf="validations[currentValidationIndex].controlName !=='dniEmitDate'; else dniEmitDate"
@@ -44,13 +57,19 @@
           (input)="validMaxLength(validations[currentValidationIndex].controlName)"
           validarInput [validarTipoEntrada]="numberValidation ? 'numero' : 'texto'" [validarSoloMayusculas]="true"
           [validarIgnorarTildes]="true"
+          type="text"
+          [inputmode]="showExampleImg ? 'numeric' : ''"
+          [pattern]="showExampleImg ? '[0-9]*' : ''"
           class="mpfn-input mt-4 mpfn-last"
         />
+
         <ng-template #dniEmitDate>
           <fn-input-wrapper [label]="validations[currentValidationIndex].label" class="mpfn-input mt-4 mpfn-last">
-            <p-calendar dateFormat="dd/mm/yy" formControlName="dniEmitDate" placeholder="dd/mm/aaaa"
+            <p-calendar 
+              dateFormat="dd/mm/yy" formControlName="dniEmitDate" placeholder="dd/mm/aaaa"
               [ngClass]="{'ng-invalid ng-dirty': errorMsg('dniEmitDate')}" [styleClass]="ERRORDATOS? 'p-filled': '' "
-              dateMask />
+              dateMask calendarNumericInput
+            />
 
             <i *ngIf="dynamicValidationForm.get('dniEmitDate').valid" class="pi pi-check text-green-500 left-auto"
               [style]="{'right': '0.75rem'}">
@@ -69,13 +88,11 @@
     </form>
   </div>
 
-  <div *ngIf="showExampleImg" class="col-12 md:col-8"
+  <div *ngIf="showExampleImg" class="col-12 md:col-8 mpe_formulario_identificacion_ejemplo"
     style="	display: flex; align-items: center; justify-content: center;">
     <div class="container-img-example">
-
       <div class="item-img-example" *ngFor="let asset of validations[currentValidationIndex].assets">
         <img [src]="asset.img" class="w-13rem" alt="">
-
         <span class="text-smx line-height-2 w-15rem" [innerHTML]="sanitizerTexto(asset.caption)"></span>
       </div>
     </div>
@@ -84,9 +101,9 @@
 
 <p-toast />
 
-<div class="flex justify-content-between mt-8 mb-5">
+<div class="flex justify-content-between mt-8 mb-5 mpe_opciones">
   <p-button (onClick)="askToCancelComplaint()" [label]="cancelLabel"
-    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton">
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton mpfn-boton-cancelar">
   </p-button>
 
   <p-button 
@@ -96,7 +113,7 @@
     [disabled]="!formsValidation"
   >
 
-    <span>Continuar</span>
+    <span class="mpe_boton_continuar">Continuar</span>
 
     <fn-icon *ngIf="!validating" [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
 

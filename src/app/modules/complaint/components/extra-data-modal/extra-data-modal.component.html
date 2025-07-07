@@ -13,9 +13,10 @@
 
       <div class="grid mt-3 fix-nacimiento">
         <fn-input-wrapper label="Fecha de nacimiento" class="col-9">
-          <p-calendar dateFormat="dd/mm/yy" formControlName="bornDate" (ngModelChange)="changeDate($event)"
-            [maxDate]="maxDate" placeholder="dd/mm/aaaa" [ngClass]="{'ng-invalid ng-dirty': errorMsg('bornDate')}"
-            dateMask [disabled]="showDNI" />
+          <p-calendar dateFormat="dd/mm/yy" formControlName="bornDate" (ngModelChange)="changeDate()"
+            [minDate]="minDate" [maxDate]="maxDate" placeholder="dd/mm/aaaa"
+            [ngClass]="{'ng-invalid ng-dirty': errorMsg('bornDate')}" dateMask [disabled]="showDNI"
+            calendarNumericInput />
 
           <small error *ngIf="errorMsg('bornDate')" class="p-error block">
             {{ errorMsg('bornDate') }}
@@ -23,7 +24,8 @@
         </fn-input-wrapper>
 
         <fn-input class="col-3" label="Edad" placeholder="Edad" formControlName="age" validarInput
-          [validarMaxLength]="2" [validarTipoEntrada]="'numero'" [disabled]="true" />
+          [validarMaxLength]="2" [validarTipoEntrada]="'numero'" [disabled]="true" type="text" inputmode="numeric"
+          pattern="[0-9]*" />
       </div>
 
       <fn-input-wrapper label="Estado civil" class="col-12 mpfn-input-separation">
@@ -81,27 +83,33 @@
         </small>
       </fn-input-wrapper>
 
-      <fn-input class="col-12 mpfn-input-separation" label="Dirección" placeholder="Ej.: Av. Pedro Silva 123" formControlName="address"
-        (keypress)="noQuotes($event)" [disabled]="showDNI" validarInput [validarMaxLength]="100"
-        [validarTipoEntrada]="'alfaNumerico'" />
+      <fn-input class="col-12 mpfn-input-separation" label="Dirección" placeholder="Ej.: Av. Pedro Silva 123"
+        formControlName="address" (keypress)="noQuotes($event)" [disabled]="showDNI" validarInput
+        [validarMaxLength]="100" [validarTipoEntrada]="'alfaNumerico'" [validarSoloMayusculas]="true" />
     </p-tabPanel>
 
     <p-tabPanel header="Datos de contacto">
-      <fn-input [ico]="obtenerIcono('iSmartPhone')" class="col-12 mpfn-input-separation mpfn-inpt-count mpfn-input-icon" label="Teléfono o celular principal"
-        placeholder="Número de teléfono o celular" formControlName="phone" [counter]="20" validarInput
-        [validarMaxLength]="20" [validarRegex]="'^[0-9+/#(). -]*$'" [disabled]="showDenunciante" />
+      @if (tipoInvolucrado == SLUG_INVOLVED.DENUNCIADO){
+      <fn-input [ico]="obtenerIcono('iSmartPhone')" class="col-12 mpfn-input-separation mpfn-inpt-count mpfn-input-icon"
+        label="Teléfono o celular principal" placeholder="Número de teléfono o celular" formControlName="phone"
+        [counter]="20" validarInput [validarMaxLength]="20" [validarRegex]="'^[0-9+/#(). -]*$'" type="tel"
+        [disabled]="showDenunciante" />
 
-      <fn-input [ico]="obtenerIcono('iMail')" class="col-12 mpfn-input-separation mpfn-input-icon" label="Correo electrónico principal"
-        placeholder="Dirección de correo electrónico" formControlName="email" validarInput [validarMaxLength]="100"
-        [validarRegex]="'^[a-zA-Z0-9@._-]*$'" [disabled]="showDenunciante" />
+      <fn-input [ico]="obtenerIcono('iMail')" class="col-12 mpfn-input-separation mpfn-input-icon"
+        label="Correo electrónico principal" placeholder="Dirección de correo electrónico" formControlName="email"
+        type="email" validarInput [validarMaxLength]="100" [validarRegex]="'^[a-zA-Z0-9@._-]*$'"
+        [validarSoloMayusculas]="true" [disabled]="showDenunciante" />
+      }
 
-      <fn-input [ico]="obtenerIcono('iSmartPhone')" class="col-12 mpfn-input-separation mpfn-inpt-count mpfn-input-icon" label="Teléfono o celular secundario"
-        placeholder="Número de teléfono o celular" formControlName="secondaryPhone" [counter]="20" validarInput
-        [validarMaxLength]="20" [validarRegex]="'^[0-9+/#(). -]*$'" />
+      <fn-input [ico]="obtenerIcono('iSmartPhone')" class="col-12 mpfn-input-separation mpfn-inpt-count mpfn-input-icon"
+        label="Teléfono o celular secundario" placeholder="Número de teléfono o celular"
+        formControlName="secondaryPhone" [counter]="20" validarInput [validarMaxLength]="20" type="tel"
+        [validarRegex]="'^[0-9+/#(). -]*$'" />
 
       <fn-input [ico]="obtenerIcono('iMail')" class="col-12 mpfn-input-separation" label="Correo electrónico secundario"
-        placeholder="Dirección de correo electrónico" formControlName="secondaryEmail" validarInput
-        [validarMaxLength]="100" [validarRegex]="'^[a-zA-Z0-9K@._-]*$'" (keypress)="noQuotes($event)" />
+        placeholder="Dirección de correo electrónico" formControlName="secondaryEmail" validarInput type="email"
+        [validarMaxLength]="100" [validarRegex]="'^[a-zA-Z0-9K@._-]*$'" [validarSoloMayusculas]="true"
+        (keypress)="noQuotes($event)" />
     </p-tabPanel>
 
     <p-tabPanel header="Otros datos">
@@ -113,7 +121,8 @@
 
         <fn-input *ngIf="form.get('ocupation')?.value === 68" class="col-12 mpfn-input-separation"
           placeholder="Ingrese una profesión u oficio" formControlName="otrosDetalleProfesionOficio" validarInput
-          [validarMaxLength]="100" [validarTipoEntrada]="'alfaNumerico'"></fn-input>
+          [validarMaxLength]="100" [validarTipoEntrada]="'alfaNumerico'"
+          (input)="form.get('otrosDetalleProfesionOficio')?.setValue($event.target.value.toUpperCase(), { emitEvent: false })"></fn-input>
       </fn-input-wrapper>
 
       <fn-input-wrapper label="Población afroperuana" class="mpfn-input-radio-group">
@@ -219,12 +228,12 @@
   </p-tabView>
 </form>
 
-<div class="flex justify-content-between">
+<div class="flex justify-content-between mpe_opciones">
   <p-button (onClick)="cancelEdition()" label="Cancelar"
-    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust">
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton mpfn-boton-cancelar">
   </p-button>
 
   <p-button (onClick)="saveData()" [disabled]="!validForm" label="Guardar datos"
-    styleClass="p-button-lg bg-secondary text-white font-semibold btn-adjust">
+    styleClass="p-button-lg bg-secondary text-white font-semibold btn-adjust mpfn-boton">
   </p-button>
 </div>

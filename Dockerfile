@@ -1,11 +1,11 @@
 # Stage 0, "build-stage", basado en Node.js, para construir y compilar en frontend
-FROM node:16.13.2-alpine as build-stage
+FROM node:18.19-alpine AS build-stage
 
 WORKDIR /app
 COPY package*.json /app/
 
 RUN npm cache clean --force
-RUN npm install --progress=false
+RUN npm install --legacy-peer-deps --progress=false
 RUN npm link @angular/cli@11.2.6
 
 COPY ./ /app/

@@ -1,20 +1,16 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, Output, EventEmitter, Input, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, Output, EventEmitter, Input, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-
-//primeng
 import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from "primeng/calendar";
-//mpfn
 import { CmpLibModule, ctrlErrorMsg } from "ngx-mpfn-dev-cmp-lib";
-//utils
 import { Map, tileLayer, Marker, LatLng } from 'leaflet';
 import { GeoService } from '@shared/services/geo.service';
-import { Subscription, lastValueFrom } from 'rxjs';
+import { Subscription, debounceTime, lastValueFrom } from 'rxjs';
 import { MaestrosService } from '@shared/services/shared/maestros.service';
 import { formatTime, noQuotes, quitarTildes, formatDate } from '@shared/utils/utils';
 import { isAfter, isBefore, isSameDay, isValid, parse, set } from 'date-fns';
-import { LugarHecho } from '@shared/interfaces/complaint/complaint-registration';
+import { LugarHecho, SedeGrupoAleatorioSgf } from '@shared/interfaces/complaint/complaint-registration';
 import { DateMaskModule } from '@shared/directives/date-mask.module';
 import { AlertComponent } from '@shared/components/alert/alert.component';
 import { MessagesModule } from "primeng/messages";
@@ -25,9 +21,14 @@ import { LOCALSTORAGE } from '@environments/environment';
 import { TooltipModule } from 'primeng/tooltip';
 import { ValidarInputDirective } from '@core/directives/validar-input.directive';
 import { es } from 'date-fns/locale';
-import {MesaService} from "@shared/services/shared/mesa.service";
-import {ScenePlaceModalComponent} from "@modules/complaint/components/scene-place/modal/scene-place-modal.component";
-import {DialogService} from "primeng/dynamicdialog";
+import { MesaService } from "@shared/services/shared/mesa.service";
+import { ScenePlaceModalComponent } from "@modules/complaint/components/scene-place/modal/scene-place-modal.component";
+import { DialogService } from "primeng/dynamicdialog";
+import { IpService } from "@shared/services/global/ip.service";
+import { ConstanteSgf } from "../../../../constantes/ConstanteSgf";
+import { ClientInfoUtil } from '@shared/utils/client-info';
+import { SetNumericInputCalendarModule } from '@shared/directives/set-numeric-input-calendar.module';
+import { TokenService } from '@shared/services/auth/token.service';
 
 const { DENUNCIA_KEY } = LOCALSTORAGE;
 
@@ -36,7 +37,8 @@ const { DENUNCIA_KEY } = LOCALSTORAGE;
   standalone: true,
   imports: [
     CommonModule, MessagesModule, FormsModule, ReactiveFormsModule, DropdownModule, CalendarModule,
-    CmpLibModule, DateMaskModule, AlertComponent, ToastModule, TooltipModule, ValidarInputDirective
+    CmpLibModule, DateMaskModule, AlertComponent, ToastModule, TooltipModule, ValidarInputDirective,
+    SetNumericInputCalendarModule
   ],
   templateUrl: './scene-place.component.html',
   styleUrls: ['./scene-place.component.scss'],
@@ -46,10 +48,6 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() recoveredData: LugarHecho | null = null;
   @Input() fechaPolicial: Date = null;
   @Output() formChanged = new EventEmitter<Object>();
-
-  /***************/
-  /*  VARIABLES  */
-  /***************/
 
   public place: string[] = ['Perú']
 
@@ -74,8 +72,8 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
   public site = [];
 
   public countReintentos: number = 0;
+  private ip: string = '';
 
-  //uitls
   public noQuotes = noQuotes;
   public formInitialized: boolean = false
   public validaToken
@@ -83,6 +81,8 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
   public loadingData: boolean = false
   public flagMapa: boolean = true
   public isDisabledSedesGrupoAleatorio: boolean = true;
+
+  public grupoAleatorioSgfSelected: SedeGrupoAleatorioSgf | null = null;
 
   public ubigeoInfo = {
     department: '',
@@ -101,7 +101,7 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
     detail: 'De ser posible, indíquenos en el mapa la ubicación donde ocurrió el hecho. ' +
       'Puedes ingresar la dirección exacta manualmente si la recuerdas o utilizar el mapa para ubicar una direccion referencial, o. ' +
       'Ten en cuenta que si seleccionas una ubicación en el mapa, la dirección escrita se actualizará automáticamente según esa selección.'
-  }];
+  }]
 
   /**********/
   /*  FORM  */
@@ -119,7 +119,8 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly messageService: MessageService,
     private readonly cryptService: CryptService,
     private readonly mesaService: MesaService,
-    private readonly dialogService: DialogService
+    private readonly dialogService: DialogService,
+    private readonly ipService: IpService
   ) { }
 
   /****************/
@@ -136,7 +137,13 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.buildForm()
 
+    this.ipService.getIp().subscribe(resp => {
+      this.ip = resp.ip;
+    });
+
   }
+
+  private clickMapa = false;
 
   ngAfterViewInit(): void {
     if (this.map) return;
@@ -147,8 +154,10 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
     }).addTo(this.map);
 
     this.map.on('click', (event) => {
-      const latLng: LatLng = event.latlng;
+      this.flagMapa = true;
+      this.clickMapa = true;
 
+      const latLng: LatLng = event.latlng;
       this.addMarkerToMap(latLng);
     });
   }
@@ -185,7 +194,13 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
   buildForm() {
     if (localStorage.getItem(DENUNCIA_KEY)) {
       let valida = localStorage.getItem(LOCALSTORAGE.DENUNCIA_KEY);
+
+      //desencripta y obtiene la data
       this.validaToken = JSON.parse(this.cryptService.decrypt(valida));
+
+      // ← CAMBIO: Asignación segura ANTES del FormGroup
+      this.grupoAleatorioSgfSelected = this.validaToken.lugarHecho?.grupoAleatorioSgfSelected ?? null;
+
       this.form = new FormGroup({
         department: new FormControl(this.validaToken.lugarHecho.ubigeo.substring(0, 2), [
           Validators.required
@@ -212,7 +227,11 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
           Validators.required
         ]),
         sceneHour: new FormControl(this.getHour(this.validaToken.lugarHecho.horaHecho), []),
-        sedeGrupoAleatorio: new FormControl({value: '', disabled: true}, []),
+        // ← CAMBIO: Usar operador seguro
+        sedeGrupoAleatorio: new FormControl({
+          value: this.grupoAleatorioSgfSelected?.idGrupoAleatorio || '',
+          disabled: true
+        }, []),
       })
 
       this.setDepartament(this.validaToken.lugarHecho.ubigeo.substring(0, 2));
@@ -229,6 +248,9 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
       this.form.valueChanges.subscribe(() => this.saveInfo())
       this.varDepto = '';
     } else {
+      // ← CAMBIO: Asegurar que se mantiene null
+      this.grupoAleatorioSgfSelected = null;
+
       this.form = new FormGroup({
         department: new FormControl(null, [
           Validators.required
@@ -252,7 +274,7 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
           Validators.required
         ]),
         sceneHour: new FormControl('', []),
-        sedeGrupoAleatorio: new FormControl({value: '', disabled: true}, [])
+        sedeGrupoAleatorio: new FormControl({ value: '', disabled: true }, [])
       })
 
       this.form.get('province').disable()
@@ -262,7 +284,6 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.varDepto = '';
     }
-
   }
 
   public setDepartament(codDepa: string) {
@@ -288,14 +309,14 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
   /*********/
 
   public addMarkerToMap(latLng: LatLng) {
-    if (this.currentMarker)
+    if (this.currentMarker) {
       this.map.removeLayer(this.currentMarker)
+      this.currentMarker = null;
+    }
 
     this.flagMapa = false
+
     this.getDireccion(latLng)
-    this.currentMarker = new Marker(latLng).addTo(this.map)
-    this.form.controls['latitude'].setValue(latLng.lat)
-    this.form.controls['longitude'].setValue(latLng.lng)
   }
 
   public getDireccion(latLng: LatLng): void {
@@ -312,7 +333,10 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         const respAdress = resp.address;
-        const isOnlyCountryData = (Object.keys(respAdress).length === 2 && respAdress?.country === "Perú" && respAdress?.country_code === "pe");
+
+        const isOnlyCountryData = Object.keys(respAdress).length === 2
+          && respAdress?.country === "Perú"
+          && respAdress?.country_code === "pe";
 
         if (isOnlyCountryData) {
           this.resetMap(
@@ -322,13 +346,14 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
 
-
         let numero = resp.address.house_number ?? '';
         let direccion = resp.address.road ?? '';
 
         if (resp.address.country_code === 'pe') {
           this.form.controls['address'].setValue(direccion + " " + numero)
-        } else {
+        }
+
+        else {
           this.resetMap(
             `La dirección seleccionada se encuentra fuera de la jurisdicción del Ministerio Público - Fiscalía de la Nación. Por favor, ingrese una dirección dentro del territorio peruano.`
           );
@@ -336,10 +361,25 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
 
-        this.loadcontrols(resp);
+        this.loadcontrols(resp).then(respLoadControls => {
+          if (respLoadControls) {
+            this.currentMarker = new Marker(latLng).addTo(this.map)
+            this.form.controls['latitude'].setValue(latLng.lat)
+            this.form.controls['longitude'].setValue(latLng.lng)
+
+            this.flyToPlace('', true)
+          }
+
+          this.clickMapa = false;
+        });
+      },
+      error: err => {
+        // manejar error si quieres
+        console.error(err);
       }
-    })
+    });
   }
+
 
   private resetMap(message: string) {
     this.map.removeLayer(this.currentMarker)
@@ -349,24 +389,70 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fieldDireccion.reset();
     this.fieldTipoVia.reset();
 
+    this.form.controls['latitude'].reset()
+    this.form.controls['longitude'].reset()
+
     this.messageService.add({
       severity: 'warn',
       detail: message
     })
   }
 
-  async loadcontrols({ address, display_name }: any) {
+  private normalizeString(str: string): string {
+    return str
+      .normalize('NFD')                 // Descompone caracteres acentuados en base + tilde
+      .replace(/[\u0300-\u036f]/g, '')  // Elimina los caracteres de tilde
+      .toLowerCase();
+  }
+
+  private extraerTipoVia(lugar: string): string {
+    const tiposVia = ['avenida', 'calle', 'jirón', 'jiron', 'pasaje', 'parque', 'ovalo'];
+
+    if (!lugar) return lugar;
+
+    const palabras = lugar.trim().split(/\s+/);
+
+    if (palabras.length === 0) return lugar;
+
+    const primeraPalabra = this.normalizeString(palabras[0]);
+
+    const viaSeleccionada = this.tiposVias.find(x =>
+      this.normalizeString(x.nombre) === primeraPalabra
+    );
+
+    if (viaSeleccionada != null)
+      this.form.get('tipoVia')?.setValue(viaSeleccionada.id);
+
+    const tiposViaNormalizados = tiposVia.map(t => this.normalizeString(t));
+
+    if (tiposViaNormalizados.includes(primeraPalabra)) {
+      return palabras.slice(1).join(' ');
+    }
+
+    return lugar;
+  }
+
+
+
+  async loadcontrols({ address, display_name }: any): Promise<boolean> {
     // obtenemos la descripcion y el codigo del departamento, si la region es callao el departamento es callao, ya que el api trae 'lima metropolitana'.
     // Y si la region no es callao de obtiene el departamento del 'state'.
     const desDep = address.region?.toUpperCase() === 'CALLAO' ? 'CALLAO' : address.state?.toUpperCase();
     const codDep = this.departments.find(e => e.nombre === quitarTildes(desDep))?.codigo ?? null;
 
+    if (codDep == null) {
+      this.enableAndResetProvDist();
+      return false
+    }
+
     // obtenemos la descipcion de la provincia
     const desProv = address.region?.toUpperCase().replace(' ', '') ?? desDep;
+
     // obtenemos la descipcion del distrito.
     let desDis = address.city_district ?? address.suburb ?? address.city ?? address.town ?? address.village;
 
     desDis = desDis?.replaceAll('-', '').replaceAll(' ', '');
+
     // obtenemos la direccion
     const direccion = address.road ?? address.neighbourhood ?? display_name?.split(',')?.at(0) ?? null;
 
@@ -375,23 +461,38 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
     this.enableAndResetProvDist();
 
     // cargamos sus provincias.
-    const provincias = await lastValueFrom(this.maestrosService.getProvinces(codDep));
+    const provincias = await lastValueFrom(this.maestrosService.getProvincesLegacy(codDep));
     this.provinces = provincias.data;
 
     const codProv = this.provinces.find(e => e.nombre.replace(' ', '') === quitarTildes(desProv))?.codigo ?? null;
     this.fieldProvincia.setValue(codProv);
+
+    if (codDep == null || codProv == null) {
+      this.form.controls['tipoVia'].reset();
+      this.form.controls['address'].reset();
+      return false
+    }
+
     this.enableAndResetDist();
 
     // cargamos los distritos.
-    const distritos = await lastValueFrom(this.maestrosService.getDistricts(codDep, codProv));
+    const distritos = await lastValueFrom(this.maestrosService.getDistrictsLegacy(codDep, codProv));
     this.districts = distritos.data;
 
     const codDis = this.districts.find(e => e.nombre.replaceAll(' ', '').includes(quitarTildes(desDis?.toUpperCase())))?.codigo ?? null;
+
+    if (codDis == null) {
+      this.form.controls['tipoVia'].reset();
+      this.form.controls['address'].reset();
+      return false
+    }
+
     this.fieldDestrito.setValue(codDis);
 
     // seteamos la direccion
-    this.fieldDireccion.setValue(direccion);
+    this.fieldDireccion.setValue(this.extraerTipoVia(direccion));
 
+    return true;
   }
 
   /****************/
@@ -401,7 +502,7 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
   public getDepartments(): void {
     this.departments = []
     this.suscriptions.push(
-      this.maestrosService.getDepartments().subscribe({
+      this.maestrosService.getDepartmentsLegacy().subscribe({
         next: resp => {
           if (resp.code && resp.code === 200) {
             this.departments = resp.data
@@ -413,7 +514,12 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public changeDepartment(id: string): void {
+    this.sedesGrupoAleatorio = [];
     this.varDepto = id;
+
+    if (this.map != null && this.currentMarker != null)
+      this.map.removeLayer(this.currentMarker)
+
     if (id !== null) {
       const timeout = this.loadingData ? 500 : 0;
       setTimeout(() => {
@@ -423,7 +529,9 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
           this.form.controls['province'].enable()
           this.form.controls['district'].reset()
           this.form.controls['district'].disable()
+          this.form.controls['tipoVia'].reset();
           this.form.controls['address'].reset()
+
           this.place = ['Perú']
           if (this.flagMapa) {
             this.flyToPlace(department.nombre)
@@ -440,8 +548,13 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public getProvinces(departmentId: string): void {
     this.provinces = []
+    this.sedesGrupoAleatorio = [];
+
+    if (departmentId == null)
+      return;
+
     this.suscriptions.push(
-      this.maestrosService.getProvinces(departmentId).subscribe({
+      this.maestrosService.getProvincesLegacy(departmentId).subscribe({
         next: resp => {
           if (resp.code && resp.code === 200) {
             this.provinces = resp.data
@@ -458,6 +571,7 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
       const province = this.provinces.find(x => x.codigo === provinceId)
       this.form.controls['district'].reset()
       this.form.controls['district'].enable()
+      this.form.controls['tipoVia'].reset();
       this.form.controls['address'].reset()
       this.place = this.place.slice(-2)
       if (this.flagMapa) {
@@ -470,9 +584,15 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
   private enableAndResetProvDist(): void {
     this.form.controls['province'].reset()
     this.form.controls['province'].enable()
+
     this.form.controls['district'].reset()
     this.form.controls['district'].disable()
+
+    this.form.controls['tipoVia'].reset();
     this.form.controls['address'].reset()
+
+    this.form.controls['sedeGrupoAleatorio'].reset()
+    this.form.controls['sedeGrupoAleatorio'].disable()
   }
 
   /***************/
@@ -481,8 +601,13 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public getDistricts(departmentId: string, provinceId: string): void {
     this.districts = []
+    this.sedesGrupoAleatorio = [];
+
+    if (departmentId == null || provinceId == null)
+      return;
+
     this.suscriptions.push(
-      this.maestrosService.getDistricts(departmentId, provinceId).subscribe({
+      this.maestrosService.getDistrictsLegacy(departmentId, provinceId).subscribe({
         next: resp => {
           if (resp.code && resp.code === 200) {
             this.districts = resp.data
@@ -498,38 +623,129 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
     )
   }
 
+
+  private buildPlace(): string[] {
+    let place = ["Perú"];
+
+    const isEmptyOrNull = (value: string | null | undefined): boolean =>
+      value == null || value.trim() === '';
+
+    const formControls = this.form;
+
+    // Mapeamos los campos a sus arrays correspondientes para buscar la descripción
+    const lookupMap = {
+      department: this.departments,
+      province: this.provinces,
+      district: this.districts
+    } as const;
+
+    const fields = ['department', 'province', 'district'] as const;
+
+    fields.forEach(field => {
+      const value = formControls.get(field)?.value;
+
+      if (!isEmptyOrNull(value)) {
+        const lookupArray = lookupMap[field];
+        const found = lookupArray.find(item => item.codigo === value);
+
+        if (found)
+          place.push(found.nombre);
+        else
+          place.push(value);
+      }
+    });
+
+    return place;
+  }
+
+
+
+
   public changeDistrict(id: string) {
+    if (this.currentMarker) {
+      this.map.removeLayer(this.currentMarker)
+      this.currentMarker = null;
+    }
+
+    this.form.controls['tipoVia'].reset();
     this.form.controls['address'].reset()
+
     if (id !== null) {
       const district = this.districts.find(x => x.codigo === id)
       this.place = this.place.slice(-3)
-      if (this.flagMapa) {
+
+
+      if (!this.clickMapa)
         this.flyToPlace(district?.nombre, this.coordsRegistered)
-      }
+
+
+      this.clickMapa = false;
       this.flagMapa = true
+      this.getSedesGrupoAleatorio();
     }
   }
 
   private enableAndResetDist(): void {
     this.form.controls['district'].reset()
     this.form.controls['district'].enable()
+
+    this.form.controls['tipoVia'].reset();
     this.form.controls['address'].reset()
+  }
+
+  public changeSedeGrupoAleatorio(idGrupoAleatorio: string): void {
+    if (idGrupoAleatorio && this.sedesGrupoAleatorio.length > 0) {
+      // Buscar el objeto completo basado en el ID seleccionado
+      this.grupoAleatorioSgfSelected = this.sedesGrupoAleatorio.find(
+        sede => sede.idGrupoAleatorio.toString() === idGrupoAleatorio.toString()
+      );
+    } else {
+      this.grupoAleatorioSgfSelected = null;
+    }
   }
 
   /****************/
   /*    SEDES     */
   /****************/
 
+  /*****
+   const requestData = {
+   "clienteIp": "10.40.121.10",
+   "clienteBrowser": "Chrome",
+   "clienteHttpUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+   "clienteTypeBrowser": "Desktop",
+   "clienteVersionBrowser": "120.0",
+   "idDistJudi": "07",
+   "tipoIngreso": "PE",
+   "idDist": 120143
+   };
+   *****/
+  /*****
   public getSedesGrupoAleatorio(): void {
+    // Obtener información del cliente dinámicamente
+    const clientInfo = this.getClientInfo();
+
+    // Obtener el distrito seleccionado del formulario
+    const selectedDistrict = this.form.get('district')?.value;
+    const data = this.form.getRawValue();
+    const ubigeo=data.department + data.province + data.district
+
+    // Si no hay distrito seleccionado, no hacer la petición
+    if (!ubigeo) {
+      console.warn('No se puede obtener sedes: distrito no seleccionado');
+      return;
+    }
+
     const requestData = {
-      "clienteIp": "10.40.121.10",
-      "clienteBrowser": "Chrome",
-      "clienteHttpUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-      "clienteTypeBrowser": "Desktop",
-      "clienteVersionBrowser": "120.0",
-      "idDistJudi": "07",
-      "tipoIngreso": "PE",
-      "idDist": 120143
+      "clienteIp": this.ip,
+      "clienteBrowser": clientInfo.clienteBrowser,
+      "clienteHttpUserAgent": clientInfo.clienteHttpUserAgent,
+      "clienteTypeBrowser": clientInfo.clienteTypeBrowser,
+      "clienteVersionBrowser": clientInfo.clienteVersionBrowser,
+      "coVDptoGeografica": data.department,
+      "coVProvGeografica": data.province,
+      "coVDistGeografica": data.district,
+      "ubigeo": ubigeo
     };
 
     this.sedesGrupoAleatorio = [];
@@ -562,7 +778,7 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.showErrorModal(3);
                 break;
             }
-          }else{
+          } else {
             this.showErrorModal(3);
           }
         },
@@ -571,6 +787,143 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       })
     );
+  }
+   *****/
+
+  tokenService = inject(TokenService);
+
+
+  public getSedesGrupoAleatorio(): void {
+    // Obtener información del cliente dinámicamente
+
+
+
+
+    const clientInfo = ClientInfoUtil.getClientInfo();
+
+    // Obtener el distrito seleccionado del formulario
+    const data = this.form.getRawValue();
+    const ubigeo = data.department + data.province + data.district
+
+    // Si no hay distrito seleccionado, no hacer la petición
+    if (!ubigeo) {
+      console.warn('No se puede obtener sedes: distrito no seleccionado');
+      return;
+    }
+
+    const profile = this.tokenService.getItemValidateToken('personaNatural');
+
+    const requestData = {
+      // clienteIp: this.ip,
+      clienteIp: this.ip ?? clientInfo.clienteIp,
+      clienteUsuario: profile.dni ?? '',
+
+      clienteBrowser: clientInfo.clienteBrowser,
+      clienteHttpUserAgent: clientInfo.clienteHttpUserAgent,
+      clienteTypeBrowser: clientInfo.clienteTypeBrowser,
+      clienteVersionBrowser: clientInfo.clienteVersionBrowser,
+      coVDptoGeografica: data.department,
+      coVProvGeografica: data.province,
+      coVDistGeografica: data.district,
+      ubigeo: ubigeo
+    };
+
+    this.sedesGrupoAleatorio = [];
+
+    this.suscriptions.push(
+      this.mesaService.getSedesGrupoAleatorio(requestData).subscribe({
+        next: resp => {
+          if (!this.isHttpSuccess(resp)) {
+            this.showErrorModal(3);
+            return;
+          }
+
+          const codigoRespuesta = resp.data.codigo?.trim() ?? '';
+
+          switch (codigoRespuesta) {
+            case ConstanteSgf.SUCCESS:
+              this.procesarSedes(resp.data.listaSedeGrpAleatorio);
+              break;
+
+            case ConstanteSgf.NO_DATA_EXISTS:
+              this.handleNoDataResponse();
+              break;
+
+            default:
+              this.handleOtherErrorCodes(codigoRespuesta);
+              break;
+          }
+        },
+        error: () => this.showErrorModal(3)
+      })
+    );
+  }
+
+  private isHttpSuccess(resp: any): boolean {
+    return resp.codigo && resp.codigo === 200;
+  }
+
+  private procesarSedes(lista: any[]): void {
+    if (lista && lista.length > 0) {
+      this.sedesGrupoAleatorio = lista;
+
+      if (lista.length === 1) {
+        this.setGrupoUnico(lista[0].idGrupoAleatorio);
+      } else {
+        this.setGruposMultiples(lista);
+      }
+    } else {
+      this.handleNoDataResponse();
+    }
+  }
+
+  private setGrupoUnico(idGrupo: string): void {
+    this.form.get('sedeGrupoAleatorio')?.setValue(idGrupo);
+    this.isDisabledSedesGrupoAleatorio = true;
+  }
+
+  private setGruposMultiples(lista: any[]): void {
+    this.sedesGrupoAleatorio.sort((x, y) => x.deSedeGeo.localeCompare(y.deSedeGeo));
+    this.isDisabledSedesGrupoAleatorio = false;
+    this.form.get('sedeGrupoAleatorio')?.enable();
+  }
+
+
+  private handleNoDataResponse(): void {
+    // Resetear sedes y deshabilitar el dropdown
+    this.sedesGrupoAleatorio = [];
+    this.isDisabledSedesGrupoAleatorio = true;
+    this.form.get('sedeGrupoAleatorio')?.disable();
+    this.form.get('sedeGrupoAleatorio')?.setValue('');
+
+    // Mostrar mensaje informativo (opcional)
+    /*****this.messageService.add({
+      severity: 'info',
+      detail: 'No existen sedes referenciales disponibles para el distrito seleccionado'
+    });*****/
+
+    this.showErrorModal(4);
+  }
+
+  /**
+   * Maneja otros códigos de error del servicio SGF
+   */
+  private handleOtherErrorCodes(codigoRespuesta: string): void {
+    console.warn(`Código de respuesta SGF no válido: ${codigoRespuesta}`);
+
+    // Resetear sedes
+    this.sedesGrupoAleatorio = [];
+    this.isDisabledSedesGrupoAleatorio = true;
+    this.form.get('sedeGrupoAleatorio')?.disable();
+    this.form.get('sedeGrupoAleatorio')?.setValue('');
+
+    // Mostrar modal de error (case 3) con reintentos limitados
+    if (this.countReintentos >= 2) {
+      this.showErrorModal(2);
+    } else {
+      this.showErrorModal(1);
+    }
+    this.countReintentos++;
   }
 
   showErrorModal(errorType: number) {
@@ -582,7 +935,7 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    ref.onClose.subscribe((retry: boolean) => {
+    ref?.onClose.subscribe((retry: boolean) => {
       if (retry) {
         this.getSedesGrupoAleatorio();
       }
@@ -629,16 +982,31 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private flyToPlace(place: string, newFly: boolean = false): void {
     this.place.unshift(place)
+
     if (!this.loadingData) {
+      if (this.currentMarker != null)
+        return;
+
+      this.place = this.buildPlace();
+
       this.geoService.searchPlace(this.place.join(', '))
+        .pipe(debounceTime(1000))
         .subscribe(res => {
-          const { lat, lon } = res[0]
-          if (newFly) {
-            this.map.flyTo([this.form.get('latitude').value, this.form.get('longitude').value], 17)
-            this.coordsRegistered = false
-            return
+
+          if (Array.isArray(res)) {
+            if (res.length == 0)
+              return;
+
+            const { lat, lon } = res[0]
+
+            if (newFly) {
+              this.map.flyTo([this.form.get('latitude').value, this.form.get('longitude').value], 17)
+              this.coordsRegistered = false
+              return
+            }
+            this.map.flyTo([lat, lon], 17)
           }
-          this.map.flyTo([lat, lon], 17)
+
         })
     }
   }
@@ -659,7 +1027,10 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
           latitud: data.latitude ?? null,
           direccion: data.address ?? '',
           tipoVia: data.tipoVia ?? null,
+          grupoAleatorioSgfSelected: this.grupoAleatorioSgfSelected,
         },
+        /*****grupoAleatorioSgfSelected: this.grupoAleatorioSgfSelected,*****/
+        /*****grupoAleatorioSgfSelected: data.sedeGrupoAleatorio,*****/
         fechaCambio: !!data.sceneDate,
         horaCambio: !!data.sceneHour
       })
@@ -783,4 +1154,5 @@ export class ScenePlaceComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
   }
+
 }

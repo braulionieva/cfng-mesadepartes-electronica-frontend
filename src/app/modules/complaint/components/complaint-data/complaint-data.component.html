@@ -6,73 +6,91 @@
   Por favor complete los datos sobre su denuncia.
 </p>
 
-<div class="lg:col-10 md:col-11 md:col-offset-1 sm:col-12 xl:col-9">
+<div class="lg:col-10 md:col-11 md:col-offset-1 sm:col-12 xl:col-9 mpe_datos_denuncia">
   <p-accordion [multiple]="true">
 
-    <p-accordionTab [iconPos]="endVal" *ngIf="isPNPoPJ" header="Datos generales" tabStyleClass="mb-3"
+    <p-accordionTab [iconPos]="endVal" *ngIf="isPNPoPJoCZ" header="Datos generales" tabStyleClass="mb-3"
       [selected]="expanded">
-      <complaint-general-data [profileID]="tmpProfile" [recoveredData]="getGeneralData(data)"
-        (formChanged)="onFormChange($event)" (fechaPolicialChanged)="onFechaPolicialChange($event)"
-        (filesChanged)="onFilesChanged($event)" />
+      <div (keydown)="stopAccordionKeyPropagation($event)">
+        <complaint-general-data [profileID]="tmpProfile" [recoveredData]="getGeneralData(data)"
+          (formChanged)="onFormChange($event)" (fechaDenunciaChanged)="onFechaDenunciaChange($event)"
+          (filesChanged)="onFilesChanged($event)" />
+      </div>
+
     </p-accordionTab>
 
     <p-accordionTab *ngIf="isEntity" header="Datos de la entidad" tabStyleClass="mb-3" [selected]="expanded">
-      <complaint-entity-data [recoveredData]="data.entidad" (formChanged)="onFormChange($event)" />
+      <div (keydown)="stopAccordionKeyPropagation($event)">
+        <complaint-entity-data [recoveredData]="data.entidad" (formChanged)="onFormChange($event)"
+          (filesChanged)="onFilesChanged($event)" />
+      </div>
     </p-accordionTab>
 
     <p-accordionTab header="Indícanos cuándo y dónde sucedió" tabStyleClass="mb-3" [selected]="expanded">
-      <complaint-scene-place [recoveredData]="data.lugarHecho" [fechaPolicial]="fechaPolicial"
-        (formChanged)="onFormChange($event)" />
+      <div (keydown)="stopAccordionKeyPropagation($event)">
+        <complaint-scene-place [recoveredData]="data.lugarHecho" [fechaPolicial]="fechaPolicial"
+          (formChanged)="onFormChange($event)" />
+      </div>
     </p-accordionTab>
 
     <p-accordionTab header="Proporciona una explicación detallada de lo que ocurrió" tabStyleClass="mb-3"
       [selected]="expanded">
-      <complaint-scene-details [recoveredData]="data.delito" (formChanged)="onFormChange($event)" />
+      <div (keydown)="stopAccordionKeyPropagation($event)">
+        <complaint-scene-details [recoveredData]="data.delito" (formChanged)="onFormChange($event)" />
+      </div>
     </p-accordionTab>
 
-    <p-accordionTab header="Denunciante" tabStyleClass="mb-3" [selected]="expanded" *ngIf="!isEntity">
-      <complaint-involveds type="denunciante" [profileType]="tmpProfile" [documentTypes]="documentTypes"
-        [recoveredData]="data.partesDenunciantes" (formChanged)="onFormChange($event)" />
+    <p-accordionTab header="Denunciante(s)" tabStyleClass="mb-3" [selected]="expanded" *ngIf="!isEntity">
+      <div (keydown)="stopAccordionKeyPropagation($event)">
+        <complaint-involveds type="denunciante" [profileType]="tmpProfile" [documentTypes]="documentTypes"
+          [recoveredData]="data.partesDenunciantes" (formChanged)="onFormChange($event)" />
+      </div>
     </p-accordionTab>
 
     <p-accordionTab header="Agraviados" tabStyleClass="mb-3" [selected]="expanded">
-      <complaint-involveds type="agraviado" [profileType]="tmpProfile" [documentTypes]="documentTypes"
-        [recoveredData]="data.partesAgraviadas" [aggraviedData]="data.partesDenunciantes"
-        (formChanged)="onFormChange($event)" />
+      <div (keydown)="stopAccordionKeyPropagation($event)">
+        <complaint-involveds type="agraviado" [profileType]="tmpProfile" [documentTypes]="documentTypes"
+          [recoveredData]="data.partesAgraviadas" [aggraviedData]="data.partesDenunciantes"
+          (formChanged)="onFormChange($event)" />
+      </div>
     </p-accordionTab>
 
     <p-accordionTab header="Denunciados" tabStyleClass="mb-3" [selected]="expanded">
-      <complaint-involveds type="denunciado" [profileType]="tmpProfile" [documentTypes]="documentTypes"
-        [recoveredData]="data.partesDenunciadas" (formChanged)="onFormChange($event)" />
+      <div (keydown)="stopAccordionKeyPropagation($event)">
+        <complaint-involveds type="denunciado" [profileType]="tmpProfile" [documentTypes]="documentTypes"
+          [recoveredData]="data.partesDenunciadas" (formChanged)="onFormChange($event)" />
+      </div>
 
       <ng-template #entityDenunciado>
-        <complaint-entity-involveds type="denunciado" [documentTypes]="documentTypes"
-          [recoveredData]="data.partesDenunciadas" (formChanged)="onFormChange($event)" />
+        <div (keydown)="stopAccordionKeyPropagation($event)">
+          <complaint-entity-involveds type="denunciado" [documentTypes]="documentTypes"
+            [recoveredData]="data.partesDenunciadas" (formChanged)="onFormChange($event)" />
+        </div>
       </ng-template>
     </p-accordionTab>
 
     <p-accordionTab header="Fuentes de investigación (opcional)" tabStyleClass="mb-3" [selected]="expanded">
-      <complaint-attacheds [recoveredData]="data.anexosAsociados" (formChanged)="onFormChange($event)" />
+      <div (keydown)="stopAccordionKeyPropagation($event)">
+        <complaint-attacheds [recoveredData]="data.anexosAsociados" (formChanged)="onFormChange($event)" />
+      </div>
     </p-accordionTab>
   </p-accordion>
 </div>
 
-<div class="flex justify-content-between mt-8 mb-5">
+<div class="flex justify-content-between mt-8 mb-5 mpe_opciones">
   <!-- Botón izquierdo -->
   <p-button (onClick)="askToCancelComplaint()" [label]="'Cancelar denuncia'"
-    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton">
+    styleClass="p-button-lg surface-200 text-primary font-bold btn-adjust mpfn-boton mpfn-boton-cancelar">
   </p-button>
 
   <!-- Botones derechos -->
-  <div class="ml-auto flex gap-3">
+  <p-button styleClass="p-button-lg bg-secondary font-semibold btn-adjust" [disabled]="!formsValidation"
+    [styleClass]=" !formsValidation ? 'mpfn-boton-bloqueado mpfn-boton' : 'p-button-lg bg-secondary font-semibold btn-adjust mpfn-boton'"
+    (onClick)="nextStep()">
+    <span class="mpe_boton_continuar">Continuar</span>
+    <fn-icon [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
+  </p-button>
 
-    <p-button styleClass="p-button-lg bg-secondary font-semibold btn-adjust" [disabled]="!formsValidation"
-      [styleClass]=" !formsValidation ? 'mpfn-boton-bloqueado mpfn-boton' : 'p-button-lg bg-secondary font-semibold btn-adjust mpfn-boton'"
-      (onClick)="nextStep()">
-      <span>Continuar</span>
-      <fn-icon [ico]="obtenerIcono('iArrowRight')" class="ml-2" />
-    </p-button>
-  </div>
 </div>
 
 <p-toast />

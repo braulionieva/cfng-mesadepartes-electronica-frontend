@@ -20,6 +20,8 @@ export const ENDPOINTS_MICROSERVICES = {
   MS_SUNAT: `${DOMAIN_MICROSERVICES}ms-sunat-dev/v1/`,
   MS_DENUNCIA: `${DOMAIN_MICROSERVICES}ms-denuncia-dev/v1/`,
   MS_REPOSITORIO: `http://cfms-generales-almacenamiento-objetos-api-development.apps.dev.ocp4.cfe.mpfn.gob.pe/cfe/generales/objetos/v2/t/almacenamiento/publico/`,
+  //MS_AI: `http://cfms-mesadepartes-electronica-gestion-api-development.apps.dev.ocp4.cfe.mpfn.gob.pe/cfe/mesadepartes/electronica/v1/e/ia/obtenerdelito`,
+  MS_CONSULTA_AI: `http://cfms-mesadepartes-electronica-gestion-api-development.apps.dev.ocp4.cfe.mpfn.gob.pe/cfe/mesadepartes/electronica/v1/`,
 };
 
 export const SYSTEM_CODE = '112';
@@ -36,7 +38,7 @@ export const LOCALSTORAGE = {
   NOMBRE_DOCUMENTO_KEY: 'bm9tYnJlIGRvY3VtZW50bw==',
 };
 
-
+export const DEFAULT_CLIENT_IP = '10.40.121.10';
 export const SESSION_MINUTES = 0;
 export const VIEW_GENERATED_COMPLAINT_MINUTES = 5;
 
@@ -46,6 +48,5 @@ export const SOURCES = {
   WATERMARK:
     'http://172.16.111.112:8081/repositorio/resources/publico/carpeta/plantilla/imagen/marcaAguaMinisterio.png',
 };
-
 
 

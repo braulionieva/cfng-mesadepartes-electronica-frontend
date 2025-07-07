@@ -63,12 +63,21 @@ interface AutoCompleteCompleteEvent {
 export class InvolvedsComponent implements OnInit, OnDestroy {
   private readonly emailRegex: RegExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   private readonly sinDatosID = 56;
+  protected SLUG_INVOLVED = SLUG_INVOLVED;
+  protected SLUG_PERSON_TYPE = SLUG_PERSON_TYPE;
+  protected SLUG_DOCUMENT_TYPE = SLUG_DOCUMENT_TYPE;
+  protected SLUG_ENTITY = SLUG_ENTITY;
+  protected SLUG_INVOLVED_ROL = SLUG_INVOLVED_ROL;
+  protected SLUG_PROFILE = SLUG_PROFILE;
+  protected SLUG_MAX_LENGTH = SLUG_MAX_LENGTH;
 
-  @Input() public type: 'agraviado' | 'denunciado' | 'denunciante' = SLUG_INVOLVED.AGRAVIADO
+
+
+  @Input() public type: 'agraviado' | 'denunciado' | 'denunciante' = this.SLUG_INVOLVED.AGRAVIADO
   @Input() public documentTypes = []
   @Input() public recoveredData: Involucrado | null = null
   @Input() public aggraviedData: Involucrado | null = null
-  @Input() public profileType: ProfileType = SLUG_PROFILE.CITIZEN;
+  @Input() public profileType: ProfileType = this.SLUG_PROFILE.CITIZEN;
   @Output() public formChanged = new EventEmitter<Object>();
 
   /***************/
@@ -76,9 +85,8 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /***************/
 
   public obtenerIcono = obtenerIcono
-  public SLUG_INVOLVED_ROL = SLUG_INVOLVED_ROL;
-  public SLUG_RUC = SLUG_DOCUMENT_TYPE.RUC;
-  public SLUG_DNI = SLUG_DOCUMENT_TYPE.DNI;
+  public SLUG_RUC = this.SLUG_DOCUMENT_TYPE.RUC;
+  public SLUG_DNI = this.SLUG_DOCUMENT_TYPE.DNI;
   public questionAnswered = false;//si marqué como agraviado
   public involveds: Involved[] = [];
   public entityInvolveds: EntityInvolved[] = [];//involucrados para entidad
@@ -116,14 +124,11 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   public personTypes = []
 
   suggestions: any[] | undefined;
-  suggestionsRazon: any | undefined;
+  suggestionsRazon: any;
 
   //mensaje reniec
   public reniecMessage = [];
   public flagCuestionario: boolean = false;
-
-  public validRemitente: boolean = false;
-  public validRemitenteDoc: boolean = false;
 
   public translateOptions = [
     { label: 'Si', value: true },
@@ -147,98 +152,140 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /*  LIFE CYCLE  */
   /****************/
 
-  async ngOnInit() {
-    this.listInvolvedRoles = this.getInvolvedRolObject().list
-    let valida = localStorage.getItem(LOCALSTORAGE.VALIDATE_KEY);
-    this.validaToken = JSON.parse(this.cryptService.decrypt(valida));
+  ngOnInit() {
+    this.iniciarForm();
+  }
 
-    this.getNativeLanguages()
-    this.getIndigenousVillage()
-    this.getDocumentType()
-    this.getPersonType()
-    this.getNationalities()
+  get esTipoDocumentoDNI(): boolean {
+    let datos = this.form.getRawValue()
+    return datos.documentType === 1
+  }
 
+  private async iniciarForm() {
+    this.initializeStaticData();
+    this.decryptValidationToken();
 
-    if (localStorage.getItem(LOCALSTORAGE.DENUNCIA_KEY)) {
-      let valida = localStorage.getItem(LOCALSTORAGE.DENUNCIA_KEY);
-      this.validaToken = JSON.parse(this.cryptService.decrypt(valida));
+    if (this.hasSavedDenuncia())
+      this.restoreFromLocalStorage();
 
-      if (this.type === SLUG_INVOLVED.DENUNCIANTE) {
-        this.setInvolved(this.validaToken.partesDenunciantes.persona)
-        this.questionAnswered = true;
-      }
-      if (this.type === SLUG_INVOLVED.AGRAVIADO) {
-        if (this.validaToken.partesAgraviadas.persona != undefined)
-          this.setInvolved(this.validaToken.partesAgraviadas.persona)
-        if (this.validaToken.partesAgraviadas.entidad != undefined)
-          this.setEntity(this.validaToken.partesAgraviadas.entidad)
-        if (this.validaToken.partesAgraviadas.lqrr != undefined)
-          this.setLqrr(this.validaToken.partesAgraviadas.lqrr)
-        this.questionAnswered = true
-      }
+    else
+      await this.handleNewSession();
 
-      if (this.type === SLUG_INVOLVED.DENUNCIADO) {
-        if (this.validaToken.partesDenunciadas.persona != undefined)
-          this.setInvolved(this.validaToken.partesDenunciadas.persona)
-        if (this.validaToken.partesDenunciadas.entidad != undefined)
-          this.setEntity(this.validaToken.partesDenunciadas.entidad)
-        if (this.validaToken.partesDenunciadas.lqrr != undefined)
-          this.setLqrr(this.validaToken.partesDenunciadas.lqrr)
-        this.questionAnswered = true
-      }
-
-      this.saveInfo()
-    } else {
-      if (this.profileType === SLUG_PROFILE.CITIZEN && this.type === SLUG_INVOLVED.DENUNCIANTE) {
-        await this.answerQuestion(false)
-        this.form.get('documentType').setValue(SLUG_DOCUMENT_TYPE.DNI)
-        //this.form.get('documentType').disable()
-        this.form.get('documentNumber').setValue(this.validaToken?.validateIdentity.numeroDni)
-        this.form.get('names').setValue(this.validaToken?.personaNatural.nombres)
-        this.form.get('fatherLastName').setValue(this.validaToken?.personaNatural.apellidoPaterno)
-        this.form.get('motherLastName').setValue(this.validaToken?.personaNatural.apellidoMaterno)
-
-        this.searchDNI()
-
-        this.validRemitente = true
-        this.validRemitenteDoc = true
-        this.verCancelar = false
-
-        this.saveInfo()
-        this.form.valueChanges.subscribe(() => this.saveInfo())
-      }
-      if (this.profileType === SLUG_PROFILE.ENTITY) {
-        this.form = this.createFreshForm()
-        this.form.get('documentType').setValue(SLUG_DOCUMENT_TYPE.DNI)
-        this.form.get('documentNumber').setValue(this.validaToken?.validateIdentity.numeroDni)
-        this.form.get('names').setValue(this.validaToken?.personaNatural.nombres)
-        this.form.get('fatherLastName').setValue(this.validaToken?.personaNatural.apellidoPaterno)
-        this.form.get('motherLastName').setValue(this.validaToken?.personaNatural.apellidoMaterno)
-
-        this.searchDNI()
-        this.saveInfo()
-
-        await this.changeTipoOrigen('PER');
-
-        this.form.valueChanges.subscribe(() => this.saveInfo())
-      }
-
-      if ((this.profileType === SLUG_PROFILE.PNP || this.profileType === SLUG_PROFILE.PJ) && (this.type === SLUG_INVOLVED.DENUNCIANTE || this.type === SLUG_INVOLVED.DENUNCIADO)) {
-        await this.answerQuestion(false)
-        this.verCancelar = false
-      }
-      if ((this.profileType === SLUG_PROFILE.CITIZEN || this.profileType === SLUG_PROFILE.ENTITY) && this.type === SLUG_INVOLVED.DENUNCIADO) {
-        await this.answerQuestion(false)
-        this.verCancelar = false
-      }
-    }
-
-    if (this.type == 'denunciante' && this.profileType == SLUG_PROFILE.CITIZEN) {
+    if (this.type === this.SLUG_INVOLVED.DENUNCIANTE && this.profileType === this.SLUG_PROFILE.CITIZEN) {
       this.form?.get('origen')?.disable();
       this.form?.get('documentType')?.disable();
     }
   }
 
+  private initializeStaticData(): void {
+    this.listInvolvedRoles = this.getInvolvedRolObject().list;
+    this.getNativeLanguages();
+    this.getIndigenousVillage();
+    this.getPersonType();
+    this.getNationalities();
+  }
+
+  private decryptValidationToken(): void {
+    const encrypted = localStorage.getItem(LOCALSTORAGE.VALIDATE_KEY);
+    this.validaToken = JSON.parse(this.cryptService.decrypt(encrypted));
+  }
+
+  private hasSavedDenuncia(): boolean {
+    return !!localStorage.getItem(LOCALSTORAGE.DENUNCIA_KEY);
+  }
+
+  private restoreFromLocalStorage(): void {
+    const encrypted = localStorage.getItem(LOCALSTORAGE.DENUNCIA_KEY);
+    this.validaToken = JSON.parse(this.cryptService.decrypt(encrypted));
+
+    switch (this.type) {
+      case this.SLUG_INVOLVED.DENUNCIANTE:
+        this.setInvolved(this.validaToken?.partesDenunciantes?.persona);
+        this.questionAnswered = true;
+        break;
+
+      case this.SLUG_INVOLVED.AGRAVIADO:
+        this.restoreAgraviadoData();
+        break;
+
+      case this.SLUG_INVOLVED.DENUNCIADO:
+        this.restoreDenunciadoData();
+        break;
+    }
+
+    this.saveInfo();
+  }
+
+  private restoreAgraviadoData(): void {
+    const agraviadas = this.validaToken?.partesAgraviadas ?? {};
+    if (agraviadas.persona) this.setInvolved(agraviadas.persona);
+    if (agraviadas.entidad) this.setEntity(agraviadas.entidad);
+    if (agraviadas.lqrr) this.setLqrr(agraviadas.lqrr);
+    this.questionAnswered = true;
+  }
+
+  private restoreDenunciadoData(): void {
+    const denunciadas = this.validaToken?.partesDenunciadas ?? {};
+    if (denunciadas.persona) this.setInvolved(denunciadas.persona);
+    if (denunciadas.entidad) this.setEntity(denunciadas.entidad);
+    if (denunciadas.lqrr) this.setLqrr(denunciadas.lqrr);
+    this.questionAnswered = true;
+  }
+
+  private async handleNewSession(): Promise<void> {
+    if (this.profileType === this.SLUG_PROFILE.CITIZEN && this.type === this.SLUG_INVOLVED.DENUNCIANTE) {
+      await this.setupCitizenDenunciante();
+    }
+
+    if (this.profileType === this.SLUG_PROFILE.ENTITY) {
+      await this.setupEntityProfile();
+    }
+
+    if ([this.SLUG_PROFILE.PNP, this.SLUG_PROFILE.PJ].includes(this.profileType as any)
+      && [this.SLUG_INVOLVED.DENUNCIANTE, this.SLUG_INVOLVED.DENUNCIADO].includes(this.type as any)) {
+      await this.answerQuestion(false);
+      this.verCancelar = false;
+    }
+
+    if ([this.SLUG_PROFILE.CITIZEN, this.SLUG_PROFILE.ENTITY].includes(this.profileType as any) && this.type === this.SLUG_INVOLVED.DENUNCIADO) {
+      await this.answerQuestion(false);
+      this.verCancelar = false;
+    }
+  }
+
+  private async setupCitizenDenunciante(): Promise<void> {
+    await this.answerQuestion(false);
+
+    this.form.patchValue({
+      'documentType': this.SLUG_DOCUMENT_TYPE.DNI,
+      'documentNumber': this.validaToken?.validateIdentity?.numeroDni,
+      'names': this.validaToken?.personaNatural?.nombres,
+      'fatherLastName': this.validaToken?.personaNatural?.apellidoPaterno,
+      'motherLastName': this.validaToken?.personaNatural?.apellidoMaterno
+    })
+
+    this.searchDNI();
+    this.verCancelar = false;
+
+    this.saveInfo();
+    this.form.valueChanges.subscribe(() => this.saveInfo());
+  }
+
+  private async setupEntityProfile(): Promise<void> {
+    this.form = this.createFreshForm();
+    this.form.get('documentType')?.setValue(this.SLUG_DOCUMENT_TYPE.DNI);
+    this.form.get('documentNumber')?.setValue(this.validaToken?.validateIdentity?.numeroDni);
+    this.form.get('names')?.setValue(this.validaToken?.personaNatural?.nombres);
+    this.form.get('fatherLastName')?.setValue(this.validaToken?.personaNatural?.apellidoPaterno);
+    this.form.get('motherLastName')?.setValue(this.validaToken?.personaNatural?.apellidoMaterno);
+
+    this.searchDNI();
+    this.saveInfo();
+
+    await this.changeTipoOrigen('PER');
+
+    this.form.valueChanges.subscribe(() => this.saveInfo());
+  }
 
   ngOnDestroy() {
     if (this.refModal)
@@ -251,152 +298,137 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /**************/
 
   private createFreshForm(involved: Involved = null): FormGroup {
-
     this.rucFounded = false;
 
-    // Si estamos editando un involucrado existente, asegurarnos de que checkMenorEdad refleje el valor opuesto de esMayorEdad
-    const checkMenorEdadValue = involved ? !involved.esMayorEdad : false;
+    const defaultInvolvedRol = this.getInvolvedRolObject().default;
 
-    return new FormGroup({
-      personType: new FormControl(
-        involved?.personType || '',
-        [Validators.required]
-      ),
-      documentType: new FormControl(
-        involved?.documentType || null,
-        [Validators.required]
-      ),
-      documentNumber: new FormControl(
-        involved?.documentNumber || '',
-        // [Validators.required]
-      ),
-      names: new FormControl(
-        involved?.names || '',
-        [Validators.required]
-      ),
-      fatherLastName: new FormControl(
-        involved?.fatherLastName || '',
-        [Validators.required]
-      ),
-      motherLastName: new FormControl(
-        involved?.motherLastName || ''
-      ),
-      alias: new FormControl(
-        involved?.alias || ''
-      ),
-      businessName: new FormControl(
-        involved?.businessName || '',
-        [Validators.required]
-      ),
+    const group: { [key: string]: FormControl } = {
+      ...this.buildBasicFormControls(involved, defaultInvolvedRol),
+      ...this.buildExtraFormControls(involved)
+    };
 
-      checkMenorEdad: new FormControl(
-        checkMenorEdadValue
-      ),
+    group['pais'] = this.buildPaisControl(involved?.pais);
 
-      involvedRol: new FormControl(
-        involved?.involvedRol ||
-        this.getInvolvedRolObject().default
-      ),
-      validated: new FormControl(
-        involved?.validated || false
-      ),
-      nativeLanguage: new FormControl(
-        involved?.nativeLanguage || this.sinDatosID,
-        [Validators.required]
-      ),
-      indigenousVillage: new FormControl(
-        involved?.indigenousVillage || this.sinDatosID,
-        [Validators.required]
-      ),
-      translator: new FormControl(
-        involved?.translator || 0,
-        [Validators.required]
-      ),
-      aggrievedPhone: new FormControl(
-        involved?.aggrievedPhone || ''
-      ),
-      aggrievedEmail: new FormControl(
-        involved?.aggrievedEmail || '',
-        [Validators.pattern(this.emailRegex)]
-      ),
+    return new FormGroup(group);
+  }
 
-      /****************************** */
-      origen: new FormControl(
-        involved?.origen ?? 'PER'
-      ),
+  private buildBasicFormControls(i: Involved | null, defaultInvolvedRol: string): { [key: string]: FormControl } {
+    const required = Validators.required;
+    const control = (val: any, validators: any[] = []) => { return new FormControl(val, validators) };
 
-      pais: new FormControl({
-        value: involved?.pais ?? this.PERU_ID,
-        disabled: (involved?.pais ?? this.PERU_ID) == this.PERU_ID
-      },
-        [Validators.required]
-      ),
-    });
+    return {
+      personType: control(i?.personType || '', [required]),
+      documentType: control(i?.documentType || null, [required]),
+      documentNumber: control(i?.documentNumber || '', [required]),
+      names: control(i?.names || '', [required]),
+      fatherLastName: control(i?.fatherLastName || '', [required]),
+      motherLastName: control(i?.motherLastName || ''),
+      alias: control(i?.alias || ''),
+      businessName: control(i?.businessName || '', [required]),
+      involvedRol: control(i?.involvedRol || defaultInvolvedRol),
+      validated: control(i?.validated || false),
+      origen: control(i?.origen ?? 'PER'),
+      // pais: control(i?.pais ?? this.PERU_ID, [required]),
+
+      phone: control(i?.phone, this.type != this.SLUG_INVOLVED.DENUNCIADO ? [
+        Validators.required, Validators.minLength(7), Validators.maxLength(20)] : null),
+      email: control(i?.email, this.type != this.SLUG_INVOLVED.DENUNCIADO ? [Validators.required, Validators.pattern(this.emailRegex)] : null),
+    };
+  }
+
+  private buildExtraFormControls(i: Involved | null): { [key: string]: FormControl } {
+    const required = Validators.required;
+    const control = (val: any, validators: any[] = []) => new FormControl(val, validators);
+    const checkMenorEdadValue = i ? !i.esMayorEdad : false;
+
+    return {
+      checkMenorEdad: control(checkMenorEdadValue),
+      nativeLanguage: control(i?.nativeLanguage || this.sinDatosID, [required]),
+      indigenousVillage: control(i?.indigenousVillage || this.sinDatosID, [required]),
+      translator: control(i?.translator || 0, [required]),
+      aggrievedPhone: control(i?.aggrievedPhone || '', [
+        Validators.required
+      ]),
+      aggrievedEmail: control(i?.aggrievedEmail || '', [
+        Validators.required, Validators.pattern(this.emailRegex)
+      ])
+    };
+  }
+
+  private buildPaisControl(paisValue: number | undefined): FormControl {
+    const required = Validators.required;
+    const defaultPais = paisValue ?? this.PERU_ID;
+    const isDisabled = defaultPais === this.PERU_ID;
+    return new FormControl({ value: defaultPais, disabled: isDisabled }, [required]);
   }
 
   /*****************/
   /*  GET METHODS  */
   /*****************/
+  get isCitizenDenounced(): boolean {
+    return this.profileType === this.SLUG_PROFILE.CITIZEN && this.type === this.SLUG_INVOLVED.DENUNCIANTE && this.involveds.length == 0
+  }
 
   get isAggrieved(): boolean {
-    return this.type === SLUG_INVOLVED.AGRAVIADO
+    return this.type === this.SLUG_INVOLVED.AGRAVIADO
   }
 
   get isDenounced(): boolean {
-    return this.type === SLUG_INVOLVED.DENUNCIADO
+    return this.type === this.SLUG_INVOLVED.DENUNCIADO
   }
 
   get isInformer(): boolean {
-    if (this.type === SLUG_INVOLVED.DENUNCIANTE && (this.isPNP || this.isPJ)) {
+    if (this.type === this.SLUG_INVOLVED.DENUNCIANTE && (this.isPNP || this.isPJ)) {
       return false
     } else {
-      if (this.involveds.length > 0 && this.type === SLUG_INVOLVED.DENUNCIANTE) {
+      if (this.involveds.length > 0 && this.type === this.SLUG_INVOLVED.DENUNCIANTE) {
         return false
       }
-      return this.type === SLUG_INVOLVED.DENUNCIANTE
+      return this.type === this.SLUG_INVOLVED.DENUNCIANTE
     }
-  }
-
-  get isComplainant(): boolean {
-    return this.type === SLUG_INVOLVED.DENUNCIANTE
   }
 
   get isPNP(): boolean {
-    return this.profileType === SLUG_PROFILE.PNP
+    return this.profileType === this.SLUG_PROFILE.PNP
   }
 
   get isPJ(): boolean {
-    return this.profileType === SLUG_PROFILE.PJ
+    return this.profileType === this.SLUG_PROFILE.PJ
   }
 
   get isPNatural(): boolean {
-    return this.form.get('personType').value === SLUG_PERSON_TYPE.NATURAL
+    return this.form.get('personType').value === this.SLUG_PERSON_TYPE.NATURAL
   }
 
   get isPJuridica(): boolean {
-    return this.form.get('personType').value === SLUG_PERSON_TYPE.JURIDICA
+    return this.form.get('personType').value === this.SLUG_PERSON_TYPE.JURIDICA
   }
 
   public selectTipoPersona(): void {
-    if (this.form.get('personType').value === SLUG_PERSON_TYPE.JURIDICA) {
-      this.form.get('documentType').setValue(SLUG_DOCUMENT_TYPE.RUC);
-    } else {
-      this.form.get('documentType').setValue(SLUG_DOCUMENT_TYPE.DNI);
-    }
-    this.cleanSearch()
-    this.form.get('documentNumber').setValue('')
-    this.form.get('businessName').setValue('')
+    const personValue = this.form.get('personType').value;
+
+    const involved = personValue === this.SLUG_PERSON_TYPE.JURIDICA ? null : this.tmpInvolved;
+    this.form = this.createFreshForm(this.type == this.SLUG_INVOLVED.DENUNCIANTE && involved)
+
+    this.form.get('personType').setValue(personValue);
+
+    const documentTypeValue = personValue === this.SLUG_PERSON_TYPE.JURIDICA ?
+      this.SLUG_DOCUMENT_TYPE.RUC : null;
+
+    this.form.get('documentType').setValue(documentTypeValue);
   }
 
   validForm(): boolean {
     const form = this.form;
-
     const personType = form.get('personType').value;
     const involvedRolValid = form.get('involvedRol').valid;
     const businessNameValid = form.get('businessName').valid;
 
-    if (personType === SLUG_PERSON_TYPE.JURIDICA)
-      return involvedRolValid && businessNameValid;
+    const aggrievedEmailValid = form.get('aggrievedEmail').valid;
+    const aggrievedPhoneValid = form.get('aggrievedPhone').valid;
+
+    if (personType === this.SLUG_PERSON_TYPE.JURIDICA)
+      return involvedRolValid && businessNameValid && aggrievedEmailValid && aggrievedPhoneValid;
 
     const validarTipoDocumento = form.get('documentType').getRawValue() != null;
     const validarPais = form.get('pais').getRawValue() != null;
@@ -416,6 +448,14 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
 
     const personalInfoValid = !isRuc ? namesValid && fatherLastNameValid : businessNameFilled;
 
+    let phoneDenuncianteValid = true;
+    let emailDenuncianteValid = true;
+
+    if (this.type != this.SLUG_INVOLVED.DENUNCIADO) {
+      phoneDenuncianteValid = form.get('phone').valid;
+      emailDenuncianteValid = form.get('email').valid;
+    }
+
     const response = involvedRolValid
       && validarPais
       && validarTipoDocumento
@@ -423,13 +463,16 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       && indigenousVillageValid
       && nativeLanguageValid
       && translatorValid
-      && personalInfoValid;
+      && personalInfoValid
+
+      && phoneDenuncianteValid
+      && emailDenuncianteValid;
 
     return response;
   }
 
   enableAditionalDataBtn(): boolean {
-    const hasKnownRole = this.tmpInvolved?.involvedRol !== SLUG_INVOLVED_ROL.DESCONOCIDO;
+    const hasKnownRole = this.tmpInvolved?.involvedRol !== this.SLUG_INVOLVED_ROL.DESCONOCIDO;
     const isFormValid = this.validForm();
     const resp = hasKnownRole && isFormValid;
 
@@ -452,30 +495,30 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   }
 
   get isEntity(): boolean {
-    return SLUG_PROFILE.ENTITY === this.profileType;
+    return this.SLUG_PROFILE.ENTITY === this.profileType;
   }
 
   get isCitizen(): boolean {
-    return SLUG_PROFILE.CITIZEN === this.profileType;
+    return this.SLUG_PROFILE.CITIZEN === this.profileType;
   }
 
   get showAggrievedQuestion(): boolean {
     return (
-      this.type === SLUG_INVOLVED.AGRAVIADO &&
+      this.type === this.SLUG_INVOLVED.AGRAVIADO &&
       !this.questionAnswered
     )
   }
 
   get showDenouncedQuestion(): boolean {
     return (
-      (this.type === SLUG_INVOLVED.DENUNCIANTE || this.type === SLUG_INVOLVED.DENUNCIADO) &&
+      (this.type === this.SLUG_INVOLVED.DENUNCIANTE || this.type === this.SLUG_INVOLVED.DENUNCIADO) &&
       !this.questionAnswered
     )
   }
 
   get showComplaintQuestion(): boolean {
     return (
-      this.type === SLUG_INVOLVED.DENUNCIANTE
+      this.type === this.SLUG_INVOLVED.DENUNCIANTE
     )
   }
 
@@ -502,7 +545,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   }
 
   get isUnknownInvolved() {
-    return this.form.get('involvedRol').value === SLUG_INVOLVED_ROL.DESCONOCIDO
+    return this.form.get('involvedRol').value === this.SLUG_INVOLVED_ROL.DESCONOCIDO
   }
 
   get classForRolesList() {
@@ -510,19 +553,19 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   }
 
   get isDisabledLqrr() {
-    return this.involveds.findIndex(x => x.involvedRol === SLUG_INVOLVED_ROL.DESCONOCIDO) !== -1
+    return this.involveds.findIndex(x => x.involvedRol === this.SLUG_INVOLVED_ROL.DESCONOCIDO) !== -1
   }
 
   get isDNI(): boolean {
-    return this.form.get('documentType').value === SLUG_DOCUMENT_TYPE.DNI
+    return this.form.get('documentType').value === this.SLUG_DOCUMENT_TYPE.DNI
   }
 
   get isRuc(): boolean {
-    return this.form.get('documentType').value === SLUG_DOCUMENT_TYPE.RUC
+    return this.form.get('documentType').value === this.SLUG_DOCUMENT_TYPE.RUC
   }
 
   get isNoDocument(): boolean {
-    return this.form.get('documentType').value === SLUG_DOCUMENT_TYPE.SIN_DOCUMENTO
+    return this.form.get('documentType').value === this.SLUG_DOCUMENT_TYPE.SIN_DOCUMENTO
   }
 
   get isInvalidNumber(): boolean {
@@ -562,12 +605,12 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
 
 
   get invalidRuc(): boolean {
-    return !(this.form.get('documentNumber').value.length === SLUG_MAX_LENGTH.RUC &&
+    return !(this.form.get('documentNumber').value.length === this.SLUG_MAX_LENGTH.RUC &&
       !isNaN(this.form.get('documentNumber').value))
   }
 
   get invalidDNI(): boolean {
-    return this.form.get('documentType').value !== SLUG_DOCUMENT_TYPE.DNI
+    return this.form.get('documentType').value !== this.SLUG_DOCUMENT_TYPE.DNI
   }
 
   /************************/
@@ -575,9 +618,9 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /************************/
 
   private getInvolvedRolObject() {
-    if (this.type === SLUG_INVOLVED.DENUNCIADO) {
+    if (this.type === this.SLUG_INVOLVED.DENUNCIADO) {
       return {
-        default: SLUG_INVOLVED_ROL.CONOCIDO,
+        default: this.SLUG_INVOLVED_ROL.CONOCIDO,
         list: [
           { label: 'Conocido', value: 'conocido' },
           { label: 'Desconocido', value: 'desconocido' }
@@ -590,7 +633,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
 
 
   public async changeInvolvedType(value: string) {
-    if (value === SLUG_INVOLVED_ROL.DESCONOCIDO) {//seleccionamos desconocido
+    if (value === this.SLUG_INVOLVED_ROL.DESCONOCIDO) {//seleccionamos desconocido
       if (this.isDisabledLqrr && !this.editing) {
         setTimeout(() => {
           this.form.controls['involvedRol'].setValue(SLUG_INVOLVED_ROL.CONOCIDO)
@@ -604,17 +647,21 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
         await this.changeTipoOrigen('PER');
 
       }
-    } else {//cuando seleccionas conocido ...
-      if (//...en un modo edicion de LQRR
-        this.tmpInvolved?.involvedRol &&
-        this.tmpInvolved.involvedRol === SLUG_INVOLVED_ROL.DESCONOCIDO
-      ) {
+    }
+
+    //cuando seleccionas conocido ...
+    else {
+      //...en un modo edicion de LQRR
+      if (this.tmpInvolved?.involvedRol && this.tmpInvolved.involvedRol === this.SLUG_INVOLVED_ROL.DESCONOCIDO) {
         this.form = this.createFreshForm()
         await this.changeTipoOrigen('PER');
         return
       }
+
       //edicion d conocido o de nadie, tmpInvolved puede ser vació
       this.form = this.createFreshForm(this.tmpInvolved)
+      this.form.get('personType').setValue(this.SLUG_DOCUMENT_TYPE.DNI);
+
       await this.changeTipoOrigen('PER');
     }
   }
@@ -720,10 +767,6 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       this.documentTypesInformer =
         this.documentTypesOriginal.filter(document => document.nombre === 'DNI');
 
-      if (this.type == 'agraviado' || this.type == 'denunciante') {
-        this.documentTypes = this.documentTypes
-          .filter(document => ![3, 16].includes(document.id)); //QUITAR SIN DOCUMENTO
-      }
     }
   }
 
@@ -735,7 +778,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       next: resp => {
         if (resp && resp.code === 200) {
           this.personTypes = resp.data
-          this.personTypes = this.personTypes.filter(person => person.id === SLUG_PERSON_TYPE.NATURAL || person.id === SLUG_PERSON_TYPE.JURIDICA);
+          this.personTypes = this.personTypes.filter(person => person.id === this.SLUG_PERSON_TYPE.NATURAL || person.id === this.SLUG_PERSON_TYPE.JURIDICA);
         }
       }
     })
@@ -822,7 +865,8 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
 
     this.tmpInvolved = {
       ...this.tmpInvolved,
-      ...this.form.value,
+      // ...this.form.value,
+      ...this.form.getRawValue(),
     }
 
     this.tmpInvolvedOriginal ??= { ...this.tmpInvolved };
@@ -844,7 +888,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
         this.form.get('checkMenorEdad').setValue(!esMayorEdad)
 
         if (!esMayorEdad) {
-          if (this.type == 'denunciante') {
+          if (this.type == this.SLUG_INVOLVED.DENUNCIANTE) {
             this.messageService.add({
               severity: 'warn',
               detail: `El denunciante debe ser una persona mayor de edad.
@@ -868,7 +912,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
         this.tmpInvolved.motherLastName = personReniec.apellidoMaterno
         this.tmpInvolved.gender = personReniec.codigoGenero
         this.tmpInvolved.idEducationalLevel = personReniec.codigoGradoInstruccion
-        this.tmpInvolved.bornDate = personReniec.fechaNacimiento
+        this.tmpInvolved.bornDate = personReniec.fechaNacimiento ? this.convertStringToDate(personReniec.fechaNacimiento) : null
         this.tmpInvolved.age = personReniec.edad
         this.tmpInvolved.maritalStatus = personReniec.tipoEstadoCivil
         this.tmpInvolved.address = personReniec.direccionCompleta
@@ -900,8 +944,10 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
 
   public cleanSearch(): void {
     this.rucFounded = false
+
     this.form.get('documentNumber').setValue('')
     this.form.get('documentNumber').markAsUntouched()
+
     this.form.get('businessName').setValue('')
     this.form.get('businessName').markAsUntouched()
   }
@@ -921,8 +967,9 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
+
           if (parsed.expiresAt && Date.now() < parsed.expiresAt) {
-            this.tmpInvolved = parsed.data;
+            this.tmpInvolved = this.deserializeInvolvedData(parsed.data);
           } else {
             localStorage.removeItem(LOCAL_KEY);
           }
@@ -931,14 +978,24 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
         }
       } else {
         // No hay en localStorage: inicializa desde el formulario
-        this.tmpInvolved = { ...this.form.value };
+        this.tmpInvolved = { ...this.form.getRawValue() };
       }
     }
 
     this.tmpInvolved.nationality = this.tmpInvolved.pais;
 
+    if (this.tmpInvolved.phone == null || this.tmpInvolved.email == null) {
+      this.tmpInvolved.phone = this.form.get('phone').value;
+      this.tmpInvolved.email = this.form.get('email').value;
+    }
+
+    this.openModalExtraData(LOCAL_KEY, EXPIRATION_MINUTES);
+  }
+
+  openModalExtraData(LOCAL_KEY: string, EXPIRATION_MINUTES: number): void {
     this.refModal = this.dialogService.open(ExtraDataModalComponent, {
       header: `Datos adicionales del ${this.type}`,
+      styleClass: 'extra-data-dialog',
       contentStyle: { 'max-width': '1200px' },
       data: {
         data: this.tmpInvolved,
@@ -950,10 +1007,11 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       if (involved) {
         Object.assign(this.tmpInvolved, involved);
 
-        // Guardar en localStorage con expiración
+        // Guardar en localStorage con expiración usando serialización
         const expirationTimestamp = Date.now() + EXPIRATION_MINUTES * 60 * 1000;
+        const serializedData = this.serializeInvolvedData(this.tmpInvolved);
         const tmpInvolvedData = {
-          data: this.tmpInvolved,
+          data: serializedData,
           expiresAt: expirationTimestamp
         };
         localStorage.setItem(LOCAL_KEY, JSON.stringify(tmpInvolvedData));
@@ -962,7 +1020,6 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
         this.form.patchValue(this.tmpInvolved);
       }
     });
-
   }
 
   /************************************/
@@ -993,7 +1050,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
         detail: `Ya existe una persona registrada con el mismo tipo y número de documento en la sección de ${this.type}`
       })
 
-      if (this.type === SLUG_INVOLVED.DENUNCIADO || this.type === SLUG_INVOLVED.AGRAVIADO) {
+      if (this.type === this.SLUG_INVOLVED.DENUNCIADO || this.type === this.SLUG_INVOLVED.AGRAVIADO) {
         this.verCancelar = true
       }
 
@@ -1008,57 +1065,87 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /*    CREATE INVOLVED    */
   /*************************/
   public async createInvolved(flagAdicional: number) {
-    //si no hay creación presente de involucrado
+    const tipoPersona = this.form?.get('personType')?.value;
+
     if (!this.newInvolved) {
-      this.form = this.createFreshForm()
-      this.newInvolved = true
-      this.verCancelar = true
-      this.form.get('personType').setValue(SLUG_DOCUMENT_TYPE.DNI);
-
+      this.initializeNewInvolved();
       await this.changeTipoOrigen('PER');
-    } else {
-      this.verCancelar = false
 
-      const esLqrr = this.isUnknownInvolved;
-
-      if (esLqrr || this.type == 'denunciado')
-        this.tmpInvolved = undefined;
-
-      if (this.tmpInvolved == undefined) {
-        // Asegurarnos de que esMayorEdad se establezca correctamente
-        const formValue = this.form.value;
-        this.tmpInvolved = {
-          ...this.tmpInvolved,
-          ...formValue,
-          esMayorEdad: !formValue.checkMenorEdad // Convertir checkMenorEdad a esMayorEdad
-        }
-      }
-
-      if (this.validateIfInvolvedExist() && flagAdicional === 0) {
-        return
-      }
-
-      let validated = this.tmpInvolved.validated;
-
-      if (this.tmpInvolved.id) {
-        this.updateInvolved({
-          ...this.tmpInvolved,
-          validated
-        })
-      } else {
-        this.involveds.push({
-          ...this.tmpInvolved,
-          id: this.generateId(),
-          validated,
-        })
-      }
-
-      this.tmpInvolved = undefined;
-      this.newInvolved = false;
-      this.flagCuestionario = true;
-      this.saveInfo()
+      return;
     }
+
+    this.verCancelar = false;
+
+    if (this.isUnknownInvolved || this.type === 'denunciado' || tipoPersona == '2')
+      this.tmpInvolved = undefined;
+
+    if (!this.tmpInvolved)
+      this.tmpInvolved = this.buildTmpInvolvedFromForm();
+
+    if (this.validateIfInvolvedExist() && flagAdicional === 0)
+      return;
+
+    const validated = this.tmpInvolved.validated;
+
+    if (this.tmpInvolved.phone == null || this.tmpInvolved.email == null) {
+      this.tmpInvolved.phone = this.form.get('phone').value;
+      this.tmpInvolved.email = this.form.get('email').value;
+    }
+
+    this.tmpInvolved.esMayorEdad = this.tmpInvolved.checkMenorEdad ? false : this.isAdult(this.tmpInvolved.bornDate)
+  
+
+    if (this.tmpInvolved.id)
+      this.updateInvolved({ ...this.tmpInvolved, validated });
+    else {
+      this.involveds.push({
+        ...this.tmpInvolved,
+        id: this.generateId(),
+        validated,
+      });
+    }
+
+    this.resetInvolvedState();
   }
+
+  private initializeNewInvolved(): void {
+    this.form = this.createFreshForm();
+    this.newInvolved = true;
+    this.verCancelar = true;
+    this.form.get('personType')?.setValue(this.SLUG_DOCUMENT_TYPE.DNI);
+  }
+
+  private buildTmpInvolvedFromForm(): any {
+    const LOCAL_KEY = 'TMP_INVOLVED_' + this.type;
+    const savedData = this.getSavedInvolvedFromLocalStorage(LOCAL_KEY);
+    const formValue = this.form.value;
+    return {
+      ...savedData,
+      ...formValue,
+      esMayorEdad: !formValue.checkMenorEdad
+    };
+  }
+
+  private getSavedInvolvedFromLocalStorage(key: string): any {
+    const saved = localStorage.getItem(key);
+
+    if (!saved) return {};
+
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed.expiresAt && Date.now() < parsed.expiresAt) {
+        return parsed.data ?? {};
+      } else {
+        localStorage.removeItem(key);
+      }
+    } catch {
+      localStorage.removeItem(key);
+    }
+
+    return {};
+  }
+
+
 
   /***************************/
   /*    VALIDATE INVOLVED    */
@@ -1069,7 +1156,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   public validMaxLengthPhone(): void {
     let control = this.form.get('aggrievedPhone')
     let value: string = control.value
-    let maxLength: number = SLUG_MAX_LENGTH.CELLPHONE
+    let maxLength: number = this.SLUG_MAX_LENGTH.CELLPHONE
     value.length > maxLength && control.setValue(value.slice(0, maxLength))
   }
 
@@ -1094,6 +1181,13 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     value.length > maxLength && control.setValue(value.slice(0, maxLength))
   }
 
+  private resetInvolvedState(): void {
+    this.tmpInvolved = undefined;
+    this.newInvolved = false;
+    this.flagCuestionario = true;
+    this.saveInfo();
+    localStorage.removeItem( 'TMP_INVOLVED_' + this.type);
+  }
 
   /*************************/
   /*    UPDATE INVOLVED    */
@@ -1107,22 +1201,22 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   }
 
   get availableSaveBtn(): boolean {
-    if (this.type === SLUG_INVOLVED.DENUNCIANTE) {
+    if (this.type === this.SLUG_INVOLVED.DENUNCIANTE) {
       return true;
     }
-    if (this.type === SLUG_INVOLVED.AGRAVIADO && this.involveds.length > 0) {
+    if (this.type === this.SLUG_INVOLVED.AGRAVIADO && this.involveds.length > 0) {
       return true;
     }
-    if (this.type === SLUG_INVOLVED.AGRAVIADO && this.involveds.length < 1) {
+    if (this.type === this.SLUG_INVOLVED.AGRAVIADO && this.involveds.length < 1) {
       if (this.flagCuestionario)
         return true;
       else
         return false;
     }
-    if (this.type === SLUG_INVOLVED.DENUNCIADO && this.involveds.length > 0) {
+    if (this.type === this.SLUG_INVOLVED.DENUNCIADO && this.involveds.length > 0) {
       return true;
     }
-    if (this.type === SLUG_INVOLVED.DENUNCIADO && this.involveds.length < 1) {
+    if (this.type === this.SLUG_INVOLVED.DENUNCIADO && this.involveds.length < 1) {
       if (this.flagCuestionario)
         return true;
       else
@@ -1140,13 +1234,18 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     this.newInvolved = false
     this.tmpInvolved = undefined
     this.involvedConocido = false
+
+    // Limpiar datos temporales del localStorage
+    const LOCAL_KEY = 'TMP_INVOLVED_' + this.type;
+    localStorage.removeItem(LOCAL_KEY);
+
     if (this.involveds.length < 1)
       this.questionAnswered = false
     else
       this.questionAnswered = true
-    if (this.type === SLUG_INVOLVED.DENUNCIANTE) {
+    if (this.type === this.SLUG_INVOLVED.DENUNCIANTE) {
       this.flagCuestionario = true;
-    } else if (this.type === SLUG_INVOLVED.AGRAVIADO) {
+    } else if (this.type === this.SLUG_INVOLVED.AGRAVIADO) {
       this.flagCuestionario = false;
     } else {
       this.flagCuestionario = true;
@@ -1177,30 +1276,31 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       this.verCancelar = false
       this.flagCuestionario = true;
 
-      if (this.type === SLUG_INVOLVED.DENUNCIANTE && this.profileType === SLUG_PROFILE.CITIZEN) {
-        this.form.get('documentType').setValue(SLUG_DOCUMENT_TYPE.DNI)
+      // Limpiar datos temporales del localStorage
+      const LOCAL_KEY = 'TMP_INVOLVED_' + this.type;
+      localStorage.removeItem(LOCAL_KEY);
+
+      if (this.type === this.SLUG_INVOLVED.DENUNCIANTE && this.profileType === this.SLUG_PROFILE.CITIZEN) {
+        this.form.get('documentType').setValue(this.SLUG_DOCUMENT_TYPE.DNI)
         //this.form.get('documentType').disable()
-        this.form.get('documentNumber').setValue(this.validaToken?.validateIdentity.numeroDni)
+        this.form.get('documentNumber').setValue(this.validaToken?.personaNatural.dni)
         this.form.get('names').setValue(this.validaToken?.personaNatural.nombres)
         this.form.get('fatherLastName').setValue(this.validaToken?.personaNatural.apellidoPaterno)
         this.form.get('motherLastName').setValue(this.validaToken?.personaNatural.apellidoMaterno)
 
         this.searchDNI()
+
+        this.form?.get('origen')?.disable();
+        this.form?.get('documentType')?.disable();
       }
 
-      if (this.type === SLUG_INVOLVED.AGRAVIADO) {
+      if (this.type === this.SLUG_INVOLVED.AGRAVIADO) {
         this.questionAnswered = false
         this.newInvolved = false;
         this.flagCuestionario = false;
       }
 
-      if (this.type == 'denunciante' && this.profileType == SLUG_PROFILE.CITIZEN) {
-        this.form?.get('origen')?.disable();
-        this.form?.get('documentType')?.disable();
-      }
-
       return;
-      //}
     }
 
     this.flagCuestionario = false;
@@ -1211,84 +1311,105 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /******************/
 
   public async answerQuestion(confirm: boolean) {
-    if (confirm) {
-      this.flagCuestionario = false;
+    if (!confirm) return this.handleNegativeConfirmation();
 
-      if ([SLUG_PROFILE.CITIZEN].includes(this.profileType as any)) {
-        if (!this.aggraviedData['persona'])
-          return
+    this.flagCuestionario = false;
 
-        // Registramos al usuario de la sesión
-        const info = this.aggraviedData['persona'][0];
-        this.involveds.push(this.getAgraviatedData(info))
+    switch (this.profileType) {
+      case this.SLUG_PROFILE.CITIZEN:
+        this.handleCitizenProfile();
+        break;
 
-        this.involvedConocido = true
+      case this.SLUG_PROFILE.ENTITY:
+        this.handleEntityProfile();
+        break;
 
-        this.searchDNI()
-        this.setQuestionAnswered()
-      }
-
-      else if (this.profileType === SLUG_PROFILE.ENTITY) {
-        let valida = localStorage.getItem(LOCALSTORAGE.VALIDATE_KEY);
-
-        this.validaToken = JSON.parse(this.cryptService.decrypt(valida));
-        this.involveds.push({
-          id: this.generateId(),
-          involvedRol: SLUG_INVOLVED_ROL.CONOCIDO,
-          validated: true,
-          ...this.tmpInvolved ?? this.tmpInvolvedOriginal
-        })
-
-        this.questionAnswered = true
-        this.saveInfo()
-
-        this.tmpInvolved = undefined;
-      }
-
-      else {//si es pnp o pj
-        if (this.aggraviedData && Object.keys(this.aggraviedData).length !== 0) {
-          this.questionAnswered = true; //pregunta respondida
-
-          if (this.aggraviedData['persona']) {
-            const info = this.aggraviedData['persona'][0];
-            this.involveds.push(this.getAgraviatedData(info))
-          }
-
-          if (this.aggraviedData['entidad']) {
-            const info = this.aggraviedData['entidad'][0];
-            this.involveds.push({
-              id: this.generateId(),
-              documentType: this.SLUG_RUC,
-              documentNumber: info.ruc,
-              businessName: info.razonSocial,
-              involvedRol: SLUG_INVOLVED_ROL.CONOCIDO,
-              validated: info.validado === 1,
-            })
-          }
-
-          this.setQuestionAnswered()
-          return;
-        }
-
-        this.messageService.add({
-          severity: 'warn',
-          detail: `Aún no ha registrado al denunciante, por favor regístrelo para volver y responder la pregunta`
-        })
-      }
-
-      return;
+      default:
+        this.handleOtherProfiles();
+        break;
     }
-
-    else {
-      this.flagCuestionario = true;
-      this.verCancelar = true;
-    }
-
-    this.questionAnswered = true; //pregunta respondida
-    await this.createInvolved(1);
-
-    this.form.get('personType').setValue(SLUG_PERSON_TYPE.NATURAL)
   }
+
+  private handleNegativeConfirmation() {
+    this.flagCuestionario = true;
+    this.verCancelar = true;
+    this.questionAnswered = true;
+
+    this.createInvolved(1);
+    this.form.get('personType').setValue(this.SLUG_DOCUMENT_TYPE.DNI);
+  }
+
+  private handleCitizenProfile() {
+    const persona = this.aggraviedData['persona'];
+    if (!persona) return;
+
+    const info = persona[0];
+    this.involveds.push(this.getAgraviatedData(info));
+    this.involvedConocido = true;
+
+    this.searchDNI();
+    this.setQuestionAnswered();
+  }
+
+  private handleEntityProfile() {
+    const encryptedToken = localStorage.getItem(LOCALSTORAGE.VALIDATE_KEY);
+    this.validaToken = JSON.parse(this.cryptService.decrypt(encryptedToken));
+
+    this.involveds.push({
+      id: this.generateId(),
+      involvedRol: this.SLUG_INVOLVED_ROL.CONOCIDO,
+      validated: true,
+      ...(this.tmpInvolved ?? this.tmpInvolvedOriginal)
+    });
+
+    this.questionAnswered = true;
+    this.saveInfo();
+    this.tmpInvolved = undefined;
+  }
+
+  private handleOtherProfiles() {
+    if (!this.aggraviedData || Object.keys(this.aggraviedData).length === 0) {
+      return this.messageService.add({
+        severity: 'warn',
+        detail: `Aún no ha registrado al denunciante, por favor regístrelo para volver y responder la pregunta`
+      });
+    }
+
+    this.questionAnswered = true;
+
+    if (this.aggraviedData.persona) {
+      this.processPersonas(this.aggraviedData.persona);
+    }
+
+    if (this.aggraviedData.entidad) {
+      this.processEntidades(this.aggraviedData.entidad);
+    }
+
+    this.setQuestionAnswered();
+  }
+
+  private processPersonas(personas: any) {
+    const list = Array.isArray(personas) ? personas : [personas[0]];
+    list.forEach(p => this.involveds.push(this.getAgraviatedData(p)));
+  }
+
+  private processEntidades(entidades: any) {
+    const pushEntidad = (e: any) => {
+      this.involveds.push({
+        id: this.generateId(),
+        documentType: this.SLUG_RUC,
+        documentNumber: e.ruc,
+        businessName: e.razonSocial,
+        involvedRol: this.SLUG_INVOLVED_ROL.CONOCIDO,
+        validated: e.validado === 1,
+      });
+    };
+
+    const list = Array.isArray(entidades) ? entidades : [entidades[0]];
+    list.forEach(e => pushEntidad(e));
+  }
+
+
 
   public setQuestionAnswered() {
     this.questionAnswered = true; //pregunta respondida
@@ -1299,14 +1420,14 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   public getAgraviatedData(info: Persona): Involved {
     const data: Involved = {
       id: this.generateId(),
-      involvedRol: SLUG_INVOLVED_ROL.CONOCIDO,
+      involvedRol: this.SLUG_INVOLVED_ROL.CONOCIDO,
       documentType: info.idTipoDocumento,
       documentNumber: info.numeroDocumento,
       names: info.nombres,
       fatherLastName: info.apellidoPaterno,
       motherLastName: info.apellidoMaterno,
       gender: info.sexo,
-      bornDate: info.fechaNacimiento ? getDateFromString(info.fechaNacimiento) : null,
+      bornDate: info.fechaNacimiento ? this.convertStringToDate(info.fechaNacimiento) : null,
       age: info.edad ? String(info.edad) : '0',
       idEducationalLevel: info.idGradoInstruccion,
       educationalLevel: info.gradoInstruccion,
@@ -1321,12 +1442,23 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
       secondaryPhone: info.contacto?.celularSecundario,
       secondaryEmail: info.contacto?.correoSecundario,
       ocupation: info.otrosDatos?.ocupacion,
+      disability: info.otrosDatos?.disability,
+      lgtbiq: info.otrosDatos?.lgtbiq,
       indigenousVillage: info.otrosDatos?.puebloIndigena,
       nativeLanguage: info.otrosDatos?.idLenguaMaterna,
       translator: info.otrosDatos?.esRequiereTraductor === 1,
       validated: info.validado === 1,
       esMayorEdad: info.esMayorEdad,
       foto: this.fotoInvolucrado,
+      afroperuvian: info.otrosDatos?.afroperuvian,
+      privateLibertad: info.otrosDatos?.privateLibertad,
+      vih: info.otrosDatos?.vih,
+      worker: info.otrosDatos?.worker,
+      advocate: info.otrosDatos?.advocate,
+      migrant: info.otrosDatos?.migrant,
+      victim: info.otrosDatos?.victim,
+      server: info.otrosDatos?.server,
+      otrosDetalleProfesionOficio: info.otrosDatos?.otrosDetalleProfesionOficio,
     }
     const request = Object.fromEntries(
       Object.entries(data).filter(([_, valor]) => valor !== null && valor !== undefined)
@@ -1344,7 +1476,7 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     this.involveds.push({
       id: lqrr.id,
       names: 'LQRR',
-      involvedRol: SLUG_INVOLVED_ROL.DESCONOCIDO,
+      involvedRol: this.SLUG_INVOLVED_ROL.DESCONOCIDO,
     });
   }
 
@@ -1352,11 +1484,11 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     entity.forEach(e => {
       this.involveds.push({
         id: e.id,
-        involvedRol: SLUG_INVOLVED_ROL.CONOCIDO,
+        involvedRol: this.SLUG_INVOLVED_ROL.CONOCIDO,
         documentType: this.SLUG_RUC,
         documentNumber: e.ruc,
         businessName: e.razonSocial,
-        entityType: SLUG_ENTITY.JURIDICA,
+        entityType: this.SLUG_ENTITY.JURIDICA,
         validated: e.validado === 1,
       })
     });
@@ -1366,14 +1498,14 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     person.forEach(p => {
       this.involveds.push({
         id: p.id,
-        involvedRol: SLUG_INVOLVED_ROL.CONOCIDO,
+        involvedRol: this.SLUG_INVOLVED_ROL.CONOCIDO,
         documentType: p.idTipoDocumento,
         documentNumber: p.numeroDocumento,
         names: p.nombres,
         fatherLastName: p.apellidoPaterno,
         motherLastName: p.apellidoMaterno,
         gender: p.sexo,
-        bornDate: p.fechaNacimiento ? getDateFromString(p.fechaNacimiento) : null,
+        bornDate: p.fechaNacimiento ? this.convertStringToDate(p.fechaNacimiento) : null,
         age: p.edad ? String(p.edad) : '0',
         idEducationalLevel: p.idGradoInstruccion,
         educationalLevel: p.gradoInstruccion,
@@ -1396,6 +1528,15 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
         validated: p.validado === 1,
         esMayorEdad: p.esMayorEdad,
         foto: this.fotoInvolucrado,
+        afroperuvian: p.otrosDatos?.afroperuvian,
+        privateLibertad: p.otrosDatos?.privateLibertad,
+        vih: p.otrosDatos?.vih,
+        worker: p.otrosDatos?.worker,
+        advocate: p.otrosDatos?.advocate,
+        migrant: p.otrosDatos?.migrant,
+        victim: p.otrosDatos?.victim,
+        server: p.otrosDatos?.server,
+        otrosDetalleProfesionOficio: p.otrosDatos?.otrosDetalleProfesionOficio,
       })
     });
   }
@@ -1405,165 +1546,237 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   /***************/
 
   public saveInfo() {
-    if (!this.loadingData) {
+    if (this.loadingData) return;
 
-      this.formInitialized = true
+    this.formInitialized = true;
 
-      let data: Involucrado = {}
-      let request = {}
+    let data: Involucrado = {};
+    let request = {};
 
-      this.involveds.forEach(involved => {
-        if (involved.involvedRol === SLUG_INVOLVED_ROL.DESCONOCIDO) {
-          data['lqrr'] = {
-            id: involved.id
-          }
-        }
+    this.involveds.forEach(involved => {
+      this.normalizeInvolved(involved);
+      this.categorizeInvolved(data, involved);
+    });
 
-        if (involved.documentType === SLUG_DOCUMENT_TYPE.DNI) {
-          involved.documentType = SLUG_DOCUMENT_TYPE.DNI
-          involved.validated = false; //true
-          involved.tipoDireccion = 5
-        } else {
-          involved.validated = false
-          involved.tipoDireccion = involved.address !== '' ? 3 : null
-        }
+    this.assignInvolucradoDataToRequest(request, data);
 
-        if (involved.involvedRol === SLUG_INVOLVED_ROL.CONOCIDO && involved.documentType !== SLUG_DOCUMENT_TYPE.RUC) {
-          const personData: Persona = {
-            id: involved.id,
-            idTipoPersona: SLUG_PERSON_TYPE.NATURAL,
-            idTipoDocumento: involved.documentType,
-            numeroDocumento: involved.documentNumber,
-            nombres: getValidString(involved.names),
-            apellidoPaterno: getValidString(involved.fatherLastName),
-            apellidoMaterno: involved.motherLastName,
-            sexo: involved.gender,
-            fechaNacimiento: involved.bornDate ? formatDateInvol(involved.bornDate) : null,
-            edad: Number(involved.age) > 0 ? Number(involved.age) : undefined,
-            idGradoInstruccion: involved.idEducationalLevel,
-            gradoInstruccion: involved.educationalLevel,
-            idTipoEstadoCivil: involved.maritalStatus,
-            idNacionalidad: involved.pais,
-            flCExtranjero: involved.documentType === 4 || involved.documentType === 5 || involved.documentType === 6 || involved.documentType === 9 || involved.documentType === 13 || involved.documentType === 14 ? 1 : 0,
-            validado: involved.validated ? 1 : 0,
-            esMayorEdad: involved.esMayorEdad,
-            foto: this.fotoInvolucrado,
-            direccion: [{
-              tipoDireccion: involved.tipoDireccion,
-              ubigeo: involved.district?.length === 6 ? involved.district : involved.department + involved.province + involved.district,
-              direccionCompleta: involved.address,
-              idUbigeoPueblo: null,
-              tipoVia: null,
-              direccionResidencia: null,
-              numeroResidencia: null,
-              codigoPrefijoUrbanizacion: null,
-              descripcionPrefijoDpto: null,
-              nombreUrbanizacion: null,
-              descripcionBloque: null,
-              descripcionInterior: null,
-              descripcionPrefijoBloque: null,
-              descripcionEtapa: null,
-              descripcionManzana: null,
-              descripcionLote: null,
-              descripcionReferencia: null,
-              latitud: null,
-              longitud: null,
-            }],
-            contacto: this.showContact(involved) ? {
-              celularPrincipal: involved.phone,
-              correoPrincipal: involved.email,
-              celularSecundario: involved.secondaryPhone,
-              correoSecundario: involved.secondaryEmail,
-            } : null,
-            otrosDatos: this.showExtraData(involved) ? {
-              ocupacion: involved.ocupation,
-              puebloIndigena: involved.indigenousVillage,
-              idLenguaMaterna: involved.nativeLanguage,
-              esRequiereTraductor: involved.translator ? 1 : 0,
-              afroperuvian: involved.afroperuvian,
-              disability: involved.disability,
-              privateLibertad: involved.privateLibertad,
-              vih: involved.vih,
-              worker: involved.worker,
-              advocate: involved.advocate,
-              lgtbiq: involved.lgtbiq,
-              migrant: involved.migrant,
-              victim: involved.victim,
-              server: involved.server,
-              otrosDetalleProfesionOficio: involved.otrosDetalleProfesionOficio
-            } : null,
-          }
+    this.formChanged.emit(request);
+  }
 
-          const request = Object.fromEntries(Object.entries(personData).filter(([_, valor]) => valor !== null && valor !== undefined)) as Persona;
-
-          const list = data['persona']
-
-          if (list === undefined) {
-            data['persona'] = [request];
-          } else {
-            data['persona'].push(request);
-          }
-
-
-        }
-
-        if (involved.involvedRol === SLUG_INVOLVED_ROL.CONOCIDO && involved.documentType === SLUG_DOCUMENT_TYPE.RUC) {
-          involved.validated = true
-
-          const entity: EntidadInvolucrada = {
-            id: involved.id,
-            idTipoEntidad: SLUG_ENTITY.JURIDICA,
-            ruc: involved.documentNumber,
-            razonSocial: involved.businessName,
-            validado: involved.validated ? 1 : 0,
-            correoInstitucion: involved.aggrievedEmail,
-            nuTelefonoEntidad: involved.aggrievedPhone,
-          }
-
-          const list = data['entidad']
-
-          if (list === undefined) {
-            data['entidad'] = [entity];
-          } else {
-            data['entidad'].push(entity);
-          }
-
-
-        }
-      })
-
-      switch (this.type) {
-        case SLUG_INVOLVED.DENUNCIANTE:
-          request['partesDenunciantes'] = data;
-          break;
-        case SLUG_INVOLVED.AGRAVIADO:
-          request['partesAgraviadas'] = data;
-          break;
-        case SLUG_INVOLVED.DENUNCIADO:
-          request['partesDenunciadas'] = data;
-
-          break;
-      }
-
-
-      if (this.type === SLUG_INVOLVED.AGRAVIADO && this.profileType === SLUG_PROFILE.ENTITY) {
-        request['partesDenunciantes'] = data
-      }
-
-      this.formChanged.emit(request)
+  private normalizeInvolved(involved) {
+    if (involved.documentType === this.SLUG_DOCUMENT_TYPE.DNI) {
+      involved.documentType = this.SLUG_DOCUMENT_TYPE.DNI;
+      involved.validated = false;
+      involved.tipoDireccion = 5;
+    } else {
+      involved.validated = false;
+      involved.tipoDireccion = involved.address !== '' ? 3 : null;
     }
   }
 
+  private categorizeInvolved(data: Involucrado, involved) {
+    if (involved.involvedRol === this.SLUG_INVOLVED_ROL.DESCONOCIDO) {
+      data['lqrr'] = { id: involved.id };
+      return;
+    }
+
+    if (involved.involvedRol === this.SLUG_INVOLVED_ROL.CONOCIDO) {
+      if (involved.documentType !== this.SLUG_DOCUMENT_TYPE.RUC) {
+        const personData = this.buildPersonData(involved);
+        this.addToDataList(data, 'persona', personData);
+      } else {
+        involved.validated = true;
+        const entity = this.buildEntityData(involved);
+        this.addToDataList(data, 'entidad', entity);
+      }
+    }
+  }
+
+  private buildPersonData(involved): Persona {
+    const persona: Persona = {
+      id: involved.id,
+      idTipoPersona: this.SLUG_PERSON_TYPE.NATURAL,
+      idTipoDocumento: involved.documentType,
+      numeroDocumento: involved.documentNumber,
+      nombres: getValidString(involved.names),
+      apellidoPaterno: getValidString(involved.fatherLastName),
+      apellidoMaterno: involved.motherLastName,
+      sexo: involved.gender,
+      fechaNacimiento: involved.bornDate ? formatDateInvol(involved.bornDate) : null,
+      edad: Number(involved.age) > 0 ? Number(involved.age) : undefined,
+      idGradoInstruccion: involved.idEducationalLevel,
+      gradoInstruccion: involved.educationalLevel,
+      idTipoEstadoCivil: involved.maritalStatus,
+      idNacionalidad: involved.pais,
+      flCExtranjero: this.isForeigner(involved.documentType) ? 1 : 0,
+      validado: involved.validated ? 1 : 0,
+      esMayorEdad: involved.esMayorEdad,
+      foto: this.fotoInvolucrado,
+      direccion: [this.buildAddress(involved)],
+      contacto: this.showContact(involved) ? this.buildContact(involved) : null,
+      otrosDatos: this.showExtraData(involved) ? this.buildExtraData(involved) : null
+    };
+    Object.keys(persona).forEach(key => {
+      const value = persona[key as keyof Persona];
+      if (value === null || value === undefined) {
+        delete persona[key as keyof Persona];
+      }
+    });
+    return persona;
+  }
+
+  private buildAddress(involved) {
+    return {
+      tipoDireccion: involved.tipoDireccion,
+      ubigeo: involved.district?.length === 6 ? involved.district : involved.department + involved.province + involved.district,
+      direccionCompleta: involved.address,
+      idUbigeoPueblo: null,
+      tipoVia: null,
+      direccionResidencia: null,
+      numeroResidencia: null,
+      codigoPrefijoUrbanizacion: null,
+      descripcionPrefijoDpto: null,
+      nombreUrbanizacion: null,
+      descripcionBloque: null,
+      descripcionInterior: null,
+      descripcionPrefijoBloque: null,
+      descripcionEtapa: null,
+      descripcionManzana: null,
+      descripcionLote: null,
+      descripcionReferencia: null,
+      latitud: null,
+      longitud: null,
+    };
+  }
+
+  private buildContact(involved) {
+    return {
+      celularPrincipal: involved.phone,
+      correoPrincipal: involved.email,
+      celularSecundario: involved.secondaryPhone,
+      correoSecundario: involved.secondaryEmail,
+    };
+  }
+
+  private getDefaultOtrosDatos(): any {
+    return {
+      ocupacion: null,
+      puebloIndigena: null,
+      idLenguaMaterna: null,
+      esRequiereTraductor: 0,
+      afroperuvian: null,
+      disability: null,
+      privateLibertad: null,
+      vih: null,
+      worker: null,
+      advocate: null,
+      lgtbiq: null,
+      migrant: null,
+      victim: null,
+      server: null,
+      otrosDetalleProfesionOficio: null
+    };
+  }
+
+  private buildExtraData(involved) {
+    const defaults = this.getDefaultOtrosDatos();
+    return {
+      ...defaults,
+      ocupacion: involved.ocupation,
+      puebloIndigena: involved.indigenousVillage,
+      idLenguaMaterna: involved.nativeLanguage,
+      esRequiereTraductor: involved.translator ? 1 : 0,
+      afroperuvian: involved.afroperuvian,
+      disability: involved.disability,
+      privateLibertad: involved.privateLibertad,
+      vih: involved.vih,
+      worker: involved.worker,
+      advocate: involved.advocate,
+      lgtbiq: involved.lgtbiq,
+      migrant: involved.migrant,
+      victim: involved.victim,
+      server: involved.server,
+      otrosDetalleProfesionOficio: involved.otrosDetalleProfesionOficio
+    };
+  }
+
+  private buildEntityData(involved): EntidadInvolucrada {
+    return {
+      id: involved.id,
+      idTipoEntidad: this.SLUG_ENTITY.JURIDICA,
+      ruc: involved.documentNumber,
+      razonSocial: involved.businessName,
+      validado: involved.validated ? 1 : 0,
+      correoInstitucion: involved.aggrievedEmail,
+      nuTelefonoEntidad: involved.aggrievedPhone,
+    };
+  }
+
+  private isForeigner(documentType: number): boolean {
+    const foreignerTypes = [4, 5, 6, 9, 13, 14];
+    return foreignerTypes.includes(documentType);
+  }
+
+  private addToDataList(data: any, key: string, value: any) {
+    if (!data[key]) {
+      data[key] = [value];
+    } else {
+      data[key].push(value);
+    }
+  }
+
+  private assignInvolucradoDataToRequest(request, data) {
+    switch (this.type) {
+      case this.SLUG_INVOLVED.DENUNCIANTE:
+        request['partesDenunciantes'] = data;
+        break;
+      case this.SLUG_INVOLVED.AGRAVIADO:
+        request['partesAgraviadas'] = data;
+        break;
+      case this.SLUG_INVOLVED.DENUNCIADO:
+        request['partesDenunciadas'] = data;
+        break;
+    }
+
+    if (this.type === this.SLUG_INVOLVED.AGRAVIADO && this.profileType === this.SLUG_PROFILE.ENTITY) {
+      request['partesDenunciantes'] = data;
+    }
+  }
   /****************/
   /*    OTHERS    */
   /****************/
 
   public showContact(involved: Involved): boolean {
-    return (involved.phone || involved.email || involved.secondaryPhone || involved.secondaryEmail) ? true : false
+    return !!(involved.phone || involved.email || involved.secondaryPhone || involved.secondaryEmail)
   }
 
   public showExtraData(involved: Involved): boolean {
-    return (involved.ocupation || involved.disability || involved.lgtbiq || involved.indigenousVillage || involved.nativeLanguage || involved.translator) ? true : false
+    return !!(involved.ocupation ||
+      involved.disability ||
+      involved.lgtbiq ||
+      involved.indigenousVillage ||
+      involved.nativeLanguage ||
+      involved.translator ||
+      involved.gender ||
+      involved.maritalStatus ||
+      involved.bornDate ||
+      involved.age ||
+      involved.idEducationalLevel ||
+      involved.educationalLevel ||
+      involved.nationality ||
+      involved.department ||
+      involved.province ||
+      involved.district ||
+      involved.address ||
+      involved.afroperuvian ||
+      involved.privateLibertad ||
+      involved.vih ||
+      involved.worker ||
+      involved.advocate ||
+      involved.migrant ||
+      involved.victim ||
+      involved.server ||
+      involved.otrosDetalleProfesionOficio)
   }
 
   public errorMsg(ctrlName) {
@@ -1577,16 +1790,17 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
   }
 
   public getUbigeo(ubigeo: string, type: number): string | null {
-
     if (!ubigeo)
       return null;
 
     const result = ubigeo ? ubigeo.match(/\d{2}/g) : [null, null, null];
 
-    switch (type) {
-      case 1: ubigeo = `${result[0]}`; break
-      case 2: ubigeo = `${result[0]}${result[1]}`; break
-      default: ubigeo = `${result[0]}${result[1]}${result[2]}`; break
+    if (result.length < 3 || !result.includes('null')) {
+      switch (type) {
+        case 1: ubigeo = `${result[0]}`; break
+        case 2: ubigeo = `${result[0]}${result[1]}`; break
+        default: ubigeo = `${result[0]}${result[1]}${result[2]}`; break
+      }
     }
 
     return ubigeo
@@ -1594,24 +1808,26 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
 
   public getNames(involved: Involved): string {
     let nombreTipoPersona: string = ""
-    if (this.type === SLUG_INVOLVED.DENUNCIADO || this.type === SLUG_INVOLVED.AGRAVIADO) {
-      switch (involved.documentType) {
-        case SLUG_DOCUMENT_TYPE.RUC: // RUC
-          nombreTipoPersona = 'Persona Jurídica - '
-          break
-        case SLUG_DOCUMENT_TYPE.DNI: // DNI
-          nombreTipoPersona = 'Persona Natural - '
-          break
-        default:
-          nombreTipoPersona = 'Persona Natural - '
-      }
+
+    switch (involved.documentType) {
+      case this.SLUG_DOCUMENT_TYPE.RUC: // RUC
+        nombreTipoPersona = 'Persona Jurídica - '
+        break
+
+      case this.SLUG_DOCUMENT_TYPE.DNI: // DNI
+        nombreTipoPersona = 'Persona Natural - '
+        break
+
+      default:
+        nombreTipoPersona = 'Persona Natural - '
     }
+
     let name: string = ''
 
     if (involved.names === 'LQRR')
       return 'LOS QUE RESULTEN RESPONSABLES (LQRR)';
 
-    if (involved.documentType === SLUG_DOCUMENT_TYPE.RUC)
+    if (involved.documentType === this.SLUG_DOCUMENT_TYPE.RUC)
       name = `${involved.businessName}`;
     else
       name = `${involved.names} ${involved.fatherLastName || ''} ${involved.motherLastName || ''}`;
@@ -1655,11 +1871,11 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     if (origen !== 'PER') {
       this.paisArrActual = this.getTodosMenosPeru();
       pais?.enable();
+      pais?.reset();
     }
 
-    await this.getDocumentTypeAsync();
-
     this.form?.get('documentNumber').reset();
+    await this.getDocumentTypeAsync();
   }
 
   private getSoloPeru(): any[] {
@@ -1677,5 +1893,166 @@ export class InvolvedsComponent implements OnInit, OnDestroy {
     const cbo = this.form?.get('pais');
     cbo?.setValue(this.PERU_ID);
     cbo?.disable();
+  }
+
+  /**********************/
+  /*  DATA SERIALIZATION */
+  /**********************/
+
+  private convertStringToDate(dateString: string): Date | null {
+    if (!dateString) return null;
+
+    try {
+      // Si ya es un string en formato dd/mm/yyyy, convertirlo a Date
+      if (dateString.includes('/')) {
+        return getDateFromString(dateString);
+      }
+      // Si es un string ISO, convertirlo a Date
+      else if (dateString.includes('T')) {
+        const date = new Date(dateString);
+        return isNaN(date.getTime()) ? null : date;
+      }
+      // Si es un timestamp
+      else {
+        const date = new Date(parseInt(dateString));
+        return isNaN(date.getTime()) ? null : date;
+      }
+    } catch (error) {
+      console.error('Error al convertir string a Date:', error);
+      return null;
+    }
+  }
+
+  private serializeInvolvedData(data: any): any {
+    const serialized = { ...data };
+
+    // Convertir fechas a string en formato dd/mm/yyyy para localStorage
+    if (serialized.bornDate) {
+      try {
+        if (serialized.bornDate instanceof Date) {
+          // Validar que la fecha sea válida antes de serializar
+          if (!isNaN(serialized.bornDate.getTime())) {
+            serialized.bornDate = serialized.bornDate.toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            });
+          } else {
+            console.warn('Fecha inválida encontrada al serializar:', serialized.bornDate);
+            serialized.bornDate = null;
+          }
+        }
+      } catch (error) {
+        console.error('Error al serializar fecha:', error);
+        serialized.bornDate = null;
+      }
+    }
+
+    // Asegurar que los campos adicionales se preserven
+    const extraFields = [
+      'gender', 'maritalStatus', 'bornDate', 'age', 'idEducationalLevel',
+      'educationalLevel', 'nationality', 'department', 'province', 'district',
+      'address', 'afroperuvian', 'privateLibertad', 'vih', 'worker', 'advocate',
+      'migrant', 'victim', 'server', 'ocupation', 'disability', 'lgtbiq',
+      'indigenousVillage', 'nativeLanguage', 'translator', 'otrosDetalleProfesionOficio'
+    ];
+
+    extraFields.forEach(field => {
+      if (!(field in serialized)) {
+        serialized[field] = null;
+      }
+    });
+
+    return serialized;
+  }
+
+  private deserializeInvolvedData(data: any): any {
+    const deserialized = { ...data };
+
+    deserialized.bornDate = this.normalizeBornDate(deserialized.bornDate);
+    this.ensureOtrosDatosFields(deserialized);
+
+    return deserialized;
+  }
+
+  private normalizeBornDate(dateValue: any): string | null {
+    if (!dateValue || typeof dateValue !== 'string') return null;
+
+    try {
+      if (dateValue.includes('T')) {
+        return this.convertIsoToDateString(dateValue);
+      }
+
+      if (dateValue.includes('/')) {
+        return this.validateDdMmYyyyFormat(dateValue) ? dateValue : null;
+      }
+
+      if (!isNaN(Number(dateValue))) {
+        return this.convertTimestampToDateString(Number(dateValue));
+      }
+    } catch (error) {
+      console.error('Error al deserializar fecha:', error);
+    }
+
+    return null;
+  }
+
+  private convertIsoToDateString(isoString: string): string | null {
+    const date = new Date(isoString);
+    return isNaN(date.getTime()) ? null : this.formatDateToSpanish(date);
+  }
+
+  private convertTimestampToDateString(timestamp: number): string | null {
+    const date = new Date(timestamp);
+    return isNaN(date.getTime()) ? null : this.formatDateToSpanish(date);
+  }
+
+  private validateDdMmYyyyFormat(dateStr: string): boolean {
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) return false;
+
+    const [day, month, year] = parts.map(Number);
+    const isValid = day > 0 && day <= 31 && month > 0 && month <= 12 && year > 1900;
+
+    if (!isValid) {
+      console.warn('Formato de fecha inválido:', dateStr);
+    }
+
+    return isValid;
+  }
+
+  private formatDateToSpanish(date: Date): string {
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  }
+
+  private ensureOtrosDatosFields(data: any): void {
+    const defaultOtrosDatos = this.getDefaultOtrosDatos();
+    Object.keys(defaultOtrosDatos).forEach(key => {
+      if (!(key in data)) {
+        data[key] = defaultOtrosDatos[key];
+      }
+    });
+  }
+  /**********************/
+  /*  RECORD EXTRA DATA */
+  /**********************/
+  private isAdult(bornDate?: Date | null): boolean {
+
+    if (!bornDate) return true
+
+    const date = (bornDate instanceof Date) ? bornDate : new Date(bornDate);
+
+    // Validar si la fecha es válida
+    if (isNaN(date.getTime())) {
+      return true; // Fecha inválida (string malformado)
+    }
+
+    const today = new Date();
+    const age = differenceInYears(today, bornDate);
+    return age >= 18;
   }
 }

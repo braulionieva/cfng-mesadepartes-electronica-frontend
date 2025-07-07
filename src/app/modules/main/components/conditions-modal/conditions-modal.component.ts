@@ -20,12 +20,6 @@ import { MaestrosService } from '@shared/services/shared/maestros.service';
 import { iUser, iTrashCan, iArrowRight, } from 'ngx-mpfn-dev-icojs-regular';
 
 import { FnIcon } from '@shared/interfaces/fn-icon';
-
-interface Condition {
-  description: string;
-  confirm: boolean;
-}
-
 @Component({
   selector: 'main-conditions',
   templateUrl: './conditions-modal.component.html',
@@ -39,7 +33,7 @@ interface Condition {
     FormsModule,
     CmpLibModule,
   ],
-  styles: [],
+  styleUrls: ['./conditions-modal.component.scss'],
 })
 export class ConditionsModalComponent implements OnInit {
 
@@ -88,7 +82,6 @@ export class ConditionsModalComponent implements OnInit {
   }
 
   loadConditions(): void {
-
     this.maestrosService.getConditions().subscribe({
       next: resp => {
         if (resp && resp.code === 200) {
